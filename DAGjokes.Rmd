@@ -14,18 +14,198 @@ knitr::opts_chunk$set(message=FALSE)
 library(tidyverse)
 library(rethinking)
 library(dagitty)
-library(INLA)
 library(knitr)
-library(stringr)
+library("ggdag")
+
+
 ```
 
-#**Causal inference** 
+Resources 
 
-Causal inference is the process of drawing a conclusion about a causal connection based on the conditions of the occurrence of an effect. The main difference between causal inference and inference of association is that the former analyzes the response of the effect variable when the cause is changed. (Wikipedia)
+* DAG and bias theory
 
+[Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
+
+[Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
+
+
+* ggdag
+
+https://ggdag.malco.io/
+https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html
+https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
+
+
+# **Causal inference** 
+
+Causal inference is the process of drawing a conclusion about a causal connection based on the conditions of the occurrence of an effect. The main difference between causal inference and inference of association is that the former analyzes the response of the effect variable when the cause is changed. (https://en.wikipedia.org/wiki/Causal_inference#:~:text=Causal%20inference%20is%20the%20process,when%20the%20cause%20is%20changed.)
 
 (Hernán 2002)
-We have used causal diagrams to describe three possible sources of statistical association between two variables: cause and effect, sharing of common causes, and calculation of the association within levels of a common effect. There is confounding when the association between exposure and disease includes a noncausal component attributable to their having an uncontrolled common cause. There is selection bias when the association between exposure and disease includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and disease or, more generally, to conditioning on a common effect of variables correlated with exposure and disease. In either case, the exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias. Statistical criteria are insuffi- cient to characterize either confounding or selection bias.
+
+A statistical association between an exposure (E) and an outcome (O) can be due to either or both: 
+
+* a **causal effect** : E causes O (ex: smoking and lung cancer). This is the effect we want to isolate using causal inference.
+
+```{r dag1, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, O = 2),
+  y = c(E = 0, O = 0)
+) %>% 
+   coords2df()
+
+dag1.1 <- dagify( 
+  O ~ E, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+
+* a **spurious effect** =  **confounder** : E and O have a common cause. This is the effect we want to eliminate in order to isolate the causal effect. 
+
+```{r dag2, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+
+A third effect between 2 variables can be 
+
+* a **common effect** = **collider**
+
+```{r dag3, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ E,
+  C ~ O, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+
+## causal effect 
+
+The total causal effect is the sum of the direct and indirect effects 
+
+```{r dag1.3, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, O = 3),
+  y = c(E = 0, O = 0, J = 1)
+) %>% 
+   coords2df()
+
+dag1.3 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.3) +
+  theme_dag()
+```
+
+* direct effect
+  
+```{r dag1.1, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, O = 2),
+  y = c(E = 0, O = 0)
+) %>% 
+   coords2df()
+
+dag1.1 <- dagify( 
+  O ~ E, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+* indirect effect
+  
+```{r dag1.2, echo =FALSE}
+coords <- list(
+  x = c(E = 1, J=2, O = 3),
+  y = c(E = 0, O = 0, J = 1)
+) %>% 
+   coords2df()
+
+dag1.2 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  exposure = "E",
+  outcome = "O",
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+
+Obtaining an unbiased estimate of the direct effect requires measuring and adjusting for all confounders of both the 
+
+* J $\to$ O association 
+* E $\to$ O association 
+
+## spurious effect
+
+(Hernán 2002)
+
+The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
+
+* There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
+
+* There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
+
+### strategies to identify confounders
+
+1. automatic variable selection procedures: i.e stepwise regression. It assumes that all important confounders will be selected 
+
+2. change in effect estimate: comparison of the effect estimates between adjusted and unadjusted effect estimates. The variable is selected as a confounder if there is a relative change greater than 10%. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
+
+3. check whether the variable meets the criteria of a confounder: combines information from statistical associations and background knowledge. 
 
 **Confounder** 
 
@@ -33,6 +213,29 @@ a variable that is:
 
 * associated with the outcome, conditional on the exposure (i.e. in the exposed group)
 * associated with the exposure, conditional on the exposure (i.e. in the exposed group)
-* not on the causal pathway between the exposure and the outcome. 
+* not on the causal pathway between the exposure and the outcome.
+
+
+Strategies 1 and 2 rest only on statistical associations that can easily be identified from the data. Strategy 3 combines statistical associations from the data with some background knowledge about the causal network that links exposure, outcome, and potential confounders. 
+
+Statistical criteria alone are insufficient to characterize either confounding or selection bias.
+
+
+### strategies to control confounders
+
+* study design: 
+    + randomization
+    + restriction 
+    
+    
+* study design + study analysis: 
+    + matching
+    
+    
+* study analysis 
+    + stratification: 
+    + standarization 
+    + inverse probability treatment
+    + multivariate adjustment 
 
 
