@@ -20,11 +20,11 @@ library("ggdag")
 
 ```
 
-Resources 
+**Resources** 
 
 * DAG and bias theory
 
-[Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
+[Causal Knowledge as a Prerequisite for Confounding Evaluation: An Application to Birth Defects Epidemiology, Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
 
 [Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
 
@@ -32,7 +32,9 @@ Resources
 * ggdag
 
 https://ggdag.malco.io/
+
 https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html
+
 https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
 
 
@@ -184,10 +186,110 @@ ggdag(dag1.2) +
 ```
 
 
-Obtaining an unbiased estimate of the direct effect requires measuring and adjusting for all confounders of both the 
+### Obtaining an unbiased estimate of the causal effect: 
 
-* J $\to$ O association 
-* E $\to$ O association 
+* Obtaining an unbiased estimate of the total effect requires measuring and adjusting for all confounders of the E $\to$ O association 
+
+* Obtaining an unbiased estimate of the direct effect requires measuring and adjusting for all confounders of both the 
+  + J $\to$ O association 
+  + E $\to$ O association 
+
+Examples: 
+
+1. 
+```{r dag1.4, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 3, O = 3),
+  y = c(E = 0, O = 0, J = 1, C= 2)
+) %>% 
+   coords2df()
+
+dag1.4 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  O ~ C,
+  J ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.4 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the total causal effect we condition on C but not J:
+
+  + C is a confounder of the J $\to$ O association so we must condition on it to obtain the unbiased total causal effect 
+
+```{r adjust C}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "C")+
+  theme_dag()
+```
+  
+  + J is a collider of the E $\to$ C association so if we condition on J we create a backdoor path between O $\to$ E through C. 
+  
+```{r adjust J}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "J")+
+  theme_dag()
+```
+  
+
+* To obtain the direct causal effect we condition on both J and C. 
+
+```{r adjust JC}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("J", "C"))+
+  theme_dag()
+```
+
+2. 
+```{r dag1.5, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 3, O = 3, D = 2),
+  y = c(E = 0, O = 0, J = 1, C= 2, D = -1)
+) %>% 
+   coords2df()
+
+dag1.5 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  O ~ C,
+  J ~ C,
+  O ~ D, 
+  E~ D, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.5 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+* To obtain the total causal effect we condition on D
+
+```{r adjust D}
+dag1.5 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "D")+
+  theme_dag()
+```
+
+* To obtain the total causal effect we condition on C, D, J
+
+```{r adjust JCD, warning=FALSE}
+
+dag1.5 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("C", "D", "J"))+
+  theme_dag()
+```
 
 ## spurious effect
 
