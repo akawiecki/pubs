@@ -1,0 +1,38 @@
+---
+title: "DAG jokes"
+author: "Ania Kawiecki"
+date: "9/29/2020"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(message=FALSE)
+```
+
+```{r libraries, message= FALSE}
+
+library(tidyverse)
+library(rethinking)
+library(dagitty)
+library(INLA)
+library(knitr)
+library(stringr)
+```
+
+#**Causal inference** 
+
+Causal inference is the process of drawing a conclusion about a causal connection based on the conditions of the occurrence of an effect. The main difference between causal inference and inference of association is that the former analyzes the response of the effect variable when the cause is changed. (Wikipedia)
+
+
+(Hernán 2002)
+We have used causal diagrams to describe three possible sources of statistical association between two variables: cause and effect, sharing of common causes, and calculation of the association within levels of a common effect. There is confounding when the association between exposure and disease includes a noncausal component attributable to their having an uncontrolled common cause. There is selection bias when the association between exposure and disease includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and disease or, more generally, to conditioning on a common effect of variables correlated with exposure and disease. In either case, the exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias. Statistical criteria are insuffi- cient to characterize either confounding or selection bias.
+
+**Confounder** 
+
+a variable that is: 
+
+* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
+* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
+* not on the causal pathway between the exposure and the outcome. 
+
+
