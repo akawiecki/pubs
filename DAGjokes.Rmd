@@ -37,6 +37,11 @@ https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html
 
 https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
 
+https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
+
+https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
+
+
 
 # **Causal inference** 
 
@@ -46,7 +51,7 @@ Causal inference is the process of drawing a conclusion about a causal connectio
 
 A statistical association between an exposure (E) and an outcome (O) can be due to either or both: 
 
-* a **causal effect** : E causes O (ex: smoking and lung cancer). This is the effect we want to isolate using causal inference.
+## a **causal effect** : E causes O (ex: smoking and lung cancer). This is the effect we want to isolate using causal inference.
 
 ```{r dag1, echo =FALSE}
 
@@ -293,8 +298,6 @@ ggdag_dseparated(from = "E", to = "O", controlling_for = c("C", "D", "J"))+
 
 ## spurious effect
 
-(Hernán 2002)
-
 The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
 
 * There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
@@ -322,6 +325,11 @@ Strategies 1 and 2 rest only on statistical associations that can easily be iden
 
 Statistical criteria alone are insufficient to characterize either confounding or selection bias.
 
+The presence of common causes, and therefore of confounding, can be represented by causal diagrams known as directed acyclic graphs (DAGs). 
+
+**DAG = directed acyclic graph**: these diagrams link variables by arrows that represent direct causal effects (protective or causative) of one variable on another.
+
+
 
 ### strategies to control confounders
 
@@ -339,5 +347,8 @@ Statistical criteria alone are insufficient to characterize either confounding o
     + standarization 
     + inverse probability treatment
     + multivariate adjustment 
+
+##
+
 
 
