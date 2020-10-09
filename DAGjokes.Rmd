@@ -16,17 +16,25 @@ library(rethinking)
 library(dagitty)
 library(knitr)
 library("ggdag")
+library("ggrepel")
 
 
 ```
 
-**Resources** 
+# **Causal inference** 
+
+## Resources
 
 * DAG and bias theory
 
-[Causal Knowledge as a Prerequisite for Confounding Evaluation: An Application to Birth Defects Epidemiology, Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
 
 [Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
+
+[Causal Knowledge as a Prerequisite for Confounding Evaluation: An Application to Birth Defects Epidemiology, Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
+
+[Causal inference in statistics: an overview, Pearl 2009](https://projecteuclid.org/euclid.ssu/1255440554http://projecteuclid.org/euclid.ssu/1255440554)
+
+[An introduction to causal inference, Pearl 2010](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2836213/)
 
 
 * ggdag
@@ -42,47 +50,49 @@ https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
 https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
 
 
+## Introduction
 
-# **Causal inference** 
 
-Causal inference is the process of drawing a conclusion about a causal connection based on the conditions of the occurrence of an effect. The main difference between causal inference and inference of association is that the former analyzes the response of the effect variable when the cause is changed. (https://en.wikipedia.org/wiki/Causal_inference#:~:text=Causal%20inference%20is%20the%20process,when%20the%20cause%20is%20changed.)
+"The questions that motivate most studies in the health, social and behavioral sciences are not associational but causal in nature. For example, what is the efficacy of a given drug in a given population? What was the cause of death of a given individual, in a specific incident? These are causal questions because they require some knowledge of the data-generating process; they cannot be computed from the data alone, nor from the distributions that govern the data" (Pearl 2009). 
 
-(Hernán 2002)
+"The aim of standard statistical analysis is to assess parameters of a distribution from samples drawn of that distribution. With the help of such parameters, associations among variables can be inferred, which permits the researcher to estimate probabilities of past and future events and update those probabilities in light of new information. These tasks are managed well by standard statistical analysis so long as experimental conditions remain the same. Causal analysis goes one step further; its aim is to infer probabilities under conditions that are **changing**, for example, changes induced by treatments or external interventions.
 
-A statistical association between an exposure (E) and an outcome (O) can be due to either or both: 
+This distinction implies that causal and associational concepts do not mix; there is nothing in a distribution function to tell us how that distribution would differ if external conditions were to change—say from observational to experimental setup—because the laws of probability theory do not dictate how one property of a distribution ought to change when another property is modified. This information must be provided by **causal assumptions which identify relationships that remain invariant when external conditions change**.
 
-## a **causal effect** : E causes O (ex: smoking and lung cancer). This is the effect we want to isolate using causal inference.
+Causal relations cannot be expressed in the language of probability and, hence, that any mathematical approach to causal analysis must acquire new notation – probability calculus is insufficient. To illustrate, the syntax of probability calculus does not permit us to express the simple fact that “symptoms do not cause diseases,” let alone draw mathematical conclusions from such facts. All we can say is that two events are dependent—meaning that if we find one, we can expect to encounter the other, but we cannot distinguish statistical dependence, quantified by the conditional probability P(disease|symptom) from causal dependence, for which we have no expression in standard probability calculus." (Pearl 2010)
 
-```{r dag1, echo =FALSE}
+### Summary: 
 
+The difference between association and causality is that causality is **directional**, which cannot be represented with standard calculus notation. 
+
+A statistical association between an exposure and an outcome can be due to either or both a :
+
+* **causal effect**: the exposure causes the outcome. This is the effect we want to isolate using causal inference.
+
+```{r dag causal, echo =FALSE}
 coords <- list(
   x = c(E = 1, O = 2),
   y = c(E = 0, O = 0)
 ) %>% 
    coords2df()
-
 dag1.1 <- dagify( 
   O ~ E, 
   exposure = "E",
   outcome = "O", 
   coords = coords2list(coords)) %>% 
   tidy_dagitty()
-
 ggdag(dag1.1) +
   theme_dag()
 ```
 
+* **spurious effect**: the exposed and the unexposed groups in the study are not comparable, or exchangeable, which is the ultimate source of the bias (the unexposed group is not the counterfactual of the exposed group). (Hernan 2002)
 
-* a **spurious effect** =  **confounder** : E and O have a common cause. This is the effect we want to eliminate in order to isolate the causal effect. 
-
-```{r dag2, echo =FALSE}
+```{r dag spurious, echo =FALSE}
 coords <- list(
   x = c(E = 1, O = 3, C=2),
   y = c(E = 0, O = 0, C=1)
 ) %>% 
    coords2df()
-
-
 dag2 <- dagify( 
   E ~ C,
   O ~ C, 
@@ -90,12 +100,9 @@ dag2 <- dagify(
   outcome = "O", 
   coords = coords2list(coords)) %>% 
   tidy_dagitty()
-
 ggdag(dag2, layout= "grid") +
   theme_dag()
-
 ```
-
 
 A third effect between 2 variables can be 
 
@@ -123,24 +130,126 @@ ggdag(dag3, layout= "grid") +
 ```
 
 
-## causal effect 
+
+## description of the example
+
+We will look into causal inference using a working example from Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath: Correlation between marriage rate (the exposure) and divorce rate (the outcome).
+
+There are three observed variables in play: divorce rate (D), marriage rate (M), and the median age at marriage (A) in each State of the U.S. Both marriage rates and median age at marriage are great predictors of the divorce rate in a given State, but are these relationships causal? 
+
+The rate at which adults marry is a great predictor of divorce rate. But does marriage cause divorce? In a trivial sense it obviously does: One cannot get a divorce without first getting married. But there’s no reason high marriage rate must cause more divorce. It’s easy to imagine high marriage rate indicating high cultural valuation of marriage and therefore being associated with low divorce rate.
+
+Age at marriage is also a good predictor of divorce rate— higher age at marriage predicts less divorce. But there is no reason this has to be causal, either, unless age at marriage is very late and the spouses do not live long enough to get a divorce.
+
+
+```{r 5.1}
+# load data and copy 
+library(rethinking) 
+data(WaffleDivorce) 
+d <- WaffleDivorce
+# standardize variables
+d$D <- standardize( d$Divorce )
+d$M <- standardize( d$Marriage )
+d$A <- standardize( d$MedianAgeMarriage )
+```
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{A}A_{i}$
+
+The outcome and the predictor are both standardized, the intercept α should end up very close to zero. 
+
+What does the prior slope $\beta_{A}$ imply? If $\beta_{A}$ = 1, that would imply that a change of one standard deviation in age at marriage is associated likewise with a change of one standard deviation in divorce. To know whether or not that is a strong relationship, you need to know how big a standard deviation of age at marriage is:
+
+```{r sd A}
+ sd( d$MedianAgeMarriage )
+```
+
+So when $\beta_{A}$ = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable. That seems like an insanely strong relationship. 
+
+```{r 5.3}
+m5.1 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bA * A ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        #when βA = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable (divorce)
+        #only 5% of plausible slopes more extreme than 1.
+        bA ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+precis(m5.1)
+
+```
+posterior for $\beta_{A}$ is reliably negative, as seen:
+
+```{r 5.5}
+
+# compute percentile interval of mean
+A_seq <- seq( from=-3 , to=3.2 , length.out=30 )
+mu <- link( m5.1 , data=list(A=A_seq) )
+mu.mean <- apply( mu , 2, mean )
+mu.PI <- apply( mu , 2 , PI )
+# plot it all
+plot( D ~ A , data=d , col=rangi2 )
+lines( A_seq , mu.mean , lwd=2 )
+shade( mu.PI , A_seq )
+
+
+```
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{M}M_{i}$
+
+```{r 5.6}
+
+m5.2 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bM * M ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bM ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+precis(m5.2)
+# compute percentile interval of mean
+M_seq <- seq( from=-3 , to=3.2 , length.out=30 )
+mu <- link( m5.2 , data=list(M=M_seq) )
+mu.mean <- apply( mu , 2, mean )
+mu.PI <- apply( mu , 2 , PI )
+# plot it all
+plot( D ~ M , data=d , col=rangi2 )
+lines( M_seq , mu.mean , lwd=2 )
+shade( mu.PI , M_seq )
+```
+This relationship isn’t as strong as the previous one.
+
+The pattern we see in the previous two models is symptomatic of a situation in which only one of the predictor variables, A in this case, has a causal impact on the outcome, D, even though both predictor variables are strongly associated with the outcome.
+
+## causal effect
 
 The total causal effect is the sum of the direct and indirect effects 
+
+Example: age of marriage influences divorce in two ways. 
+
 
 ```{r dag1.3, echo =FALSE}
 
 coords <- list(
-  x = c(E = 1, J=2, O = 3),
-  y = c(E = 0, O = 0, J = 1)
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
 ) %>% 
    coords2df()
 
 dag1.3 <- dagify( 
-  J ~ E,
-  O ~ J, 
-  O ~ E, 
-  exposure = "E",
-  outcome = "O", 
+  M ~ A,
+  D ~ M, 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
   coords = coords2list(coords)) %>% 
   tidy_dagitty()
 
@@ -148,20 +257,22 @@ ggdag(dag1.3) +
   theme_dag()
 ```
 
-* direct effect
+### direct effect
+
+Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
   
 ```{r dag1.1, echo =FALSE}
 
 coords <- list(
-  x = c(E = 1, O = 2),
-  y = c(E = 0, O = 0)
+  x = c(A = 1, D = 2),
+  y = c(A = 0, D = 0)
 ) %>% 
    coords2df()
 
 dag1.1 <- dagify( 
-  O ~ E, 
-  exposure = "E",
-  outcome = "O", 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
   coords = coords2list(coords)) %>% 
   tidy_dagitty()
 
@@ -169,20 +280,22 @@ ggdag(dag1.1) +
   theme_dag()
 ```
 
-* indirect effect
+### indirect effect
+
+Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
   
 ```{r dag1.2, echo =FALSE}
 coords <- list(
-  x = c(E = 1, J=2, O = 3),
-  y = c(E = 0, O = 0, J = 1)
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
 ) %>% 
    coords2df()
 
 dag1.2 <- dagify( 
-  J ~ E,
-  O ~ J, 
-  exposure = "E",
-  outcome = "O",
+  M ~ A,
+  D ~ M, 
+  exposure = "A",
+  outcome = "D",
   coords = coords2list(coords)) %>% 
   tidy_dagitty()
 
@@ -191,7 +304,83 @@ ggdag(dag1.2) +
 ```
 
 
-### Obtaining an unbiased estimate of the causal effect: 
+## spurious effect 
+
+```{r dag2, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+
+The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
+
+* There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
+
+* There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
+
+### strategies to identify confounders
+
+1. automatic variable selection procedures: i.e stepwise regression. It assumes that all important confounders will be selected 
+
+2. change in effect estimate: comparison of the effect estimates between adjusted and unadjusted effect estimates. The variable is selected as a confounder if there is a relative change greater than 10%. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
+
+3. check whether the variable meets the criteria of a confounder: combines information from statistical associations and background knowledge. 
+
+**Confounder** 
+
+a variable that is: 
+
+* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
+* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
+* not on the causal pathway between the exposure and the outcome.
+
+
+Strategies 1 and 2 rest only on statistical associations that can easily be identified from the data. Strategy 3 combines statistical associations from the data with some background knowledge about the causal network that links exposure, outcome, and potential confounders. 
+
+Statistical criteria alone are insufficient to characterize either confounding or selection bias.
+
+The presence of common causes, and therefore of confounding, can be represented by causal diagrams known as directed acyclic graphs (DAGs). 
+
+**DAG = directed acyclic graph**: these diagrams link variables by arrows that represent direct causal effects (protective or causative) of one variable on another.
+
+
+
+### strategies to control confounders
+
+* study design: 
+    + randomization
+    + restriction 
+    
+    
+* study design + study analysis: 
+    + matching
+    
+    
+* study analysis 
+    + stratification: 
+    + standarization 
+    + inverse probability treatment
+    + multivariate adjustment 
+
+
+
+## Obtaining an unbiased estimate of the causal effect: 
 
 * Obtaining an unbiased estimate of the total effect requires measuring and adjusting for all confounders of the E $\to$ O association 
 
@@ -199,7 +388,6 @@ ggdag(dag1.2) +
   + J $\to$ O association 
   + E $\to$ O association 
 
-Examples: 
 
 1. 
 ```{r dag1.4, echo =FALSE}
@@ -296,59 +484,459 @@ ggdag_dseparated(from = "E", to = "O", controlling_for = c("C", "D", "J"))+
   theme_dag()
 ```
 
-## spurious effect
 
-The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
+### Divorce rate example: 
 
-* There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
+To infer the strength of these different arrows, we need more than one statistical model. 
 
-* There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
+* To obtain the total effect of of age at marriage on divorce rate we condition on age at marriage. 
 
-### strategies to identify confounders
-
-1. automatic variable selection procedures: i.e stepwise regression. It assumes that all important confounders will be selected 
-
-2. change in effect estimate: comparison of the effect estimates between adjusted and unadjusted effect estimates. The variable is selected as a confounder if there is a relative change greater than 10%. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
-
-3. check whether the variable meets the criteria of a confounder: combines information from statistical associations and background knowledge. 
-
-**Confounder** 
-
-a variable that is: 
-
-* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
-* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
-* not on the causal pathway between the exposure and the outcome.
+The total causal effect is the sum of the direct and indirect effects 
 
 
-Strategies 1 and 2 rest only on statistical associations that can easily be identified from the data. Strategy 3 combines statistical associations from the data with some background knowledge about the causal network that links exposure, outcome, and potential confounders. 
+```{r dag ex1, echo =FALSE}
 
-Statistical criteria alone are insufficient to characterize either confounding or selection bias.
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
 
-The presence of common causes, and therefore of confounding, can be represented by causal diagrams known as directed acyclic graphs (DAGs). 
+dag1.3 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
 
-**DAG = directed acyclic graph**: these diagrams link variables by arrows that represent direct causal effects (protective or causative) of one variable on another.
+dag1.3 %>% 
+ggdag_dseparated(from = "A", to = "D")+
+  theme_dag()
+```
+
+Model m5.1, the regression of D on A, tells us only that the total influence of age at marriage is strongly negative with divorce rate. The “total” here means we have to account for every path from A to D. There are two such paths in this graph: A → D, a direct path,and A → M → D, an indirect path. 
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{A}A_{i}$
+
+```{r total effect ex}
+m5.1 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bA * A ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        #when βA = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable (divorce)
+        #only 5% of plausible slopes more extreme than 1.
+        bA ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+precis(m5.1)
+
+dag1.3 %>% 
+ggdag_dseparated(from = "A", to = "D", controlling_for = "A")+
+  theme_dag()
+```
 
 
 
-### strategies to control confounders
+In general, it is possible that a variable like A has no direct effect at all on an outcome like D. It could still be associated with D entirely through the indirect path. That type of relationship is known as **mediation**.
 
-* study design: 
-    + randomization
-    + restriction 
-    
-    
-* study design + study analysis: 
-    + matching
-    
-    
-* study analysis 
-    + stratification: 
-    + standarization 
-    + inverse probability treatment
-    + multivariate adjustment 
+As you’ll see however, the indirect path does almost no work in this case. How can we show that? 
 
-##
+We know from m5.2 that marriage rate is positively associated with divorce rate. But that isn’t enough to tell us that the path M → D is positive. It could be that the association between M and D arises entirely from A’s influence on both M and D. Like this:
+
+```{r dag mediation, echo =FALSE}
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.2 <- dagify( 
+  M ~ A,
+  D ~ A, 
+  exposure = "A",
+  outcome = "D",
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+This DAG is also consistent with the posterior distributions of models m5.1 and m5.2. Why? Because both M and D “listen” to A. They have information from A. So when you inspect the association between D and M, you pick up that common information that they both got from listening to A.
+
+So which is it? Is there a direct effect of marriage rate, or rather is age at marriage just driving both, creating a spurious correlation between marriage rate and divorce rate? To find out, we need to consider carefully what each DAG implies.
+
+### TESTABLE IMPLICATIONS
+
+Testable implications can be read off the diagrams using a graphical criterion known as d- separation (Pearl, 1988). Each diagram encodes causal assumptions, each corresponding to a missing arrow or a missing double-arrow between a pair of variables. 
+
+DAGs imply that some variables are independent of others under certain conditions, therefore the testable implications of a DAG are it's **CONDITIONAL INDEPENDENCIES**.
+
+**CONDITIONAL INDEPENDENCIES** describe which variables should be associated with one another (or not) in the data, and which variables become disassociated when we condition on some other set of variables.
+
+**Conditioning**: conditioning on a variable Z means learning its value and then asking if X adds any additional information about Y. If learning X doesn’t give you any more information about Y, then we might say that Y is independent of X conditional on Z. This conditioning statement is sometimes written as: $Y \!\perp\!\!\!\perp X|Z$
+
+
+$X \not\!\perp\!\!\!\perp Y$ means "not independent of"
+
+$X \!\perp\!\!\!\perp Y$ means "independent of"
+
+
+**In our divorce example**
+
+If we look in the data and find that any pair of variables are not associated, then something is wrong with the DAG (assuming the data are correct). In these data, all three pairs are in fact strongly associated. Check for yourself. You can use cor to measure simple correlations. Correlations are sometimes terrible measures of association—many different patterns of association with different implications can produce the same correlation. But they do honest work in this case.
+
+```{r cor}
+cor(d$D, d$M)
+cor(d$D, d$A)
+cor(d$M, d$A)
+```
+
+
+* **First DAG**: M has influence on D. 
+
+```{r dag1}
+ggdag(dag1.3) +
+  theme_dag()
+```
+
+This DAG says: 
+
+(1) A directly influences D 
+(2) M directly influences D
+(3) A directly influences M
+
+There are 3 causal assumptions that can be tested (one for every arrow). 
+
+Before we condition on anything, we assume everything is associated with everything else.
+
+
+The testable implications are:
+
+(1) $D \not\!\perp\!\!\!\perp A$ A not independent of D 
+(2) $D \not\!\perp\!\!\!\perp M$ M not independent of D 
+(3) $A \not\!\perp\!\!\!\perp M$ D not independent of A 
+
+  +implied conditional independencies = none
+```{r imp cond dag 1}
+DMA_dag1 <- dagitty('dag{ D <- A -> M -> D }')
+impliedConditionalIndependencies( DMA_dag1  )
+```
+
+* **Second DAG**: M has no influence on D. 
+
+```{r dag no DM}
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+In this DAG, it is still true that all three variable are associated with one another. A is associated with D and M because it influences them both. And D and M are associated with one another, because M influences them both. They share a cause, and this leads them to be correlated with one another through that cause. 
+There are 3 causal assumptions that can be tested (one for every arrow). Before we condition on anything, we assume everything is associated with everything else.
+
+(1) A causes D 
+
+~~(2) M causes D~~
+
+(3) A causes M
+
+But suppose we condition on A. All of the information in M that is relevant to predicting D is in A. So once we’ve conditioned on A, M tells us nothing more about D. So in the second DAG, a testable implication is that D is independent of M, conditional on A. In other words, $D \!\perp\!\!\!\perp M|A$ 
+
+  +The testable implications are:
+
+All 3 variables should be associated, before conditioning on anything:
+
+(1) $D \not\!\perp\!\!\!\perp A$ A not independent of D 
+
+(2) $D \not\!\perp\!\!\!\perp M$ M not independent of D 
+
+(3) $A \not\!\perp\!\!\!\perp M$ D not independent of A 
+
+(4) $D \!\perp\!\!\!\perp M|A$ D and M should be independent after conditioning on A.
+
+  + implied conditional independencies = D _||_ M | A
+```{r imp cond dag 2}
+DMA_dag2 <- dagitty('dag{ D <- A -> M }') 
+impliedConditionalIndependencies( DMA_dag2  )
+```
+
+* Test the difference betweet the two DAGs
+
+The only implication that differs between these DAGs is the last one:$D \!\perp\!\!\!\perp M|A$ D and M should be independent after conditioning on A.
+
+To test this implication, we need a statistical model that conditions on A, so we can see whether that renders D independent of M. And that is what multiple regression helps with. It can address a useful descriptive question: *Is there any additional value in knowing a variable, once I already know all of the other predictor variables?*
+
+So for example once you fit a multiple regression to predict divorce using both marriage rate and age at marriage, the model addresses the questions:
+(1) After I already know marriage rate, what additional value is there in also knowing age at marriage?
+(2) After I already know age at marriage, what additional value is there in also knowing marriage rate?
+
+The parameter estimates corresponding to each predictor are the (often opaque) answers to these questions. The questions above are descriptive, and the answers are also descriptive. It is only the derivation of the testable implications above that give these descriptive results a causal meaning. But that meaning is still dependent upon believing the DAG.
+
+For each predictor, the parameter measures its conditional association with the outcome.
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{M}M_{i} + \beta_{A}A_{i}$
+
+```{r m3 M A}
+m5.3 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bM*M + bA*A ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bM ~ dnorm( 0 , 0.5 ) ,
+        bA ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+    ) , data = d )
+precis( m5.3 )
+
+dag1.3 %>% 
+ggdag_dseparated(from = "A", to = "D", controlling_for = c("A", "M"))+
+  theme_dag()
+```
+
+The posterior mean for marriage rate, bM, is now close to zero, with plenty of probability of both sides of zero. The posterior mean for age at marriage, bA, is essentially unchanged. It will help to visualize the posterior distributions for all three models, focusing just on the slope parameters βA and βM:
+
+
+```{r compare coefficients}
+
+plot(coeftab(m5.1,m5.2,m5.3), par=c("bA","bM"))
+
+```
+
+bA doesn’t move, only grows a bit more uncertain, while bM is only associated with divorce when age at marriage is missing from the model. You can interpret these distributions as saying: *Once we know median age at marriage for a State, there is little or no additional predictive power in also knowing the rate of marriage in that State*, which means $D \!\perp\!\!\!\perp M|A$.  D and M are independent after conditioning on A, which corresponds to the second DAG. 
+
+
+Note that this does not mean that there is no value in knowing marriage rate. Consistent with the earlier DAG, if you didn’t have access to age-at-marriage data, then you’d definitely find value in knowing the marriage rate. M is predictive but not causal. Assuming there are no other causal variables missing from the model, this implies there is no important direct causal path from marriage rate to divorce rate. The association between marriage rate and divorce rate is spurious, caused by the influence of age of marriage on both marriage rate and divorce rate. 
+
+### Visualize inferences from multivariate model
+
+**Counterfactual plots**. These show the implied predictions for imaginary experiments. These plots allow you to explore the causal implications of manipulating one or more variables.
+
+The simplest use of a counterfactual plot is to see how the predictions change as you change only one predictor at a time. This means holding the values of all predictors constant, except for a single predictor of interest. A tension with such plots, however, is that they ignore the assumed causal structure. 
+
+A tension with such plots, however, is that they ignore the assumed causal structure. In the small world of the model, it is possible to change median age of marriage without also changing the marriage rate. But is this also possible in the large world of reality? Probably not. Suppose for example that you pay young couples to postpone marriage until they are 35 years old. Surely this will also decrease the number of couples who ever get married—some people will die before turning 35, among other reasons—decreasing the overall marriage rate. An extraordinary and evil degree of control over people would be necessary to really hold marriage rate constant while forcing everyone to marry at a later age.
+So let’s see how to generate plots of model predictions that take the causal structure into account. The basic recipe is:
+
+(1) Pick a variable to manipulate, the intervention variable.
+
+(2) Define the range of values to set the intervention variable to.
+
+(3) For each value of the intervention variable, and for each sample in posterior, use
+the causal model to simulate the values of other variables, including the outcome.
+
+(1) **Predictor residual plots**. These plots show the outcome against residual predictor values. They are useful for understanding the statistical model, but not much else. 
+
+A **predictor residual** is the average prediction error when we use all of the other predictor variables to model a predictor of interest.
+
+The variation that is not expected by the model of the mean, μ, is a function of the other predictors.
+
+
+Example: 
+
+a) compute predictor residuals for marriage rate: 
+
+$M_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta A_{i}$
+
+
+```{r m5.4}
+#To compute predictor residuals for marriage rate, we just use the other predictor (age of marriage) to model it.
+m5.4 <- quap(
+    alist(
+        M ~ dnorm( mu , sigma ) ,
+        mu <- a + bAM * A ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bAM ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+```
+
+We compute the **predictor residuals** by subtracting the observed marriage rate in each State from the predicted rate, based upon the model above
+
+```{r m5.4 2}
+mu.m <- link(m5.4)
+mu_mean.m <- apply( mu.m , 2 , mean )
+mu_resid.m <- d$M - mu_mean.m
+
+d.m <- bind_cols( d, estimate.m= mu_mean.m, mu_resid.m= mu_resid.m)
+
+pres.m <- 
+  d.m %>% 
+  ggplot(aes(Loc, mu_resid.m))+
+  geom_point()+
+  geom_hline(yintercept=0)+
+  theme_bw()
+pres.m
+```
+
+
+The residuals are variation in marriage rate that is left over, after taking out the purely linear relationship between the two variables. When a residual is positive, that means that the observed rate was in excess of what the model expects, given the median age at marriage in that State. When a residual is negative, that means the observed rate was below what the model expects. Example:  States with positive residuals have high marriage rates for their median age of marriage, while States with negative residuals have low rates for their median age of marriage.
+
+
+```{r residual posterior plot M variation adjusted for A}
+#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
+
+
+p1 <-
+  d.m %>% 
+  ggplot(aes(x = A, y = M)) +
+  geom_point(size = 2, shape = 1, color = "firebrick4") +
+  geom_segment(aes(xend = A, yend = estimate.m), 
+               size = 1/4) +
+  geom_line(aes(y = estimate.m), 
+            color = "firebrick4") +
+  labs(x = "Age at marriage (std)",
+       y = "Marriage rate (std)") +
+  geom_text_repel(data = . %>% filter(Loc %in% c("WY", "ND", "ME", "HI", "DC")),  
+                  aes(label = Loc), 
+                  size = 3, seed = 14) +
+  coord_cartesian(ylim = range(d.m$M)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) 
+
+p1
+```
+
+Plot these residuals against divorce rate, overlaying the linear regression of the two variables.You can think of this plot as displaying the linear relationship between divorce and marriage rates, having conditioned already on median age of marriage. The vertical dashed line indicates marriage rate that exactly matches the expectation from median age at marriage. So States to the right of the line have higher marriage rates than expected. States to the left of the line have lower rates. Average divorce rate on both sides of the line is about the same, and so the regression line demonstrates little relationship between divorce and marriage rates.
+
+```{r residual posterior plot M variation against D}
+#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
+
+
+p2 <-
+  d.m %>% 
+  ggplot(aes(x = mu_resid.m, y = D)) +
+stat_smooth(method = "lm", fullrange = T,
+              color = "firebrick4", fill = "firebrick4", 
+              alpha = 1/5, size = 1/2) +
+  geom_vline(xintercept = 0, linetype = 2, color = "grey50") +
+  geom_point(size = 2, color = "firebrick4", alpha = 2/3) +
+  geom_text_repel(data = . %>% filter(Loc %in% c("WY", "ND", "ME", "HI", "DC")),  
+                  aes(label = Loc), 
+                  size = 3, seed = 5) +
+  scale_x_continuous(limits = c(-2, 2)) +
+  coord_cartesian(xlim = range(d.m$mu_resid.m)) +
+  labs(x = "Marriage rate residuals",
+       y = "Divorce rate (std)") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+
+p2
+```
+
+
+b) compute predictor residuals for median age of marriage: 
+
+$A_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta M_{i}$
+
+To compute predictor residuals for median age of marriage, we just use the other predictor (marriage rate) to model it.
+
+```{r m5.5}
+
+m5.5 <- quap(
+    alist(
+        A ~ dnorm( mu , sigma ) ,
+        mu <- a + bMA * M ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bMA ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+```
+
+We compute the **predictor residuals** by subtracting the observed median age of marriage in each State from the predicted median age of marriage, based upon the model above
+
+```{r m5.5 2}
+mu.a <- link(m5.5)
+mu_mean.a <- apply( mu.a , 2 , mean )
+mu_resid.a <- d$A - mu_mean.a
+
+d.a <- bind_cols( d, estimate.a= mu_mean.a, mu_resid.a= mu_resid.a)
+
+pres.a <- 
+  d.a %>% 
+  ggplot(aes(Loc, mu_resid.a))+
+  geom_point()+
+  geom_hline(yintercept=0)+
+  theme_bw()
+pres.a
+```
+
+
+Regression of A on M and the residuals: the residuals are variation in median age of marriage that is left over, after taking out the purely linear relationship between the two variables. When a residual is positive, that means that the observed age was in excess of what the model expects, given the marriage rate in that State. When a residual is negative, that means the observed are was below what the model expects.
+
+
+```{r residual posterior plot A variation adjusted for M}
+#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
+
+
+p3 <-
+  d.a %>% 
+  ggplot(aes(x = M, y = A)) +
+  geom_point(size = 2, shape = 1, color = "firebrick4") +
+  geom_segment(aes(xend = M, yend = estimate.a), 
+               size = 1/4) +
+  geom_line(aes(y = estimate.a), 
+            color = "firebrick4") +
+  labs(x = "Age at marriage (std)",
+       y = "Marriage rate (std)") +
+  geom_text_repel(data = . %>% filter(Loc %in% c("DC", "HI", "ID")),  
+                  aes(label = Loc), 
+                  size = 3, seed = 14) +
+  coord_cartesian(ylim = range(d.a$A)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) 
+
+p3
+```
+
+States to the right of the vertical dashed line have older-than-expected median age at marriage, while those to the left have younger-than-expected median age at marriage. Now we find that the average divorce rate on the right is lower than the rate on the left, as indicated by the regression line. States in which people marry older than expected for a given rate of marriage tend to have less divorce.
+
+```{r residual posterior plot A variation against D}
+#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
+
+
+p4 <-
+  d.a %>% 
+   ggplot(aes(x = mu_resid.a, y = D)) +
+  stat_smooth(method = "lm", fullrange = T,
+              color = "firebrick4", fill = "firebrick4", 
+              alpha = 1/5, size = 1/2) +
+  geom_vline(xintercept = 0, linetype = 2, color = "grey50") +
+  geom_point(size = 2, color = "firebrick4", alpha = 2/3) +
+  geom_text_repel(data = . %>% filter(Loc %in% c("ID", "HI", "DC")),  
+                  aes(label = Loc), 
+                  size = 3, seed = 5) +
+  scale_x_continuous(limits = c(-2, 3)) +
+  coord_cartesian(xlim = range(d.a$mu_resid.a),
+                  ylim = range(d.a$D)) +
+  labs(x = "Age at marriage residuals",
+       y = "Divorce rate (std)") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+
+p4
+```
+
+So what’s the point of all of this? There’s conceptual value in seeing the model-based predictions displayed against the outcome, after subtracting out the influence of other pre- dictors. The plots in Figure 5.4 do this. But this procedure also brings home the message that regression models measure the remaining association of each predictor with the out- come, after already knowing the other predictors. In computing the predictor residual plots, you had to perform those calculations yourself. 
+
+
+(2) **Posterior prediction plots**. These show model-based predictions against raw data,
+or otherwise display the error in prediction. They are tools for checking fit and
+assessing predictions. They are not causal tools.
+
 
 
 
