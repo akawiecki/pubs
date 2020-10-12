@@ -334,13 +334,7 @@ The exposed and the unexposed in the study are not comparable, or exchangeable, 
 
 * There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
 
-### strategies to identify confounders
-
-1. automatic variable selection procedures: i.e stepwise regression. It assumes that all important confounders will be selected 
-
-2. change in effect estimate: comparison of the effect estimates between adjusted and unadjusted effect estimates. The variable is selected as a confounder if there is a relative change greater than 10%. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
-
-3. check whether the variable meets the criteria of a confounder: combines information from statistical associations and background knowledge. 
+### counfounding
 
 **Confounder** 
 
@@ -350,27 +344,118 @@ a variable that is:
 * associated with the exposure, conditional on the exposure (i.e. in the exposed group)
 * not on the causal pathway between the exposure and the outcome.
 
+## strategies to identify confounders
 
-Strategies 1 and 2 rest only on statistical associations that can easily be identified from the data. Strategy 3 combines statistical associations from the data with some background knowledge about the causal network that links exposure, outcome, and potential confounders. 
+* Methods relying on statistical associations that can easily be identified from the data: 
 
-Statistical criteria alone are insufficient to characterize either confounding or selection bias.
+1. automatic variable selection procedures: i.e stepwise regression. It assumes that all important confounders will be selected 
+
+2. change in effect estimate: comparison of the effect estimates between adjusted and unadjusted effect estimates. The variable is selected as a confounder if there is a relative change greater than 10%. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
+
+* Methods that combine statistical associations from the data with some background knowledge about the causal network that links exposure, outcome, and potential confounders. 
+
+3. check whether the variable meets the criteria of a confounder: combines information from statistical associations and background knowledge. 
+
+*Statistical criteria alone are insufficient to characterize either confounding or selection bias.*
 
 The presence of common causes, and therefore of confounding, can be represented by causal diagrams known as directed acyclic graphs (DAGs). 
 
-**DAG = directed acyclic graph**: these diagrams link variables by arrows that represent direct causal effects (protective or causative) of one variable on another.
+## DAG = directed acyclic graph
+
+diagrams that link variables by arrows that represent direct causal effects (protective or causative) of one variable on another. 
+
+There are only four types of variable relations that combine to form all possible paths:
+
+1) the **CONFOUNDER** = **fork**: X ← Z → Y. This is the classic confounder:
+some variable Z is a common cause of X and Y, generating a correlation between them. If we condition on Z, then learning X tells us nothing about Y. X and Y are independent, conditional on Z.
+
+2) the **PIPE** = **intermediary**: X → Z → Y. The treatment X influences Z which influences Y. If we condition on Z, we block the path from X to Y. X and Y are independent, conditional on Z.
+
+3) the **COLLIDER** = **common effect**:  X → Z ← Y. Conditioning on Z, the collider variable, opens the path. X and Y are dependent, conditional on Z, however neither X nor Y has any causal influence on the other.
+
+4) the **DESCENDENT** = **association?**: Z $\to$ D. Descendent is a variable influenced by another variable. Conditioning on a descendent partly conditions on its parent. Conditioning on D will also condition, to a lesser extent, on Z because D has some information about Z. 
+
+### Backdoor criterion
+
+**Path** : any series of variables you could walk through to get from one variable to another, ignoring the directions of the arrows. 
+
+Blocking all confounding paths between some predictor X and some outcome Y is known as shutting the backdoor, thus eliminating spurious associations that are non-causal. 
+
+Example: 
+
+```{r confounder, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
 
 
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  O~E,
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
 
-### strategies to control confounders
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+There are two paths connecting E and O: 
+(1) E → O 
+(2) E ← C → O. 
+
+Both of these paths create a statistical association between E and O. But only the first path is causal. The second path is non-causal. If only the second path existed, and we changed E, it would not change O. Any causal influence of E on O operates only on the first path.
+
+
+## strategies to control confounders
+
+### Manipulation of the confounding factor in the study design: 
+
+Manipulation removes the influence of C on E: when we determine E, the C variable does not influence E, thus blocking the non-causal path between E and O (E ← C → O). Once the path is blocked, there is only one way for information to go between E and O, and then measuring the association between E and O would yield a useful measure of causal influence. 
 
 * study design: 
     + randomization
     + restriction 
-    
-    
+
 * study design + study analysis: 
     + matching
     
+### Conditioning on the confounding factor in the study analysis: 
+
+Adding C to the model blocks the non-causal path E ← C → O. 
+
+Why?  Think of this path in isolation, as a complete model. 
+
+```{r dag confounder condition, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+Once you learn C, also learning E will give you no additional information about O. 
+
+Example: Suppose for example that C is the average wealth in a region. Regions with high wealth have better schools, resulting in more education (exposure E), as well as better paying jobs, resulting in higher wages (outcome O). If you don’t know the region a person lives in, learning the person’s education E will provide information about their wages O, because E and O are correlated across regions. But after you learn which region a person lives in, assuming there is no other path between E and O, then learning E tells you nothing more about O. This is the sense in which conditioning on C blocks the path—it makes E and O independent, conditional on C.
+
     
 * study analysis 
     + stratification: 
@@ -380,13 +465,34 @@ The presence of common causes, and therefore of confounding, can be represented 
 
 
 
-## Obtaining an unbiased estimate of the causal effect: 
+## Obtaining an unbiased estimate of the causal effect:
 
-* Obtaining an unbiased estimate of the total effect requires measuring and adjusting for all confounders of the E $\to$ O association 
+(1) List all of the paths connecting E (the potential cause of interest) and O (the outcome).
+(2) Classify each path by whether it is open or closed. A path is open unless it contains a collider.
+(3) Classify each path by whether it is a backdoor path. A backdoor path has an arrow entering E.
+(4) If there are any open backdoor paths, decide which variable(s) to condition on to close it (if possible).
 
-* Obtaining an unbiased estimate of the direct effect requires measuring and adjusting for all confounders of both the 
+* Obtaining an unbiased estimate of the *total causal effect* requires measuring and adjusting for all confounders of the E $\to$ O association 
+
+* Obtaining an unbiased estimate of the *direct causal effect* requires measuring and adjusting for all confounders of both the 
   + J $\to$ O association 
   + E $\to$ O association 
+
+
+**Do-operator**
+
+do(E) closes the backdoor paths into E, as in a manipulative experiment.
+
+P(O|do(E)) defines a causal relationship because it tells us the expected result of manipulating E on O
+
+*Confounding: P(O|E) $\ne$ P(O|do(E)). The relationship between the E and O when the backdoor paths are closed is not the same, indicating that there is confounding. 
+
+*Conditional probability, non-causal: P(O|E) $\ne$ P(O|not-E) doesn't close the backdoor, and therefore does not give a causal relationship. 
+
+*Total causal relationship: if P(O|do(E)) $\ne$ P(O|not-E), then E is the cause of O.
+
+*Direct causal relationship: might require closing more backdoor paths.
+
 
 
 1. 
@@ -578,7 +684,9 @@ Testable implications can be read off the diagrams using a graphical criterion k
 
 DAGs imply that some variables are independent of others under certain conditions, therefore the testable implications of a DAG are it's **CONDITIONAL INDEPENDENCIES**.
 
-**CONDITIONAL INDEPENDENCIES** describe which variables should be associated with one another (or not) in the data, and which variables become disassociated when we condition on some other set of variables.
+**CONDITIONAL INDEPENDENCIES** describe which variables should be associated with one another (or not) in the data, and which variables become disassociated when we condition on some other set of variables. 
+
+Condition independencies are pairs of variables that are not associated, once we condition on some set of other variables.
 
 **Conditioning**: conditioning on a variable Z means learning its value and then asking if X adds any additional information about Y. If learning X doesn’t give you any more information about Y, then we might say that Y is independent of X conditional on Z. This conditioning statement is sometimes written as: $Y \!\perp\!\!\!\perp X|Z$
 
@@ -714,228 +822,60 @@ bA doesn’t move, only grows a bit more uncertain, while bM is only associated 
 
 Note that this does not mean that there is no value in knowing marriage rate. Consistent with the earlier DAG, if you didn’t have access to age-at-marriage data, then you’d definitely find value in knowing the marriage rate. M is predictive but not causal. Assuming there are no other causal variables missing from the model, this implies there is no important direct causal path from marriage rate to divorce rate. The association between marriage rate and divorce rate is spurious, caused by the influence of age of marriage on both marriage rate and divorce rate. 
 
-### Visualize inferences from multivariate model
-
-**Counterfactual plots**. These show the implied predictions for imaginary experiments. These plots allow you to explore the causal implications of manipulating one or more variables.
-
-The simplest use of a counterfactual plot is to see how the predictions change as you change only one predictor at a time. This means holding the values of all predictors constant, except for a single predictor of interest. A tension with such plots, however, is that they ignore the assumed causal structure. 
-
-A tension with such plots, however, is that they ignore the assumed causal structure. In the small world of the model, it is possible to change median age of marriage without also changing the marriage rate. But is this also possible in the large world of reality? Probably not. Suppose for example that you pay young couples to postpone marriage until they are 35 years old. Surely this will also decrease the number of couples who ever get married—some people will die before turning 35, among other reasons—decreasing the overall marriage rate. An extraordinary and evil degree of control over people would be necessary to really hold marriage rate constant while forcing everyone to marry at a later age.
-So let’s see how to generate plots of model predictions that take the causal structure into account. The basic recipe is:
-
-(1) Pick a variable to manipulate, the intervention variable.
-
-(2) Define the range of values to set the intervention variable to.
-
-(3) For each value of the intervention variable, and for each sample in posterior, use
-the causal model to simulate the values of other variables, including the outcome.
-
-(1) **Predictor residual plots**. These plots show the outcome against residual predictor values. They are useful for understanding the statistical model, but not much else. 
-
-A **predictor residual** is the average prediction error when we use all of the other predictor variables to model a predictor of interest.
-
-The variation that is not expected by the model of the mean, μ, is a function of the other predictors.
 
 
-Example: 
+We’re interested in the total causal effect of the number of Waffle Houses on divorce rate in each State. Presumably, the naive correlation between these two variables is spurious. What is the minimal adjustment set that will block backdoor paths from Waffle House to divorce? 
 
-a) compute predictor residuals for marriage rate: 
-
-$M_{i} ∼ Normal(\mu_{i}, \sigma)$ 
-
-$\mu_{i} = \alpha + \beta A_{i}$
+Let’s make a graph:
 
 
-```{r m5.4}
-#To compute predictor residuals for marriage rate, we just use the other predictor (age of marriage) to model it.
-m5.4 <- quap(
-    alist(
-        M ~ dnorm( mu , sigma ) ,
-        mu <- a + bAM * A ,
-        a ~ dnorm( 0 , 0.2 ) ,
-        bAM ~ dnorm( 0 , 0.5 ) ,
-        sigma ~ dexp( 1 )
-) , data = d )
+```{r waffle dag, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, M=2, S= 1, W = 3, D = 3),
+  y = c(M = 0, S = 1, W = 1, D = -1, A=-1)
+) %>% 
+   coords2df()
+
+dag6 <- dagify( 
+  D~A,
+  M~A,
+  D~M,
+  A~S, 
+  M~S,
+  W~S,
+  D~W,
+  exposure = "W",
+  outcome = "D", 
+  coords = coords2list(coords))
+
+dag6 %>% 
+  ggdag_dseparated(from = "W", to = "D")+
+    theme_dag()
+
+adjustmentSets( dag6 , exposure="W" , outcome="D" )
+
+ggdag_adjustment_set(dag6)
 
 ```
 
-We compute the **predictor residuals** by subtracting the observed marriage rate in each State from the predicted rate, based upon the model above
+We could control for either A and M or for S alone.
+This DAG is obviously not satisfactory—it assumes there are no unobserved confounds,
+which is very unlikely for this sort of data. But we can still learn something by analyzing it. While the data cannot tell us whether a graph is correct, it can sometimes suggest how a graph is wrong. 
 
-```{r m5.4 2}
-mu.m <- link(m5.4)
-mu_mean.m <- apply( mu.m , 2 , mean )
-mu_resid.m <- d$M - mu_mean.m
+Inspecting  implied conditional independencies, we can at least test some of the features of a graph.
 
-d.m <- bind_cols( d, estimate.m= mu_mean.m, mu_resid.m= mu_resid.m)
-
-pres.m <- 
-  d.m %>% 
-  ggplot(aes(Loc, mu_resid.m))+
-  geom_point()+
-  geom_hline(yintercept=0)+
-  theme_bw()
-pres.m
+```{r cond indep}
+ impliedConditionalIndependencies( dag6 )
 ```
 
+1) The median age of marriage should be independent of (_||_) Waffle Houses, conditioning on (|) a State being in the south.
 
-The residuals are variation in marriage rate that is left over, after taking out the purely linear relationship between the two variables. When a residual is positive, that means that the observed rate was in excess of what the model expects, given the median age at marriage in that State. When a residual is negative, that means the observed rate was below what the model expects. Example:  States with positive residuals have high marriage rates for their median age of marriage, while States with negative residuals have low rates for their median age of marriage.
+2) Divorce and being in the south should be independent when we simultaneously condition on all of median age of marriage, marriage rate, and Waffle Houses. 
 
-
-```{r residual posterior plot M variation adjusted for A}
-#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
-
-
-p1 <-
-  d.m %>% 
-  ggplot(aes(x = A, y = M)) +
-  geom_point(size = 2, shape = 1, color = "firebrick4") +
-  geom_segment(aes(xend = A, yend = estimate.m), 
-               size = 1/4) +
-  geom_line(aes(y = estimate.m), 
-            color = "firebrick4") +
-  labs(x = "Age at marriage (std)",
-       y = "Marriage rate (std)") +
-  geom_text_repel(data = . %>% filter(Loc %in% c("WY", "ND", "ME", "HI", "DC")),  
-                  aes(label = Loc), 
-                  size = 3, seed = 14) +
-  coord_cartesian(ylim = range(d.m$M)) +
-  theme_bw() +
-  theme(panel.grid = element_blank()) 
-
-p1
-```
-
-Plot these residuals against divorce rate, overlaying the linear regression of the two variables.You can think of this plot as displaying the linear relationship between divorce and marriage rates, having conditioned already on median age of marriage. The vertical dashed line indicates marriage rate that exactly matches the expectation from median age at marriage. So States to the right of the line have higher marriage rates than expected. States to the left of the line have lower rates. Average divorce rate on both sides of the line is about the same, and so the regression line demonstrates little relationship between divorce and marriage rates.
-
-```{r residual posterior plot M variation against D}
-#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
+3) Marriage rate and Waffle Houses should be independent, conditioning on being in the south.
 
 
-p2 <-
-  d.m %>% 
-  ggplot(aes(x = mu_resid.m, y = D)) +
-stat_smooth(method = "lm", fullrange = T,
-              color = "firebrick4", fill = "firebrick4", 
-              alpha = 1/5, size = 1/2) +
-  geom_vline(xintercept = 0, linetype = 2, color = "grey50") +
-  geom_point(size = 2, color = "firebrick4", alpha = 2/3) +
-  geom_text_repel(data = . %>% filter(Loc %in% c("WY", "ND", "ME", "HI", "DC")),  
-                  aes(label = Loc), 
-                  size = 3, seed = 5) +
-  scale_x_continuous(limits = c(-2, 2)) +
-  coord_cartesian(xlim = range(d.m$mu_resid.m)) +
-  labs(x = "Marriage rate residuals",
-       y = "Divorce rate (std)") +
-  theme_bw() +
-  theme(panel.grid = element_blank())
-
-
-p2
-```
-
-
-b) compute predictor residuals for median age of marriage: 
-
-$A_{i} ∼ Normal(\mu_{i}, \sigma)$ 
-
-$\mu_{i} = \alpha + \beta M_{i}$
-
-To compute predictor residuals for median age of marriage, we just use the other predictor (marriage rate) to model it.
-
-```{r m5.5}
-
-m5.5 <- quap(
-    alist(
-        A ~ dnorm( mu , sigma ) ,
-        mu <- a + bMA * M ,
-        a ~ dnorm( 0 , 0.2 ) ,
-        bMA ~ dnorm( 0 , 0.5 ) ,
-        sigma ~ dexp( 1 )
-) , data = d )
-
-```
-
-We compute the **predictor residuals** by subtracting the observed median age of marriage in each State from the predicted median age of marriage, based upon the model above
-
-```{r m5.5 2}
-mu.a <- link(m5.5)
-mu_mean.a <- apply( mu.a , 2 , mean )
-mu_resid.a <- d$A - mu_mean.a
-
-d.a <- bind_cols( d, estimate.a= mu_mean.a, mu_resid.a= mu_resid.a)
-
-pres.a <- 
-  d.a %>% 
-  ggplot(aes(Loc, mu_resid.a))+
-  geom_point()+
-  geom_hline(yintercept=0)+
-  theme_bw()
-pres.a
-```
-
-
-Regression of A on M and the residuals: the residuals are variation in median age of marriage that is left over, after taking out the purely linear relationship between the two variables. When a residual is positive, that means that the observed age was in excess of what the model expects, given the marriage rate in that State. When a residual is negative, that means the observed are was below what the model expects.
-
-
-```{r residual posterior plot A variation adjusted for M}
-#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
-
-
-p3 <-
-  d.a %>% 
-  ggplot(aes(x = M, y = A)) +
-  geom_point(size = 2, shape = 1, color = "firebrick4") +
-  geom_segment(aes(xend = M, yend = estimate.a), 
-               size = 1/4) +
-  geom_line(aes(y = estimate.a), 
-            color = "firebrick4") +
-  labs(x = "Age at marriage (std)",
-       y = "Marriage rate (std)") +
-  geom_text_repel(data = . %>% filter(Loc %in% c("DC", "HI", "ID")),  
-                  aes(label = Loc), 
-                  size = 3, seed = 14) +
-  coord_cartesian(ylim = range(d.a$A)) +
-  theme_bw() +
-  theme(panel.grid = element_blank()) 
-
-p3
-```
-
-States to the right of the vertical dashed line have older-than-expected median age at marriage, while those to the left have younger-than-expected median age at marriage. Now we find that the average divorce rate on the right is lower than the rate on the left, as indicated by the regression line. States in which people marry older than expected for a given rate of marriage tend to have less divorce.
-
-```{r residual posterior plot A variation against D}
-#https://bookdown.org/content/4857/the-many-variables-the-spurious-waffles.html#plotting-multivariate-posteriors.
-
-
-p4 <-
-  d.a %>% 
-   ggplot(aes(x = mu_resid.a, y = D)) +
-  stat_smooth(method = "lm", fullrange = T,
-              color = "firebrick4", fill = "firebrick4", 
-              alpha = 1/5, size = 1/2) +
-  geom_vline(xintercept = 0, linetype = 2, color = "grey50") +
-  geom_point(size = 2, color = "firebrick4", alpha = 2/3) +
-  geom_text_repel(data = . %>% filter(Loc %in% c("ID", "HI", "DC")),  
-                  aes(label = Loc), 
-                  size = 3, seed = 5) +
-  scale_x_continuous(limits = c(-2, 3)) +
-  coord_cartesian(xlim = range(d.a$mu_resid.a),
-                  ylim = range(d.a$D)) +
-  labs(x = "Age at marriage residuals",
-       y = "Divorce rate (std)") +
-  theme_bw() +
-  theme(panel.grid = element_blank())
-
-
-p4
-```
-
-So what’s the point of all of this? There’s conceptual value in seeing the model-based predictions displayed against the outcome, after subtracting out the influence of other pre- dictors. The plots in Figure 5.4 do this. But this procedure also brings home the message that regression models measure the remaining association of each predictor with the out- come, after already knowing the other predictors. In computing the predictor residual plots, you had to perform those calculations yourself. 
-
-
-(2) **Posterior prediction plots**. These show model-based predictions against raw data,
-or otherwise display the error in prediction. They are tools for checking fit and
-assessing predictions. They are not causal tools.
 
 
 
