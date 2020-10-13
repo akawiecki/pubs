@@ -21,12 +21,11 @@ library("ggrepel")
 
 ```
 
-# **Causal inference** 
-
-## Resources
+# Resources
 
 * DAG and bias theory
 
+[What If by Miguel A. Hernán, James M. Robins](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
 
 [Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
 
@@ -49,6 +48,33 @@ https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
 
 https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
 
+
+# **ERROR**
+
+## **RANDOM ERROR**
+
+chance or random variation that remains unexplained
+
+### unexplained variation = non-deterministic counterfactuals 
+
+### sampling error 
+This is the degree to which a sample population deviates from the total population. It's unpredictable and due to the sampling process. 
+
+A **sample** is the a subset of the subjects in the population that could have been included in the study/ a subset of the experiences the study subjects could have had.
+
+**ASSUMPTIONS OF SAMPLING**
+
+* Randomness assumption: the sample is a random selection of the subjects in the population that could have been included in the study
+
+* Representativeness assumption: the sample is representative of the subjects in the population that could have been included in the study
+  
+
+## **SYSTEMATIC ERROR** = **BIAS**
+
+*insert irva/Causal Inference: What If by Miguel A. Hernán, James M. Robins here*
+
+
+# **CAUSAL INFERENCE** 
 
 ## Introduction
 
@@ -877,6 +903,8 @@ Inspecting  implied conditional independencies, we can at least test some of the
 
 
 
+*include: colliders, multicollinearity, post-treatment bias. end of chapter 6*
 
+*INTERACTIONS chapter 8*
 
 
