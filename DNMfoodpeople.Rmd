@@ -65,9 +65,14 @@ d1 = bind_cols(d[c("Date", "Year", "day", "month", "weekday")], d1) %>%
     private.donation= if_else(Date < "2020-03-30", Sushi.rolls, private.donation), 
                            
          Upper.crust= Loaves.of.Bread + Cookie.Packs+ Mini.babkas + Babkas+ Bag.Donuts+ Bag.Bread.cubes+ Pastries+ Bag.of.Bagels+ Pastries.1
-        )
+        ) %>% 
+  select(c("Date", "Year", "day", "month", "weekday", "People", "Total", 
+"Village.Bakery", "Panera", "Chickpeas", "Dickies", "Co.op", 
+"Peets", "Student.Farm", "yolo.food.bank", "private.donation", 
+"Upper.crust"))
+
+
 
  
 ```
 
-mutate(Co.op1= if_else(Date < 2020-03-30, Mini.apple.pies + Apple.pies + floor(Food.boxes*0.33) + Big.food.boxes+ Big.blueberries.box+ Soups+ Meat.loaves+ Boxes.Stew.mix+ Burritos+ Sandwiches+ chickens, Co.op))
