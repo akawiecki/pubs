@@ -25,9 +25,9 @@ library("ggrepel")
 
 * DAG and bias theory
 
-[What If by Miguel A. Hernán, James M. Robins](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
+[Causal Inference: What If, by Miguel A. Hernán, James M. Robins](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
 
-[Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
+[Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition, by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
 
 [Causal Knowledge as a Prerequisite for Confounding Evaluation: An Application to Birth Defects Epidemiology, Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
 
@@ -40,13 +40,11 @@ library("ggrepel")
 
 https://ggdag.malco.io/
 
+https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
+
 https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html
 
-https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
-
 https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
-
-https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
 
 
 # **ERROR**

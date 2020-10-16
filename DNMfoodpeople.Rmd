@@ -1,0 +1,85 @@
+---
+title: "DNMfoodpeople"
+author: "Ania Kawiecki"
+date: "10/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries}
+
+library(tidyverse)
+library(lubridate)
+```
+
+
+right now import from csv. work on import from google sheets directly 
+```{r read data}
+
+d.raw <- read.csv("/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DNM_foodpeople.csv", header=TRUE)
+
+d <- d.raw %>% 
+  rename(Date= X) %>% 
+  mutate(
+    #extract day from date col
+    day= str_extract(Date,"[0-9]+"), 
+    #extract month from date col (cap letter and all lowercase letters)
+    month= str_extract(Date,"[A-Z][a-z]+")) %>% 
+  mutate(Date= ymd(paste(Year, month, day, sep= " ")), 
+         weekday= wday(Date, label= TRUE)) 
+
+d_vbles = c("People", "Total", "Village.Bakery", "Panera", 
+"Chickpeas", "Dickies", "Co.op", "Peets", "Student.Farm", "yolo.food.bank", 
+"private.donation", "Loaves.of.Bread", "Cookie.Packs", "Mini.apple.pies", 
+"Apple.pies", "Mini.babkas", "Babkas", "Food.boxes", "Big.food.boxes", 
+"Big.blueberries.box", "Meat.trays", "Corn.bread.boxes", "Soups", 
+"Bag.of.buns", "Meat.loaves", "Bags.candy", "Boxes.Bouillon", 
+"Boxes.Stew.mix", "Bag.Donuts", "Bag.Bread.cubes", "Pastries", 
+"Produce", "Bag.Pita.bread", "Big.box.Salad", "Boxes.Corn.bread", 
+"Burritos", "Sandwiches", "Sushi.rolls", "chickens", "Bag.of.Bagels", 
+"Pastries.1")
+
+na.rm <- function (x) {
+  d[[x]]%>% 
+ replace_na(0) 
+}
+
+
+d1 = map_dfc(d_vbles, na.rm)
+
+names(d1)= d_vbles
+
+d1 = bind_cols(d[c("Date", "Year", "day", "month", "weekday")], d1) 
+  
+
+
+
+#assign all the food items to a business 
+
+d2 <-  d1 %>% 
+  mutate(
+sum.coop= Mini.apple.pies + Apple.pies + floor(Food.boxes*0.33) +
+  Big.food.boxes+ Big.blueberries.box+ Soups+ Meat.loaves+ Boxes.Stew.mix+ Burritos+ Sandwiches+ chickens,
+
+sum.upper.crust= Loaves.of.Bread + Cookie.Packs+ Mini.babkas + Babkas+ Bag.Donuts+ Bag.Bread.cubes+ Pastries+ Bag.of.Bagels+ Pastries.1,   
+
+sum.dick =  floor(Food.boxes*0.33)+ Meat.trays+ Corn.bread.boxes + Bag.of.buns+ Boxes.Corn.bread,
+
+sum.chick = floor(Food.boxes*0.33) + Bag.Pita.bread+ Big.box.Salad, 
+
+sum.private = Sushi.rolls
+  )
+
+  
+
+
+  
+
+
+```
+
+mutate(Co.op1= if_else(Date < 2020-03-30, Mini.apple.pies + Apple.pies + floor(Food.boxes*0.33) + Big.food.boxes+ Big.blueberries.box+ Soups+ Meat.loaves+ Boxes.Stew.mix+ Burritos+ Sandwiches+ chickens, Co.op))
