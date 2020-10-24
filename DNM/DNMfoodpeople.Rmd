@@ -1,0 +1,268 @@
+---
+title: "DNMfoodpeople"
+author: "Ania Kawiecki"
+date: "10/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries}
+
+library(tidyverse)
+library(lubridate)
+```
+
+
+right now import from csv. work on import from google sheets directly 
+```{r read data}
+
+d.raw <- read.csv("/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DNM/DNM_foodpeople.csv", header=TRUE)
+
+d <- d.raw %>% 
+  rename(Date= X) %>% 
+  mutate(
+    #extract day from date col
+    day= str_extract(Date,"[0-9]+"), 
+    #extract month from date col (cap letter and all lowercase letters)
+    month= str_extract(Date,"[A-Z][a-z]+")) %>% 
+  mutate(Date= ymd(paste(Year, month, day, sep= " ")), 
+         weekday= wday(Date, label= TRUE)) 
+
+d_vbles = c("People", "Total", "Village.Bakery", "Panera", 
+"Chickpeas", "Dickies", "Co.op", "Peets", "Student.Farm", "yolo.food.bank", 
+"private.donation", "Loaves.of.Bread", "Cookie.Packs", "Mini.apple.pies", 
+"Apple.pies", "Mini.babkas", "Babkas", "Food.boxes", "Big.food.boxes", 
+"Big.blueberries.box", "Meat.trays", "Corn.bread.boxes", "Soups", 
+"Bag.of.buns", "Meat.loaves", "Bags.candy", "Boxes.Bouillon", 
+"Boxes.Stew.mix", "Bag.Donuts", "Bag.Bread.cubes", "Pastries", 
+"Produce", "Bag.Pita.bread", "Big.box.Salad", "Boxes.Corn.bread", 
+"Burritos", "Sandwiches", "Sushi.rolls", "chickens", "Bag.of.Bagels", 
+"Pastries.1")
+
+na.rm <- function (x) {
+  d[[x]]%>% 
+ replace_na(0) 
+}
+
+
+d1 = map_dfc(d_vbles, na.rm)
+
+names(d1)= d_vbles
+
+d = bind_cols(d[c("Date", "Year", "day", "month", "weekday")], d1) %>% 
+  #assign all the food items from the old data collection way (maria) to a business 
+  mutate(
+    Co.op= if_else(Date < "2020-03-30", Mini.apple.pies + Apple.pies + floor(Food.boxes*0.33) + Big.food.boxes+ Big.blueberries.box+ Soups+ Meat.loaves+ Boxes.Stew.mix+ Burritos+ Sandwiches+ chickens, Co.op), 
+         
+         Dickies=  if_else(Date < "2020-03-30", floor(Food.boxes*0.33)+ Meat.trays+ Corn.bread.boxes + Bag.of.buns+ Boxes.Corn.bread, Dickies), 
+         
+         Chickpeas= if_else(Date < "2020-03-30",floor(Food.boxes*0.33) + Bag.Pita.bread+ Big.box.Salad, Chickpeas),
+    
+    private.donation= if_else(Date < "2020-03-30", Sushi.rolls, private.donation), 
+                           
+         Upper.crust= Loaves.of.Bread + Cookie.Packs+ Mini.babkas + Babkas+ Bag.Donuts+ Bag.Bread.cubes+ Pastries+ Bag.of.Bagels+ Pastries.1
+        ) %>% 
+  select(c("Date", "Year", "day", "month", "weekday", "People", "Total", 
+"Village.Bakery", "Panera", "Chickpeas", "Dickies", "Co.op", 
+"Peets", "Student.Farm", "yolo.food.bank", "private.donation", 
+"Upper.crust")) %>% 
+  rename(Day= day, Yolo.Food.Bank =  yolo.food.bank, Private.Donation= private.donation , Month= month, Weekday= weekday) %>% 
+  gather(c( "Village.Bakery", "Panera", "Chickpeas", "Dickies", "Co.op", 
+"Peets", "Student.Farm", "Yolo.Food.Bank", "Private.Donation", 
+"Upper.crust"), key= "Donor", value= "Donations") %>% 
+  mutate(co2.kg.avoided= Donations*1.9, 
+         co2.tonne.avoided= co2.kg.avoided/1000) %>% 
+  filter(Donor!= "Student.Farm" & Donor!=  "Yolo.Food.Bank" & Donor!= "Private.Donation" ) %>% 
+  # add an average of 10 people for every 0 because we have people every night but sometimes just don't count them 
+  mutate(People= if_else(People== 0, 10, People))
+
+```
+
+```{r data summaries}
+
+
+
+d.month.people.co2 = d %>% 
+  group_by(Month, Year) %>% 
+  summarise( people.sum.total.month= sum(People), 
+             people.avg.night= mean(People), 
+             co2.avg.month= mean(co2.kg.avoided), 
+             co2.total.month= sum(co2.kg.avoided), 
+             co2.total.tonne.month= co2.total.month/1000
+             ) 
+
+d.month.donor.co2 = d %>% 
+  group_by(Month, Year, Donor) %>% 
+  summarise(donations.total.month.donor= sum(Donations), 
+            donations.avg.night.donor= mean(Donations), 
+            co2.total.donor.month= sum(co2.kg.avoided)
+            )
+
+d.total.by.donor= d %>% 
+  group_by(Donor) %>% 
+  summarise(donations.total= sum(Donations), 
+            co2.total.donor= sum(co2.kg.avoided), 
+            co2.tonne.donor= co2.total.donor/1000)
+
+d.total= d %>% 
+  summarise(donations.total= sum(Donations), 
+            co2.kg.total= sum(co2.kg.avoided), 
+            co2.tonne.total= co2.kg.total/1000, 
+            people.avg= mean(People), 
+            people.total= sum(People))
+
+d.month = d.month.donor.co2 %>% 
+  left_join(d.total.by.donor, by= "Donor") %>% 
+  left_join(d.month.people.co2, by= c("Year", "Month")) %>% 
+  mutate(Month= factor(Month, levels= c("January", "February", "March", "April", "May", "June", "July", "August", "September","October","November","December")))
+
+d.people.co2= d%>% 
+  left_join(d.total.by.donor, by= "Donor") %>% 
+  left_join(d.month.people.co2, by= c("Year", "Month"))
+
+```
+
+```{r donation plots}
+
+d.month.donations.plot <-   ggplot(d.month)+
+    geom_col( aes(x= Month, y= donations.total.month.donor, fill= Donor), position ="dodge")+
+    facet_grid(.~ Year, space="free_x", scales="free_x", switch="x")+
+    xlab("date") +
+    ylab("donations ") +
+    labs(title= "Donations at the Davis Night Market")+
+    #scale_fill_discrete(name = "correct location code")+
+    #white background
+    #scale_fill_manual(values = c("#a8ddb5", "#4eb3d3"))+
+    #show x axis labels vertically
+  theme_bw()+
+    #show x axis labels vertically
+    theme(axis.text.x = element_text(size= 14,angle = 90, hjust = 1,  vjust = 0.5), 
+          axis.title=element_text(size=14), 
+          legend.text=element_text(size=10))+
+  theme(strip.placement = "outside",
+          strip.background = element_blank(), 
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_rect(colour="grey70"),
+          panel.spacing=unit(0,"cm"))
+
+d.month.donations.plot
+
+jpeg("month.donations.plot.jpeg", units="in", width=7, height=5, res=300)
+d.month.donations.plot 
+dev.off()
+
+```
+
+
+```{r people plots}
+
+d.month.donations.people.plot <-   ggplot(d.month)+
+    geom_col( aes(x= Month, y= people.avg.night), position ="dodge")+
+  
+    facet_grid(.~ Year, space="free_x", scales="free_x", switch="x")+
+    xlab("date") +
+    ylab("average people served/night ") +
+    labs(title= "People served/ night at the Davis Night Market \n TOTAL = 17 people fed a night! ")+
+    #scale_fill_discrete(name = "correct location code")+
+    #white background
+    #scale_fill_manual(values = c("#a8ddb5", "#4eb3d3"))+
+    #show x axis labels vertically
+  theme_bw()+
+    #show x axis labels vertically
+    theme(axis.text.x = element_text(size= 14,angle = 90, hjust = 1,  vjust = 0.5), 
+          axis.title=element_text(size=14), 
+          legend.text=element_text(size=10))+
+  theme(strip.placement = "outside",
+          strip.background = element_blank(), 
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_rect(colour="grey70"),
+          panel.spacing=unit(0,"cm"))
+
+d.month.donations.people.plot
+
+jpeg("month.donations.people.plot.jpeg", units="in", width=7, height=5, res=300)
+d.month.donations.people.plot
+dev.off()
+```
+
+
+```{r co2 plots}
+d.month.co2.plot <-   ggplot(d.month)+
+    geom_col( aes(x= Month, y= co2.total.donor.month, fill= Donor), position ="dodge")+
+    geom_line( aes(x= Month, y= co2.total.month),size = 1.5, color="red", group= 1)+
+    facet_grid(.~ Year, space="free_x", scales="free_x", switch="x")+
+    xlab("date") +
+    ylab("CO2 equivalent emission avoided (kg)") +
+    labs(title= "CO2 equivalent emission avoided (kg) at the Davis Night Market")+
+  theme_bw()+
+    #show x axis labels vertically
+    theme(axis.text.x = element_text(size= 14,angle = 90, hjust = 1,  vjust = 0.5), 
+          axis.title=element_text(size=14), 
+          legend.text=element_text(size=10))+
+  theme(strip.placement = "outside",
+          strip.background = element_blank(), 
+          panel.grid.minor.x = element_blank(),
+          panel.border = element_rect(colour="grey70"),
+          panel.spacing=unit(0,"cm"))
+    
+    
+
+d.month.co2.plot 
+
+jpeg("month.co2.plot.jpeg", units="in", width=7, height=5, res=300)
+d.month.co2.plot 
+dev.off()
+```
+
+
+```{r total tonne CO2}
+
+donor.co2.plot <-   ggplot(d.total.by.donor)+
+    geom_col( aes(x= Donor, y= co2.tonne.donor, fill= Donor), position ="dodge")+
+   # geom_line( aes(x= Month, y= co2.total.month),size = 1.5, color="red", group= 1)+
+  #facet_grid(.~ Year, space="free_x", scales="free_x", switch="x")+
+    xlab("donor") +
+    ylab("CO2 emission avoided (tonne)") +
+    labs(title= "CO2 equivalent emission avoided (tonne) at the Davis Night Market \n TOTAL = 15.3t CO2!!!")+
+  theme_bw()+
+    #show x axis labels vertically
+    theme(axis.text.x = element_text(size= 14,angle = 90, hjust = 1,  vjust = 0.5), 
+          axis.title=element_text(size=14), 
+          legend.text=element_text(size=10))
+    
+    
+
+donor.co2.plot 
+
+jpeg("donor.co2.plot.jpeg", units="in", width=7, height=5, res=300)
+donor.co2.plot 
+dev.off()
+```
+
+```{r total kg CO2}
+
+donor.co2.kg.plot <-   ggplot(d.total.by.donor)+
+    geom_col( aes(x= Donor, y= co2.total.donor, fill= Donor), position ="dodge")+
+   # geom_line( aes(x= Month, y= co2.total.month),size = 1.5, color="red", group= 1)+
+  #facet_grid(.~ Year, space="free_x", scales="free_x", switch="x")+
+    xlab("donor") +
+    ylab("CO2 emission avoided (kg)") +
+    labs(title= "CO2 equivalent emission avoided (kg) at the Davis Night Market \n TOTAL = 15.3 tonnes CO2!!!")+
+  theme_bw()+
+    #show x axis labels vertically
+    theme(axis.text.x = element_text(size= 14,angle = 90, hjust = 1,  vjust = 0.5), 
+          axis.title=element_text(size=14), 
+          legend.text=element_text(size=10))
+    
+    
+
+donor.co2.kg.plot 
+
+jpeg("donor.co2.kg.plot.jpeg", units="in", width=7, height=5, res=300)
+donor.co2.kg.plot 
+dev.off()
+```
