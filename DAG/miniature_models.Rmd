@@ -1,0 +1,770 @@
+---
+title: "miniature model: modeling interpretation basics"
+author: "Ania Kawiecki"
+date: "11/12/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r libraries, message= FALSE}
+library(tidyverse)
+library(rethinking)
+library(dagitty)
+library(INLA)
+library(knitr)
+library(stringr)
+library("patchwork")
+library("ghibli")
+```
+
+**FREQUENTIST APPROACH**
+
+The frequentist approach requires that all probabilities be defined by connection to the frequencies of events in very large samples. 
+**Frequentist uncertainty** is premised on the imaginary resampling of data—if we were to repeat the measurement many many times, we would end up collecting a list of values that will have some pattern to it. It means also that parameters and models cannot have probability distributions, only measurements can. This resampling is never done, and in general it doesn’t even make sense—it is absurd to consider repeat sampling of the diversification of song birds in the Andes.But in many contexts, like controlled greenhouse experiments, it’s a useful device for describing uncertainty. Whatever the context, it’s just part of the model, an assumption about what the data would look like under resampling.
+
+**Sampling distribution** is the distribution of these measurements. 
+
+Example: Bayesian vs frequentist
+ Galileo turned a primitive telescope to the night sky and became the first human to see Saturn’s rings. Well, he probably saw a blob, with some smaller blobs attached to it. Since the telescope was primitive, it couldn’t really focus the image very well. Saturn always appeared blurred. This is a statistical problem, of a sort. There’s uncertainty about the planet’s shape, but notice that none of the uncertainty is a result of variation in repeat measurements. We could look through the telescope a thousand times, and it will always give the same blurred image (for any given position of the Earth and Saturn). So the sampling distribution of any measurement is constant, because the measurement is deterministic—there’s nothing “random” about it. Frequentist statistical inference has a lot of trouble getting started here. In contrast, Bayesian inference proceeds as usual, because the deterministic “noise” can still be modeled using probability, as long as we don’t identify probability with frequency. 
+
+resampling of data—if we were to repeat the measurement many many times, we would end up collecting a list of values that will have some pattern to it. It means also that parameters and models cannot have probability distributions, only measurements can. The distribution of these measurements is called a sampling distribution. This resampling is never done, and in general it doesn’t even make sense—it is absurd to consider repeat sampling of the diversification of song birds in the Andes. 
+
+**BAYESIAN APPROACH**
+In modest terms, Bayesian data analysis is no more than counting the numbers of ways the data could happen, according to our assumptions. Things that can happen more ways are more plausible. 
+
+
+**model selection**
+
+*information*: "The reduction in uncertainty when we learn an outcome." @mcelreath2020
+
+*information entropy*: If there are n different possible events and each event i has probability pi, and we call the list of probabilities p, then the unique measure of uncertainty we seek is: $H(p) = -E log(p_i) = -\sum_{i=1}^n p_i log(p_i)$
+The uncertainty contained in a probability distribution is the average log-probability of an event. The lower this measure the less uncertainty. 
+
+*divergence*: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: $D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)$
+The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p (see the Overthinking box on the next page for some more detail). When p = q, we know the actual probabilities of the events and $D_{KL} = 0$. As q grows more different from p, the divergence also grows.
+
+
+To use DKL to compare models, it seems like we would have to know p, the target proba- bility distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much.
+All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r. 
+
+*deviance*: 
+-2 * the total log-probability score for the model and data.$-2\sum_{i}log(q_i)$
+
+
+# **LINEAR REGRESSION**
+
+### outcome
+
+continuous
+
+### distribution
+
+normal  $y_i \to Normal(\mu_i, \sigma)$
+
+### model
+
+$\hat{y_i}=\beta_0 +\beta_1x_1...+\beta_n x_n$  or $\hat{y_i}=\alpha +\beta(x_i-\bar{x}) + \epsilon_i$
+
+linear predictor: $\mu_i$ = E(y)
+
+dispersion parameter: $\sigma^2$ = Variance ( $y | \mu$ ) 
+
+### link
+
+identity: $\mu = X \beta$ 
+
+### assumptions
+
+Decreasing importance
+
+1.**validity**: the outcome measure should accurately reflect the phenomenon of interest, the model should include all relevant predictors, and the model should generalize to the cases to which it will be applied. 
+
+2.**additivity and linearity**: its deterministic component is a linear function of the separate predictors: $\hat{y_i}=\beta_0 +\beta_1x_1...+\beta_n x_n$
+
+* If additivity is violated, it might make sense to transform the data (for example, if y = abc,then logy = loga + logb + logc )or to add interactions
+
+* If linearity is violated: 
+  + a predictor can be transformed: 
+    + 1/x or log(x) instead of simply linearly
+    + as a categorical variable 
+  + a more complicated relationship could be expressed:
+    + by including both x and x2 as predictors.
+    + by using a nonlinear function such as a spline or other generalized additive model.
+
+
+3.**independence of errors**: the errors from the prediction line are independent. 
+
+4.**equal variance of errors**: If the variance of the regression errors are unequal, estimation is more eðciently performed using weighted least squares, 
+
+5.**normality of errors**: the regression assumption that is generally least important is that the errors are normally distributed. In fact, for the purpose of estimating the regression line (as compared to predicting individual data points), the assumption of normality is barely important at all. Thus, in contrast to many regression textbooks, we do not recommend diagnostics of the normality of re- gression residuals.
+
+
+### parameter estimation
+
+estimate the parameters \beta by minimizing the sum of the prediction errors = deviance = least square estimates $(\hat{y_i}- \hat{y_i})^{2}$ 
+
+
+### interpretation of coefficients
+
+EXAMPLE child test score from maternal education and maternal IQ. The fitted model is: 
+kid.score = 26 + 6 · mom.hs + 0.6 · mom.iq + error
+
+In this model the slope of the regression of child’s test score on mother’s IQ is forced to be equal across subgroups defined by mother’s high school completion,
+
+$\beta_0$ The *intercept*. If a child had a mother with an IQ of 0 and who did not complete high school (thus, mom.hs = 0), then we would predict this child’s test score to be 26. This is not a useful prediction, since no mothers have IQs of 0.
+
+$\beta_{momhs}$  The coefficient of maternal high school completion. Comparing children whose mothers have the same IQ, but who differed in whether they completed high school, the model predicts an expected difference of 6 in their test scores.
+
+$\beta_{momiq}$ The coeðcient of maternal IQ. Comparing children with the same value of mom.hs, but whose mothers differ by 1 point in IQ, we would expect to see a difference of 0.6 points in the child’s test score (equivalently, a difference of 10 in mothers’ IQs corresponds to a difference of 6 points for their children).
+
+$\beta_{momiq:momhs}$ **interaction** allows the slope to vary across subgroups.
+
+EXAMPLE kid.score = -11 + 51 · mom.hs + 1.1 · mom.iq - 0.5 · mom.hs · mom.iq + error
+
+1. The intercept represents the predicted test scores for children whose mothers did not complete high school and had IQs of 0—not a meaningful scenario.
+
+2. The coefficient of mom.hs can be conceived as the difference between the predicted test scores for children whose mothers did not complete high school and had IQs of 0, and children whose mothers did complete high school and had IQs of 0. You can see this by just plugging in the appropriate numbers and comparing the equations. Since it is implausible to imagine mothers with IQs of zero, this coefficient is not easily interpretable.
+
+3. The coefficient of mom.iq can be thought of as the comparison of mean test scores across children whose mothers did not complete high school, but whose mothers differ by 1 point in IQ. 
+
+4. The coefficient on the interaction term represents the difference in the slope for mom.iq, comparing children with mothers who did and did not complete high school.
+
+Another way of looking at this is modeling different slopes for moms that did complete high school and moms that didn't
+
+no hs: kid.score = -11+51·0+1.1·mom.iq-0.5·0·mom.iq = -11 + 1.1 · mom.iq
+
+   hs: kid.score =  -11+51·1+1.1·mom.iq-0.5·1·mom.iq = 40 + 0.6 · mom.iq.
+
+The estimated slopes of 1.1 for children whose mothers did not complete high school and 0.6 for children of mothers who did are directly interpretable. The intercepts still suffer from the problem of only being interpretable at mothers’ IQs of 0.
+
+Models with interactions can often be more easily interpreted if we first pre-process the data by centering each input variable about its mean or some other convenient reference point.
+ 
+
+### inference 
+
+The least squares estimate is the maximum likelihood estimate if the errors $\epsilon_i$ are independent with equal variance and normally distributed, and for the model $y=X\beta+\epsilon$ it is the $\hat{\beta}$ that minimizes the sum of squares $(y_i- X_i\hat{\beta})^{2}$. If we are trying to predict an outcome using other variables, we want to do so in such a way as to minimize the error of our prediction. 
+
+*Residuals*: $r_i= y_i- X_i\hat{\beta}$ are the differences between the data and the fitted
+values. As a byproduct of the least squares estimation of $\beta$, the residuals ri will be uncorrelated with all the predictors in the model.
+
+*Residual standard deviation*: $\hat{\sigma}$ summarizes the scale of the residuals. For example, in the test scores example, $\hat{\sigma}$ = 18, which tells us that the linear model can predict children’s test scores to about an accuracy of 18 points.  It's like a measure of the average distance each observation falls from its prediction from the model. We are typically interested in it for its own sake—as a measure of the unexplained variation in the data—or because of its relevance to the precision of inferences about the regression coefficients $\beta$.
+
+
+# **GENERALIZED LINEAR MODELS**
+
+generalize the linear regression strategy—replace a parameter describing the shape of the likelihood with a linear model—to probability distributions other than the Gaussian.
+
+Steps: 
+
+1.We need a linear predictor of the same form as in linear regression $\beta X$. Such a linear predictor can generate any type of number as a prediction: positive, negative, or zero
+
+2.We choose a suitable distribution for the type of data we are predicting (normal for any number, gamma for positive numbers, binomial for binary responses, Poisson for counts)
+
+3.We create a link function which maps the mean of the distribution onto the set of all possible linear prediction results, which is the whole real line (-∞, ∞)
+
+4.The inverse of the link function takes the linear predictor to the actual prediction
+
+
+
+## **LOGISTIC REGRESSION**
+
+### outcome
+
+binary (0,1)
+
+### distribution
+
+binomial: $y_i \to Binomial(n, p_i)$
+
+### model
+
+$f(\hat{p_i})=\alpha +\beta(x_i-\bar{x})$
+
+linear predictor: $\eta_i$ = $logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\alpha +\beta x_i$
+
+### link
+
+**LOGIT LINK**: The logit link maps a parameter that is defined as a probability mass, and therefore constrained to lie between zero and one, onto a linear model that can take on any real value ( possible means (probabilities) (0,1) to the scale of linear predictors (-∞, ∞)). This link is extremely common when working with binomial GLMs. In the context of a model definition, it looks like this: 
+
+$logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\alpha +\beta x_i$
+
+if p→0 then logit(p) → −∞ 
+
+if p→1 then logit(p) → ∞
+
+**log-odds**:  the logit function  $logit(\hat{p_i}) = log(p_i/(1-p_i))$
+
+The “odds” of an event are just the probability it happens divided by the probability it does not happen. So really all that is being stated here is: $log(p_i/(1-p_i))= \alpha +\beta x_i$
+
+**inverse-logit**: it inverts the logit transform to figure out the definition of pi implied here: $p_i = e^{(\alpha +\beta x_i)} / 1 + e^{(\alpha +\beta x_i)}$
+
+x → −∞ then inverse logit (x) → 0
+
+x → + ∞ then inverse logit (x) → 1
+
+```{r logit lik, echo=FALSE}
+
+# first, we'll make data for the horizontal lines
+alpha <- 0
+beta  <- 4
+
+lines <-
+  tibble(x = seq(from = -1, to = 1, by = .25)) %>% 
+  mutate(`log-odds`  = alpha + x * beta,
+         probability = exp(alpha + x * beta) / (1 + exp(alpha + x * beta)))
+
+# now we're ready to make the primary data
+beta  <- 2
+d <-
+  tibble(x = seq(from = -1.5, to = 1.5, length.out = 50)) %>% 
+  mutate(`log-odds`  = alpha + x * beta,
+         probability = exp(alpha + x * beta) / (1 + exp(alpha + x * beta))) 
+
+# now we make the individual plots
+p1 <-
+  d %>% 
+  ggplot(aes(x = x, y = `log-odds`)) +
+  geom_hline(data = lines,
+             aes(yintercept = `log-odds`)) +
+  geom_line(size = 1.5) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+
+p2 <-
+  d %>% 
+  ggplot(aes(x = x, y = probability)) +
+  geom_hline(data = lines,
+             aes(yintercept = probability)) +
+  geom_line(size = 1.5) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+
+# finally, we're ready to mash the plots together and behold their nerdy glory
+(p1 | p2) +
+  plot_annotation(subtitle = "The logit link transforms a linear model (left) into a probability (right).")
+```
+"What all of this means is that when you use a logit link for a parameter, you are defining the parameter’s value to be the logistic transform of the linear model. On the left, the geometry of the linear model is shown, with horizontal lines indicating unit changes in the value of the linear model as the value of a predictor x changes. This is the log-odds space, which extends continuously in both positive and negative directions. On the right, the linear space is trans- formed and is now constrained entirely between zero and one. The horizontal lines have been compressed near the boundaries, in order to make the linear space fit within the probability space. This compression produces the characteristic logistic shape of the transformed linear model shown in the right-hand plot.
+
+No longer does a unit change in a predictor variable produce a constant change in the mean of the outcome variable. Instead, a unit change in xi may produce a larger or smaller change in the probability pi, depending upon how far from zero the log-odds are. For example, in the figure, when x = 0 the linear model has a value of zero on the log-odds scale. A half- unit increase in x results in about a 0.25 increase in probability. But each addition half-unit will produce less and less of an increase in probability, until any increase is vanishingly small. The key lesson for now is just that no regression coefficient, such as β, from a GLM ever produces a constant change on the outcome scale." @mcelreath2020
+
+### assumptions
+
+* linearity: $logit(\hat{p_i})$ is a linear function of the predictors = it is linear in the coefficients
+* independence: the different observations are statistically independent
+* variance function: $\sigma^2 = p(1-p)$
+* binomial: the error distribution is binomial
+
+### parameter estimation
+
+**MAXIMUM LIKELIHOOD ESTIMATION**
+
+The likelihood is the pdf of the data thought of as a function of the parameters for data already observed (the data is fixed, the values of the parameters vary accordingly).
+
+Maximum likelihood (ML) is an established method of estimating the parameters in a data analysis problem.
+
+
+**Binomial distribution** pmf: function of x, given a certain n and p :$f ( x | n , p ) = \begin{pmatrix} n \\ x \end{pmatrix} p^x (1-p)^{n-x}$
+
+
+**Likelihood function**: function of p, given a certain n and x (given by the data) $f ( p | n , x ) =\begin{pmatrix} n \\x \end{pmatrix} p^x (1-p)^{n-x}$
+
+Log of the Likelihood function (omitting the first term because it doesn't depend on p): $g(p)= x ln(p) + (n-x) ln(1-p)$
+
+Derivative of the Log of the Likelihood function $g'(p)= (x/p) -  (n-x)/(1-p) = 0$
+
+The *Maximum likelihood estimator* is: $\hat{p} = x/n$
+
+The likelihood is a graph of the value of the different values of p for a given value of n and x
+
+*Likelihood of the ith observation*
+
+$p_{i}^{x_{i}}(1-p_{i})^{1-x_{i}}$
+
+So for $y_1, y_2 ... y_n \to b(m, p_i)$
+
+The **Maximum likelihood estimator** is: $\hat{p} = y_i/m$
+
+**Likelihood** = product of the likelihoods of the m individual i observations and n parameterns
+
+$f ( p_i | m , y_i ) = \begin{pmatrix} m \\ y_i \end{pmatrix} (y_i/m)^{y_i}  (1-y_i/m)^{m-y_i}$
+
+
+Log of the Likelihood function: $g(p_i)= y_i ln(y_i/m) + \sum(m-y_i) ln(1-y_i/m)$
+
+
+The Log likelihood is maximized with respect to $\beta_{0}$ and $\beta_{1}$ that are chosen so that:
+
+$p_{i}$ is large when $x_{i} = 1$ because we want $\sum_{x_{i} = 1} ln (p_{i})$ to be big
+
+$p_{i}$ is small when $x_{i} = 0$ because we want $\sum_{x_{i} = 0}ln(1-p_{i})$ to be big
+
+Because $p_{i}^{x_{i}}(1-p_{i})^{1-x_{i}}$ then 
+
+$x_{i} = 0 \rightarrow (1-p_{i})$
+
+$x_{i} = 1 \rightarrow p_{i}$
+
+
+
+### interpretation of coefficients
+
+**interpretation of coefficients as probabilities**
+
+The curve of the logistic function requires us to choose where to evaluate changes, if we want to interpret on the probability scale. The mean of the input variables in the data is often a useful starting point.
+
+EXAMPLE: Pr(Bush support) = invlogit (-1.40 + 0.33 · income)
+
+$\beta_0$:
+
+For this dataset,  income is on a 1–5 scale. We can evaluate Pr(Bush support) at the central income category (3) and get inverse logit(-1.40 + 0.33 · 3) = 0.40.
+
+$\beta_{income}$: A difference of 1 in income (on this 1–5 scale) corresponds to a positive difference of 0.33 in the logit probability of supporting Bush. 
+
+* *evaluate how the probability differs with a unit difference in x near the central value*:
+
+In this example: $\bar{x}= 3.1$, so we can evaluate the logistic regression function at x = 3 and x = 2 ( 3 - 2 = 1 unit difference in x). 
+
+inverse logit(-1.40 + 0.33 · 3) - inverse logit(-1.40 + 0.33 · 2) = 0.08
+
+A difference of 1 in income category corresponds to a positive difference of 8% in the probability of supporting Bush.
+
+* *compute the derivative of the logistic curve at the central value*: 
+    
+derivative of the inverse logit ($\alpha +\beta x_i$) =  $\frac{df}{dx}  e^{(\alpha +\beta x_i)} / 1 + e^{(\alpha +\beta x_i)} =  \beta e^{(\alpha +\beta x_i)}/(1 + e^{(\alpha +\beta x_i)})^2$
+    
+In this example: 
+
+The mean of x= $\bar{x}= 3.1$. 
+
+The value of the linear predictor at the central value: -1.40 + 0.33 · 3.1 = -0.39. 
+
+The slope of the curve—the “change” in Pr(y = 1) per small unit of “change” in x is the derivative of the inverse logit at the central value: $\frac{df}{dx}  e^{(-1.40 + 0.33 · 3.1)} / 1 + e^{(-1.40 + 0.33 · 3.1)}= 0.33  e^{(-0.39)} / (1 + e^{(-0.39)})^2= 0.13$
+
+* *divide by 4 rule*: 
+    
+The logistic curve is steepest at its center, at which point  $\alpha +\beta x_i = 0$ so that inverse logit ($\alpha +\beta x_i$) = 0.5
+
+The slope of the curve—the derivative of the logistic function—is maximized at this point and attains the value $\beta  e^{(0)} / (1 + e^{(0)})^2= \beta/4$. 
+
+$\beta/4$ is the maximum difference in Pr(y = 1) corresponding to a unit difference in x. As a rule of convenience, we can take logistic regression coefficients (other than the constant term) and divide them by 4 to get an upper bound of the predictive difference corresponding to a unit difference in x. This upper bound is a reasonable approximation near the midpoint of the logistic curve, where probabilities are close to 0.5.
+
+In this example:  0.33/4 = 0.08. A difference of 1 in income category corresponds to no more than an 8% positive difference in the probability of supporting Bush.
+
+
+The results from these 3 methods 0.08, 0.13 and 0.08 are close to each other. In some cases where a unit difference is large, the differencing and the derivative can give slightly different answers. They will always be the same sign, however.
+
+**interpretation of coefficients as odds ratios**
+
+The “odds” of an event are just the probability it happens divided by the probability it does not happen: $(p_i/(1-p_i))$
+
+The ratio of two odds is an **odds ratio**: $(p_1/(1-p_1))/(p_2/(1-p_2))$
+
+An advantage of working with odds ratios (instead of probabilities) is that it is possible to keep scaling up odds ratios indefinitely without running into the boundary points of 0 and 1. 
+
+$log(P(y=1|x)/P(y=0|x))= log ODDS= \alpha +\beta x_i$
+
+Adding 1 to x (that is, changing x to x+1) has the effect of adding $\beta$ to both sides of the equation.
+$log(P(y=1|x)/P(y=0|x)) + \beta = log ODDS + \beta= \alpha +\beta x + \beta = \alpha +\beta (x+1)$
+
+Exponentiating both sides, the odds are then multiplied by $e^{\beta}$.
+
+$e^{log ODDS + \beta}= e^{\alpha +\beta (x + 1)}$
+
+$ODDS e^{\beta}= e^{\alpha +\beta (x + 1)}$
+
+Exponentiated logistic regression coefficients can be interpreted as odds ratios.
+
+EXAMPLE: if $\beta= 0.2$, then a unit difference in x corresponds to a multiplicative change of $e^{0.2} = 1.22$ in the odds (for example, changing the odds from 1 to 1.22, or changing p from 0.5 to 0.55).
+
+$\beta_0$ = intercept:  baseline log odds. This is meaningful only for the specific population at hand (mainly in cohort studies). 
+EXAMPLE: If we have a case control study with 50% cases and 50% controls, and the population has 4% cases, then clearly the baseline risk for the case control study has no relevance to the population.
+
+$\beta_i$: holding all other factors constant:
+
+* continuous variable:  log of the odds ratio for a unit change in the variable (because a difference of logs is the log of the ratio)
+    
+* categorical variable: change in the log odds ratio from the baseline level 
+    
+$\beta_{A:B}$ = interaction: holding all other factors constant:
+
+the effect of A depends on the level of B
+
+$\eta_i$ = $logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\alpha +\beta_A x_A + \beta_B x_B + \beta_{A:B} x_{A:B}$
+
+when $x_B= 0$ the effect of A is $\beta_A$
+
+when $x_B= 1$ the effect of A is $\beta_A + \beta_{A:B}$
+ 
+EXAMPLE: in study about distribution of insulin-like growth factor (IGF-1). menarche ~ age + tanner
+
+```{r igf data}
+library("ISwR")
+
+data(juul)
+
+juul1 <- subset(juul,age > 8 & age < 20 & complete.cases(menarche))
+
+juul1$menarche <- factor(juul1$menarche,labels=c("No","Yes")) 
+juul1$tanner <- factor(juul1$tanner) 
+
+attach(juul1)
+
+juul1.glm <- glm(menarche~age+tanner,binomial,data=juul1) 
+summary(juul1.glm)
+
+```
+
+
+$\beta age$  
+
+Log odds ratio for one year increase in age is 0.8603, holding tanner constant $\to$ Odds ratio is exp(0.8603) = 2.364
+
+Log odds ratio for a two year increase in age is (2)(0.8603) = 1.7206 $\to$ Odds ratio is exp(1.7206) = 5.588
+
+
+$\beta tanner4$ 
+
+* Log odds ratio for tanner 4 vs. tanner 1 is 2.5645, holding age constant 
+
+Odds ratio is exp(2.5645) = 12.994
+
+This means the odds of having menarche are 13 times higher for girls with tanner4 than with tanner1.
+
+* Log odds ratio for tanner 4 vs. tanner 3 is 2.5645 – 0.8264 = 1.7381 
+
+Odds ratio is exp(1.7381) = 5.687
+
+### inference 
+
+**confidence intervals**: to calculate a confidence interval you need to know the standard deviation. To know the standard deviation you need to know the variance, which we can obtain from the variance-covariance matrix. 
+
+```{r vcov table, echo= FALSE, warning= FALSE, message=FALSE}
+A <- c("VAR(A)", "COV(B,A)", "COV(A,C)")
+B <- c("COV(A,B)", "VAR(B)", "COV(B,C)")
+C <- c("COV(C,A)", "COV(C,B)", "VAR(C)")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("A", "B", "C")
+rownames(tble) <- c("A", "B", "C")
+kable(tble)
+```
+
+
+* *confidence interval for one variable* : 
+
+log odds confidence interval:$\beta_i \pm z_{0.025} \sqrt{Var(\beta_i)}$
+
+odds ratio confidence interval:$e^{\beta_i \pm z_{0.025} \sqrt{Var(\beta_i)}}$
+
+* *confidence interval between two levels of the same variable* : 
+
+log odds confidence interval: $(\beta_C - \beta_B) \pm 1.96 \sqrt{Var(B) + Var(C) - 2COV(B,C)}$
+
+odds ratio confidence interval: $e^{(\beta_C - \beta_B) \pm 1.96 \sqrt{Var(B) + Var(C) - 2COV(B,C)}}$
+
+Because: If X and Y are random variables then $V(X-Y) = V(X) + V(Y)- 2Cov(X,Y)$
+
+
+EXAMPLE: Confidence interval of the estimated log odds between tanner4 and tanner5
+
+
+*coefficient matrix*
+
+```{r coeff}
+c1 <- coef(juul1.glm)
+c1
+```
+
+*variance_covariance matrix*
+
+```{r vcov}
+v1 <- vcov(juul1.glm)
+v1
+```
+
+
+We want to compare tanner4 to tanner5, so we only care about the last 2 columns. 
+
+
+```{r isolate cols of interes}
+
+#We set the other 4 columns to 0. We want to substract tanner4 from tanner5, so we multiply tanner4 by -1 and tanner5 by 1.
+
+#in vector form this will multiply the rows of the vcv matrix 
+
+b1 <- c(0,0,0,0,-1,1)
+b1
+
+#in transposed vector form this will multiply the columns of the vcv matrix 
+t(b1) 
+```
+
+multiplying t(b1) * c1 is the same as doing 5.1897 − 2.5645 = 2.6252 
+
+this is the difference in the log odds between tanner4 and tanner5
+
+```{r t(b1) * c1}
+t(b1) %*% c1
+```
+
+to calculate the ci we need the variance, which we extract like so:
+
+we multiply the cols and rows by (0,0,0,-1,1) in order to end up with the bottom right corner of 4 numbers 
+
+  1.4816528  1.4075578
+  
+  1.4075578  1.9993267
+
+var of the difference= var(x) + var (y) - 2 cov(x,y) = 1.4816528 +1.9993267 -2 *( 1.4075578)
+ 
+```{r t(b1)%*% v1 %*% b1}
+ t(b1)%*% v1 %*% b1
+```
+
+
+0.6658638 is the variance. to calculate the ci we need the se, so sqrt(0.6658638)
+
+ci for the log odds ratio 2.625154 ± (1.960)√0.6658638 = (1.025, 4.224)
+
+ci for the odds ratio (2.787, 68.33) 
+
+* *confidence interval of an interaction*
+
+log odds confidence interval: $(\beta_A + \beta_{A:B}) \pm 1.96 \sqrt{Var(A) + Var(A:B) - 2COV(A,A:B)}$
+
+odds ratio confidence interval: $e^{(\beta_A + \beta_{A:B}) \pm 1.96 \sqrt{Var(A) + Var(A:B) - 2COV(A,A:B)}}$
+
+
+### model comparison 
+
+**deviance** : twice the difference between the best possible log likelihood and the log likelihood under the model.
+
+The differences in deviance are assessed using the chi‐squared distribution with degrees of freedom equal to the number of parameters omitted between the larger and smaller model. This test is asymptotic, that is, it gets more accurate as n increases.
+
+smaller values are better. 
+
+EXAMPLE: $y_{i} = y_{1}, y_{2}...y_{n}$ ~ bin(m, $p_{i}$)
+
+
+The best fit possible is to set $\hat{p_{i}} = y_{i}/m$
+
+*Best likelihood*: has the highest possible value for the likelihood and uses n parameters (all n of the $y_{i}$s): $\prod\begin{pmatrix} m \\y_{i} \end{pmatrix} (y_{i}/m)^{y_{i}} (1-y_{i}/m)^{m-y_{i}}$
+
+*Best log likelihood*: $y_{i} ln(y_{i}/m) +(m-y_{i})ln (1-y_{i}/m)$
+
+
+If instead we use a a statistical model using fewer parameters that predicts $\hat{p_{i}}$ , where $\hat{\mu_{i}}=m \hat{p_{i}}$ 
+
+
+*Model likelihood*: maximized by choosing the coefficients: $\prod\begin{pmatrix} m \\y_{i} \end{pmatrix} (\hat{\mu_{i}}/m)^{y_{i}} (1-\hat{\mu_{i}}/m)^{m-y_{i}}$
+
+*Model log likelihood*: $y_{i} ln(\hat{\mu_{i}}/m) +(m-y_{i})ln (1-\hat{\mu_{i}}/m)$
+
+
+*Deviance*= $2(y_{i} ln(y_{i}/m) +(m-y_{i})ln (1-y_{i}/m) - (y_{i} ln(\hat{\mu_{i}}/m) +(m-y_{i})ln (1-\hat{\mu_{i}}/m)) ) = 2\sum[(y_{i} ln(y_{i}/\hat{\mu_{i}}) +  (m-y_{i})ln((m- y_{i})/(m- \hat{\mu_{i}}))]$
+
+the farther $y_{i}$ is from $\hat{\mu_{i}}$, the deviance is farther from 0  $\rightarrow y_{i}/\hat{\mu_{i}}$  becomes farther from 1 and because ln(1)= 0
+
+Null Model: 
+
+all the $\hat{p_{i}}$ are the same and can the maximum likelihood estimator is 
+
+$\hat{p}= \sum y_{i}/mn$ and $\hat{\mu}= m\hat{p}$
+
+
+
+## **POISSON REGRESSION**
+
+### outcome
+
+count data (0,+∞). positive numbers. 
+
+Differences between the binomial and Poisson models:
+The Poisson model is similar to the binomial model for count data  but is applied in slightly different situations:
+• If each data point yi can be interpreted as the number of “successes” out of ni trials, then it is standard to use the binomial/logistic model or its overdispersed generalization.
+• If each data point yi does not have a natural limit—it is not based on a number of independent trials—then it is standard to use the Poisson/logarithmic regression model (as described here) or its overdispersed generalization.
+
+### distribution
+
+poisson  $y_i \to Poisson(\theta_i)$
+
+mean = variance = $\theta$
+
+### model
+
+$\theta_i=e^{\beta_0 +\beta_ix_i}$ 
+
+In the general Poisson regression model, we think of yi as the number of cases in a process with rate $\theta_i$ and exposure $u_i$.
+
+$y_i \to Poisson(\theta_i, u_i)$ 
+
+### link
+
+**LOG LINK**
+
+This link function maps a parameter that is defined over only positive real values onto a linear model. What the log link effectively assumes is that the parameter’s value is the exponentiation of the linear model. $log(\theta_i)= \beta_0 +\beta_ix_i$
+
+**inverse link**: exponentiate to solve for $\theta_i$: $\theta_i=e^{\beta_0 +\beta_ix_i}$
+
+```{r log link, echo=FALSE}
+# first, we'll make data that'll be make the horizontal lines
+alpha <- 0
+beta  <- 2
+
+lines <-
+  tibble(`log-measurement`      = -3:3,
+         `original measurement` = exp(-3:3))
+
+# now we're ready to make the primary data
+d <-
+  tibble(x = seq(from = -1.5, to = 1.5, length.out = 50)) %>% 
+  mutate(`log-measurement`      = alpha + x * beta,
+         `original measurement` = exp(alpha + x * beta))
+
+# now we make the individual plots
+p1 <-
+  d %>% 
+  ggplot(aes(x = x, y = `log-measurement`)) +
+  geom_hline(data = lines,
+             aes(yintercept = `log-measurement`)) +
+  geom_line(size = 1.5) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+p2 <-
+  d %>% 
+  ggplot(aes(x = x, y = `original measurement`)) +
+  geom_hline(data = lines,
+             aes(yintercept = `original measurement`)) +
+  geom_line(size = 1.5) +
+  scale_y_continuous(position = "right", limits = c(0, 10)) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+
+# combine the ggplots
+p1 | p2
+```
+Using a log link for a linear model (left) implies an exponential scaling of the outcome with the predictor variable (right). Another way to think of this relationship is to remember that logarithms are magnitudes. An increase of one unit on the log scale means an increase of an order of magnitude on the untransformed scale. And this fact is reflected in the widening intervals between the horizontal lines in the right-hand plot.
+While using a log link does solve the problem of constraining the parameter to be positive, it may also create a problem when the model is asked to predict well outside the range of data used to fit it. Exponential relationships grow, well, exponentially. Just like a linear model cannot be linear forever, an exponential model cannot be exponential forever. Human height cannot be linearly related to weight forever, because very heavy people stop getting taller and start getting wider. Likewise, the property damage caused by a hurricane may be approximately exponentially related to wind speed for smaller storms. But for very big storms, damage may be capped by the fact that everything gets destroyed.
+
+### assumptions
+
+* linearity: $log(\theta)$ is a linear function of the predictors
+* independence: the different observations are statistically independent
+* variance function: mean = variance = $\theta$
+
+
+
+### parameter estimation
+
+MLE = $\hat{\theta}= y$
+
+
+### interpretation of coefficients
+
+The coefficients $\beta$ can be exponentiated and treated as multiplicative effects.
+
+The regression coefficients summarize the associations between the predictors and $\theta$
+
+EXAMPLE $y_i \to Poisson(e^{2.8+ 0.012X_{i1} - 0.20X_{i2}})$
+
+Traffic accident model of the  rate of traffic accidents per vehicle = $\theta$ :Xi1 is average speed (in miles per hour, or mph) on the nearby streets and Xi2 = 1 if the intersection has a traffic signal or 0 otherwise
+
+$\beta_0$ The constant term gives the intercept of the regression, that is, the prediction if Xi1 = 0 and Xi2 = 0. Since this is not possible (no street will have an average speed of 0), we will not try to interpret the constant term.
+
+$\beta_1$ The coefficient of Xi1 is the expected difference in y (on the logarithmic scale) for each additional mph of traffic speed. Thus, the expected multiplicative increase is $e^{0.012} = 1.012$, or a 1.2% positive difference in the rate of traffic accidents per mph. Since traffic speeds vary by tens of mph, it would actually make sense to define Xi1 as speed in tens of mph, in which case its coefficient would be 0.12, corresponding to a 12% increase (more precisely, e0.12 = 1.127: a 12.7% increase) in accident rate per ten mph.
+
+$\beta_2$ The coefficient of Xi2 tells us that the predictive difference of having a traffic signal can be found be multiplying the accident rate by $e^{0.20} = 0.82$ yielding a reduction of 18% (1-0.82= 18).
+
+As with regression models in general, each coefficient is interpreted as a comparison in which one predictor differs by one unit while all the other predictors remain at the same level,
+
+**offset** In most applications of Poisson regression, the counts can be interpreted relative to some baseline or “exposure,” for example, the number of vehicles that travel through the intersection. $y_i \to Poisson(\theta_i, u_i)$ .Putting the logarithm of the exposure into the model as an offset is equivalent to including it as a regression predictor, but with its coefficient fixed to the value 1. In this way the rate is proportional to the exposure. 
+
+$y_i \to Poisson(\theta_i, u_i)$
+
+$log(\theta_i)= \beta_0 +\beta_ix_i + log(u_i)$
+
+$\theta_i=e^{\beta_0 +\beta_ix_i + log(u_i)} = e^{\beta_0 +\beta_ix_i}e^{log(u_i)}= e^{\beta_0 +\beta_ix_i}u_i$
+
+### overdispersion
+
+Under the Poisson distribution the variance equals the mean—that is, the standard deviation equals the square root of the mean. 
+
+standardized residuals: $z_i= y_i-\hat{y_i}/sd(\hat{y_i})= y_i-u_i\hat{\theta_i} /sd(u_i\hat{\theta_i})$
+
+If the Poisson model is true, then the zi’s should be approximately independent, each with mean 0 and standard deviation 1. If there is overdispersion, however, we would expect the zi’s to be larger, in absolute value, reflecting the extra variation beyond what is predicted under the Poisson model.
+
+**overdispersion test**: compute the sums of squares of the standardized residuals $\sum_{i=1}^n z_i^2$ and compare to the Chi-square distribution with degrees of freedom n-k (using n-k rather than n degrees of freedom to account for the estimation of k regression coefficients) 
+
+estimated overdispersion: $1/(n-k) \sum_{i=1}^n z_i^2$
+
+EXAMPLE: the classical Poisson regression for the police stops has n = 225 data points and k = 77 linear predictors.
+$\sum_{i=1}^n z_i^2$ = 2700 
+$(n-k)$ = 148
+
+The estimated overdispersion factor is 2700/148 = 18.2, and the p-value is 1.  indicating that the probability is essentially zero that a random variable from a +2148 distribution would be as large as 2700. In summary, the police stops data are overdispersed by a factor of 18, which is huge—even an overdispersion factor of 2 would be considered large—and also statistically significant.
+
+**adjust for overdispersion**: 
+
+* multiply all regression standard errors by the sqrt(overdispersion factor)
+EXAMPLE: $\sqrt{18.2}= 4.3$
+
+* fit overdispersed model: quasipoisson or negative binomial 
+
+
+## NEGATIVE BINOMIAL
+
+### outcome
+
+overdispersed count data (0,+∞). positive numbers. 
+
+any count-data model for which the variance of the data is $\omega$ times the mean, reducing to the Poisson if $\omega$ = 1.
+
+### distribution
+
+negative binomial  $y_i \to negative binomial (\theta_i, \omega)$
+
+mean = $u_i\theta= u_ie^{\beta X_i}$ = a/b
+
+overdispersion= $\omega$ = 1 + 1/b
+
+the negative-binomial distribution is conventionally expressed not based on its mean and overdispersion but rather in terms of parameters a and b where the mean of the distribution is a/b and the overdispersion is 1 + 1/b. One must check the parameterization when fitting such models, and it can be helpful to double-check by simulating datasets from the fitted model and checking that they look like the actual data 
+
+### link
+
+**LOG LINK**
+
+## Epidemiological reasoning behind OR vs RR 
+
+You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event. 
+
+You CAN'T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event. 
+ 
+Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.
+
+
+1.COHORT study: follow up people with certain exposure and cases occur randomly.
+
+random event = disease; fixed event = exposure. 
+
+Risk = P(D+|E+) and P(D+|E-)
+
+2.CASE-CONTROL study: follow up people with disease and look at if they had exposure.
+
+random event = exposure, fixed event = disease . 
+
+Risk = P(D+|E+) and P(D+|E-) --> can't compute!!! 
+
+OR= odds D+ in E+ group/ odds D+ in E- group --> can't compute
+
+OR= odds E+ in D+ group/ odds E+ in D- group --> CAN compute because exposure can be treated as a random event.
+
+(P(E+|D+)/1- P(E+|D+))/(P(E+|D-)/1- P(E+|D-))
+
+OR are symmetric from the perspective of exposure and outcome, so it doesn't matter! :) 
+
+3.CROSS-SECTIONAL STUDY:
+
+Risk: can be estimated only if the x-sectional study is a probability sample (each person has the same probability of being included in the study) --> rare
+
+OR: can always be estimated
