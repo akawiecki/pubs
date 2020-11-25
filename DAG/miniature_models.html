@@ -1537,6 +1537,25 @@ library(&quot;ghibli&quot;)</code></pre>
 <p><em>divergence</em>: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: <span class="math inline">\(D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)\)</span> The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p (see the Overthinking box on the next page for some more detail). When p = q, we know the actual probabilities of the events and <span class="math inline">\(D_{KL} = 0\)</span>. As q grows more different from p, the divergence also grows.</p>
 <p>To use DKL to compare models, it seems like we would have to know p, the target proba- bility distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much. All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r.</p>
 <p><em>deviance</em>: -2 * the total log-probability score for the model and data.<span class="math inline">\(-2\sum_{i}log(q_i)\)</span></p>
+<div id="epidemiological-reasoning-behind-or-vs-rr" class="section level2">
+<h2>Epidemiological reasoning behind OR vs RR</h2>
+<p>You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event.</p>
+<p>You CAN’T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event.</p>
+<p>Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.</p>
+<p>1.COHORT study: follow up people with certain exposure and cases occur randomly.</p>
+<p>random event = disease; fixed event = exposure.</p>
+<p>Risk = P(D+|E+) and P(D+|E-)</p>
+<p>2.CASE-CONTROL study: follow up people with disease and look at if they had exposure.</p>
+<p>random event = exposure, fixed event = disease .</p>
+<p>Risk = P(D+|E+) and P(D+|E-) –&gt; can’t compute!!!</p>
+<p>OR= odds D+ in E+ group/ odds D+ in E- group –&gt; can’t compute</p>
+<p>OR= odds E+ in D+ group/ odds E+ in D- group –&gt; CAN compute because exposure can be treated as a random event.</p>
+<p>(P(E+|D+)/1- P(E+|D+))/(P(E+|D-)/1- P(E+|D-))</p>
+<p>OR are symmetric from the perspective of exposure and outcome, so it doesn’t matter! :)</p>
+<p>3.CROSS-SECTIONAL STUDY:</p>
+<p>Risk: can be estimated only if the x-sectional study is a probability sample (each person has the same probability of being included in the study) –&gt; rare</p>
+<p>OR: can always be estimated</p>
+</div>
 <div id="linear-regression" class="section level1">
 <h1><strong>LINEAR REGRESSION</strong></h1>
 <div id="outcome" class="section level3">
@@ -1722,7 +1741,8 @@ library(&quot;ghibli&quot;)</code></pre>
 <p><span class="math inline">\(log(P(y=1|x)/P(y=0|x))= log ODDS= \alpha +\beta x_i\)</span></p>
 <p>Adding 1 to x (that is, changing x to x+1) has the effect of adding <span class="math inline">\(\beta\)</span> to both sides of the equation. <span class="math inline">\(log(P(y=1|x)/P(y=0|x)) + \beta = log ODDS + \beta= \alpha +\beta x + \beta = \alpha +\beta (x+1)\)</span></p>
 <p>Exponentiating both sides, the odds are then multiplied by <span class="math inline">\(e^{\beta}\)</span>.</p>
-<p><span class="math inline">\(e^{log ODDS + \beta}= e^{\alpha +\beta (x + 1)}\)</span> <span class="math inline">\(ODDS e^{\beta}= e^{\alpha +\beta (x + 1)}\)</span></p>
+<p><span class="math inline">\(e^{log ODDS + \beta}= e^{\alpha +\beta (x + 1)}\)</span></p>
+<p><span class="math inline">\(ODDS e^{\beta}= e^{\alpha +\beta (x + 1)}\)</span></p>
 <p>Exponentiated logistic regression coefficients can be interpreted as odds ratios.</p>
 <p>EXAMPLE: if <span class="math inline">\(\beta= 0.2\)</span>, then a unit difference in x corresponds to a multiplicative change of <span class="math inline">\(e^{0.2} = 1.22\)</span> in the odds (for example, changing the odds from 1 to 1.22, or changing p from 0.5 to 0.55).</p>
 <p><span class="math inline">\(\beta_0\)</span> = intercept: baseline log odds. This is meaningful only for the specific population at hand (mainly in cohort studies). EXAMPLE: If we have a case control study with 50% cases and 50% controls, and the population has 4% cases, then clearly the baseline risk for the case control study has no relevance to the population.</p>
@@ -2000,24 +2020,68 @@ t(b1) </code></pre>
 <p><strong>LOG LINK</strong></p>
 </div>
 </div>
-<div id="epidemiological-reasoning-behind-or-vs-rr" class="section level2">
-<h2>Epidemiological reasoning behind OR vs RR</h2>
-<p>You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event.</p>
-<p>You CAN’T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event.</p>
-<p>Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.</p>
-<p>1.COHORT study: follow up people with certain exposure and cases occur randomly.</p>
-<p>random event = disease; fixed event = exposure.</p>
-<p>Risk = P(D+|E+) and P(D+|E-)</p>
-<p>2.CASE-CONTROL study: follow up people with disease and look at if they had exposure.</p>
-<p>random event = exposure, fixed event = disease .</p>
-<p>Risk = P(D+|E+) and P(D+|E-) –&gt; can’t compute!!!</p>
-<p>OR= odds D+ in E+ group/ odds D+ in E- group –&gt; can’t compute</p>
-<p>OR= odds E+ in D+ group/ odds E+ in D- group –&gt; CAN compute because exposure can be treated as a random event.</p>
-<p>(P(E+|D+)/1- P(E+|D+))/(P(E+|D-)/1- P(E+|D-))</p>
-<p>OR are symmetric from the perspective of exposure and outcome, so it doesn’t matter! :)</p>
-<p>3.CROSS-SECTIONAL STUDY:</p>
-<p>Risk: can be estimated only if the x-sectional study is a probability sample (each person has the same probability of being included in the study) –&gt; rare</p>
-<p>OR: can always be estimated</p>
+</div>
+<div id="multilevel-models" class="section level1">
+<h1><strong>MULTILEVEL MODELS</strong></h1>
+<p>EXAMPLE: estimating the distribution of radon levels of the houses within each of the 85 counties in Minnesota</p>
+<div id="no-predictors" class="section level2">
+<h2>no predictors</h2>
+<div id="complete-pooling" class="section level3">
+<h3>complete pooling</h3>
+<p><span class="math inline">\(\bar{y}_{all}\)</span>: Average that completely pools data across all counties. This ignores variation between counties in radon levels.</p>
+</div>
+<div id="no-pooling" class="section level3">
+<h3>no pooling</h3>
+<p><span class="math inline">\(\bar{y}_{j}\)</span>: Average of the observations in each county. No-pooling analysis overfits the data within each county.</p>
+</div>
+<div id="partial-pooling" class="section level3">
+<h3>partial pooling</h3>
+<p>Average log radon level <span class="math inline">\(\alpha_j\)</span> among all the houses in county j, for which all we have available are a random sample of size <span class="math inline">\(n_j\)</span>. It’s like a weighted average of <span class="math inline">\(\bar{y}_{j}\)</span> and <span class="math inline">\(\bar{y}_{all}\)</span> which reflects the relative amount of information available about the individual county, on one hand, and the average of all the counties, on the other.</p>
+<ul>
+<li><p>if <span class="math inline">\(n_j = 0\)</span> then <span class="math inline">\(\alpha_j = \bar{y}_{all}\)</span></p></li>
+<li><p>if <span class="math inline">\(n_j \to \infty\)</span> then <span class="math inline">\(\alpha_j = \bar{y}_{j}\)</span></p></li>
+</ul>
+</div>
+</div>
+<div id="with-predictors" class="section level2">
+<h2>with predictors</h2>
+<p>EXAMPLE: logarithm of the home radon measurement versus floor of measurement3 for houses sampled from eight of the 85 counties in Minnesota.</p>
+<div id="complete-pooling-1" class="section level3">
+<h3>complete pooling</h3>
+<p>Classical regression completely ignoring the group information, a single model fit to all the data.</p>
+<p><span class="math inline">\(y_i= \alpha +\beta x_i + \epsilon_i\)</span> or y ~ x</p>
+<p><span class="math inline">\(\alpha_{j}\)</span> is fixed at the average for the whole data set <span class="math inline">\(\alpha\)</span></p>
+<p>This analysis ignores any variation in average radon levels between counties.</p>
+</div>
+<div id="no-pooling-1" class="section level3">
+<h3>no pooling</h3>
+<p>Can refer to</p>
+<ul>
+<li><p>Separate models: a separate classical regression in each group: <span class="math inline">\(y_j= \alpha_{j} +\beta x_i + \epsilon_i\)</span></p></li>
+<li><p>No-pooling model: a single classical regression that includes group indicators (but no group-level predictors) but with no model for the group coeðcients: <span class="math inline">\(y_i= \alpha_{j[i]} +\beta x_i + \epsilon_i\)</span> where j[i] is the county correspoinding to house i.</p></li>
+</ul>
+<p><span class="math inline">\(y_i= \alpha_{j[i]} +\beta x_i + \epsilon_i\)</span> is expressed in lmer as y ~ x + factor(county) - 1)</p>
+<p>where we add -1 to the regression formula to remove the constant term, so that all 85 counties are included.</p>
+<p>This version of “no pooling” does not pool the estimates for the intercepts <span class="math inline">\(\alpha_{j}\)</span> but it does completely pool estimates for any slope coefficients (they are forced to have the same value across all groups) and also assumes the residual variance is the same within each group.</p>
+<p><span class="math inline">\(\alpha_{j}\)</span> is set to the classical least squares estimates, which correspond to the fitted intercepts in a model run separately in each county. The constraint is that the slope coeffcient equals <span class="math inline">\(\beta\)</span> in all models.</p>
+<p>This analysis is very dependent on the number of observations per county.</p>
+</div>
+<div id="partial-pooling-1" class="section level3">
+<h3>partial pooling</h3>
+<p><span class="math inline">\(y_i \sim N(\alpha_{j[i]} +\beta x_i, \sigma_y^2)\)</span></p>
+<p><span class="math inline">\(\alpha_{j} \sim N(\mu_{\alpha}, \sigma_{\alpha}^2)\)</span></p>
+<p><span class="math inline">\(\alpha_{j}\)</span> has a “soft-constraint” in the form of a probability distribution, that has the effect of pulling the estimates of <span class="math inline">\(\alpha_{j}\)</span> toward the mean level <span class="math inline">\(\mu_{\alpha}\)</span></p>
+<ul>
+<li><p>if <span class="math inline">\(\sigma_{\alpha} \to 0\)</span> then the soft-constraints pull the estimate to 0 <span class="math inline">\(\alpha_j = \alpha\)</span> = complete-pooling estimate.</p></li>
+<li><p>if <span class="math inline">\(\sigma_{\alpha} \to \infty\)</span> then soft constraints do nothing <span class="math inline">\(\alpha_j = \alpha_j\)</span> = no pooling estimate.</p></li>
+</ul>
+<p>There is strong pooling in counties with small sample sizes, and only weak pooling in counties containing many measurements.</p>
+</div>
+</div>
+<div id="when-to-use-multilevel-models" class="section level2">
+<h2>WHEN TO USE MULTILEVEL MODELS</h2>
+<p>Multilevel model is most important when it is close to complete pooling, when <span class="math inline">\(\sigma_{\alpha}\)</span> is small and the groups are similar to each other. When <span class="math inline">\(\sigma_{\alpha}\)</span> is large, so that groups vary greatly, multilevel modeling is not much better than simple no-pooling estimation.However the multilevel estimate can be close to complete pooling for groups with small sample size and close to no pooling for groups with large sample size, automatically performing well for both sorts of group.</p>
+<p><em>How many groups?</em> When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When <span class="math inline">\(\sigma_{\alpha}\)</span> cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression</p>
 </div>
 </div>
 
