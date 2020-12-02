@@ -8,20 +8,16 @@ output:
     toc_float: true
 ---
 
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(message=FALSE)
-```
 
-```{r libraries, message= FALSE}
 
+
+```r
 library(tidyverse)
 library(rethinking)
 library(dagitty)
 library(knitr)
 library("ggdag")
 library("ggrepel")
-
-
 ```
 
 # Resources
@@ -309,65 +305,17 @@ A statistical association between an exposure and an outcome can be due to eithe
 
 * **causal effect**: the exposure causes the outcome. This is the effect we want to isolate using causal inference.
 
-```{r dag causal, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 2),
-  y = c(E = 0, O = 0)
-) %>% 
-   coords2df()
-dag1.1 <- dagify( 
-  O ~ E, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-ggdag(dag1.1) +
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag causal-1.png" width="672" />
 
 * **spurious effect**: the exposed and the unexposed groups in the study are not comparable, or exchangeable, which is the ultimate source of the bias (the unexposed group is not the counterfactual of the exposed group). (Hernan 2002)
 
-```{r dag spurious, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
-dag2 <- dagify( 
-  E ~ C,
-  O ~ C, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-ggdag(dag2, layout= "grid") +
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag spurious-1.png" width="672" />
 
 A third effect between 2 variables can be 
 
 * a **common effect** = **collider**
 
-```{r dag3, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
-
-
-dag3 <- dagify( 
-  C ~ E,
-  C ~ O, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag3, layout= "grid") +
-  theme_dag()
-
-```
+<img src="DAGjokes_files/figure-html/dag3-1.png" width="672" />
 
 
 
@@ -382,7 +330,8 @@ The rate at which adults marry is a great predictor of divorce rate. But does ma
 Age at marriage is also a good predictor of divorce rate— higher age at marriage predicts less divorce. But there is no reason this has to be causal, either, unless age at marriage is very late and the spouses do not live long enough to get a divorce.
 
 
-```{r 5.1}
+
+```r
 # load data and copy 
 library(rethinking) 
 data(WaffleDivorce) 
@@ -401,13 +350,19 @@ The outcome and the predictor are both standardized, the intercept α should end
 
 What does the prior slope $\beta_{A}$ imply? If $\beta_{A}$ = 1, that would imply that a change of one standard deviation in age at marriage is associated likewise with a change of one standard deviation in divorce. To know whether or not that is a strong relationship, you need to know how big a standard deviation of age at marriage is:
 
-```{r sd A}
+
+```r
  sd( d$MedianAgeMarriage )
+```
+
+```
+## [1] 1.24363
 ```
 
 So when $\beta_{A}$ = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable. That seems like an insanely strong relationship. 
 
-```{r 5.3}
+
+```r
 m5.1 <- quap(
     alist(
         D ~ dnorm( mu , sigma ) ,
@@ -420,12 +375,18 @@ m5.1 <- quap(
 ) , data = d )
 
 precis(m5.1)
+```
 
+```
+##                mean         sd       5.5%      94.5%
+## a     -8.881211e-07 0.09737925 -0.1556317  0.1556300
+## bA    -5.684199e-01 0.11000033 -0.7442217 -0.3926181
+## sigma  7.883308e-01 0.07801256  0.6636516  0.9130099
 ```
 posterior for $\beta_{A}$ is reliably negative, as seen:
 
-```{r 5.5}
 
+```r
 # compute percentile interval of mean
 A_seq <- seq( from=-3 , to=3.2 , length.out=30 )
 mu <- link( m5.1 , data=list(A=A_seq) )
@@ -435,16 +396,16 @@ mu.PI <- apply( mu , 2 , PI )
 plot( D ~ A , data=d , col=rangi2 )
 lines( A_seq , mu.mean , lwd=2 )
 shade( mu.PI , A_seq )
-
-
 ```
+
+<img src="DAGjokes_files/figure-html/5.5-1.png" width="672" />
 
 $D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
 
 $\mu_{i} = \alpha + \beta_{M}M_{i}$
 
-```{r 5.6}
 
+```r
 m5.2 <- quap(
     alist(
         D ~ dnorm( mu , sigma ) ,
@@ -455,6 +416,16 @@ m5.2 <- quap(
 ) , data = d )
 
 precis(m5.2)
+```
+
+```
+##               mean         sd       5.5%     94.5%
+## a     4.635859e-07 0.10824656 -0.1729984 0.1729994
+## bM    3.500527e-01 0.12592767  0.1487959 0.5513094
+## sigma 9.102670e-01 0.08986281  0.7666489 1.0538852
+```
+
+```r
 # compute percentile interval of mean
 M_seq <- seq( from=-3 , to=3.2 , length.out=30 )
 mu <- link( m5.2 , data=list(M=M_seq) )
@@ -465,6 +436,8 @@ plot( D ~ M , data=d , col=rangi2 )
 lines( M_seq , mu.mean , lwd=2 )
 shade( mu.PI , M_seq )
 ```
+
+<img src="DAGjokes_files/figure-html/5.6-1.png" width="672" />
 This relationship isn’t as strong as the previous one.
 
 The pattern we see in the previous two models is symptomatic of a situation in which only one of the predictor variables, A in this case, has a causal impact on the outcome, D, even though both predictor variables are strongly associated with the outcome.
@@ -476,96 +449,24 @@ The total causal effect is the sum of the direct and indirect effects
 Example: age of marriage influences divorce in two ways. 
 
 
-```{r dag1.3, echo =FALSE}
-
-coords <- list(
-  x = c(A = 1, M=2, D = 3),
-  y = c(A = 0, D = 0, M = 1)
-) %>% 
-   coords2df()
-
-dag1.3 <- dagify( 
-  M ~ A,
-  D ~ M, 
-  D ~ A, 
-  exposure = "A",
-  outcome = "D", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag1.3) +
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag1.3-1.png" width="672" />
 
 ### direct effect
 
 Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
   
-```{r dag1.1, echo =FALSE}
-
-coords <- list(
-  x = c(A = 1, D = 2),
-  y = c(A = 0, D = 0)
-) %>% 
-   coords2df()
-
-dag1.1 <- dagify( 
-  D ~ A, 
-  exposure = "A",
-  outcome = "D", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag1.1) +
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag1.1-1.png" width="672" />
 
 ### indirect effect
 
 Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
   
-```{r dag1.2, echo =FALSE}
-coords <- list(
-  x = c(A = 1, M=2, D = 3),
-  y = c(A = 0, D = 0, M = 1)
-) %>% 
-   coords2df()
-
-dag1.2 <- dagify( 
-  M ~ A,
-  D ~ M, 
-  exposure = "A",
-  outcome = "D",
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag1.2) +
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag1.2-1.png" width="672" />
 
 
 ## spurious effect 
 
-```{r dag2, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
-
-
-dag2 <- dagify( 
-  E ~ C,
-  O ~ C, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag2, layout= "grid") +
-  theme_dag()
-
-```
+<img src="DAGjokes_files/figure-html/dag2-1.png" width="672" />
 
 
 The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
@@ -623,27 +524,7 @@ Blocking all confounding paths between some predictor X and some outcome Y is kn
 
 Example: 
 
-```{r confounder, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
-
-
-dag2 <- dagify( 
-  E ~ C,
-  O ~ C, 
-  O~E,
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag2, layout= "grid") +
-  theme_dag()
-
-```
+<img src="DAGjokes_files/figure-html/confounder-1.png" width="672" />
 
 There are two paths connecting E and O: 
 (1) E → O 
@@ -671,26 +552,7 @@ Adding C to the model blocks the non-causal path E ← C → O.
 
 Why?  Think of this path in isolation, as a complete model. 
 
-```{r dag confounder condition, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
-
-
-dag2 <- dagify( 
-  E ~ C,
-  O ~ C, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag2, layout= "grid") +
-  theme_dag()
-
-```
+<img src="DAGjokes_files/figure-html/dag confounder condition-1.png" width="672" />
 
 Once you learn C, also learning E will give you no additional information about O. 
 
@@ -736,99 +598,67 @@ P(O|do(E)) defines a causal relationship because it tells us the expected result
 
 
 1. 
-```{r dag1.4, echo =FALSE}
-
-coords <- list(
-  x = c(E = 1, J=2, C= 3, O = 3),
-  y = c(E = 0, O = 0, J = 1, C= 2)
-) %>% 
-   coords2df()
-
-dag1.4 <- dagify( 
-  J ~ E,
-  O ~ J, 
-  O ~ E,
-  O ~ C,
-  J ~ C, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-dag1.4 %>% 
-  ggdag_dseparated(from = "E", to = "O")+
-    theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag1.4-1.png" width="672" />
 
 * To obtain the total causal effect we condition on C but not J:
 
   + C is a confounder of the J $\to$ O association so we must condition on it to obtain the unbiased total causal effect 
 
-```{r adjust C}
+
+```r
 dag1.4 %>% 
 ggdag_dseparated(from = "E", to = "O", controlling_for = "C")+
   theme_dag()
 ```
+
+<img src="DAGjokes_files/figure-html/adjust C-1.png" width="672" />
   
   + J is a collider of the E $\to$ C association so if we condition on J we create a backdoor path between O $\to$ E through C. 
   
-```{r adjust J}
+
+```r
 dag1.4 %>% 
 ggdag_dseparated(from = "E", to = "O", controlling_for = "J")+
   theme_dag()
 ```
+
+<img src="DAGjokes_files/figure-html/adjust J-1.png" width="672" />
   
 
 * To obtain the direct causal effect we condition on both J and C. 
 
-```{r adjust JC}
+
+```r
 dag1.4 %>% 
 ggdag_dseparated(from = "E", to = "O", controlling_for = c("J", "C"))+
   theme_dag()
 ```
 
+<img src="DAGjokes_files/figure-html/adjust JC-1.png" width="672" />
+
 2. 
-```{r dag1.5, echo =FALSE}
-
-coords <- list(
-  x = c(E = 1, J=2, C= 3, O = 3, D = 2),
-  y = c(E = 0, O = 0, J = 1, C= 2, D = -1)
-) %>% 
-   coords2df()
-
-dag1.5 <- dagify( 
-  J ~ E,
-  O ~ J, 
-  O ~ E,
-  O ~ C,
-  J ~ C,
-  O ~ D, 
-  E~ D, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-dag1.5 %>% 
-  ggdag_dseparated(from = "E", to = "O")+
-    theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag1.5-1.png" width="672" />
 * To obtain the total causal effect we condition on D
 
-```{r adjust D}
+
+```r
 dag1.5 %>% 
 ggdag_dseparated(from = "E", to = "O", controlling_for = "D")+
   theme_dag()
 ```
 
+<img src="DAGjokes_files/figure-html/adjust D-1.png" width="672" />
+
 * To obtain the total causal effect we condition on C, D, J
 
-```{r adjust JCD, warning=FALSE}
 
+```r
 dag1.5 %>% 
 ggdag_dseparated(from = "E", to = "O", controlling_for = c("C", "D", "J"))+
   theme_dag()
 ```
+
+<img src="DAGjokes_files/figure-html/adjust JCD-1.png" width="672" />
 
 
 ### Divorce rate example: 
@@ -840,27 +670,7 @@ To infer the strength of these different arrows, we need more than one statistic
 The total causal effect is the sum of the direct and indirect effects 
 
 
-```{r dag ex1, echo =FALSE}
-
-coords <- list(
-  x = c(A = 1, M=2, D = 3),
-  y = c(A = 0, D = 0, M = 1)
-) %>% 
-   coords2df()
-
-dag1.3 <- dagify( 
-  M ~ A,
-  D ~ M, 
-  D ~ A, 
-  exposure = "A",
-  outcome = "D", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-dag1.3 %>% 
-ggdag_dseparated(from = "A", to = "D")+
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag ex1-1.png" width="672" />
 
 Model m5.1, the regression of D on A, tells us only that the total influence of age at marriage is strongly negative with divorce rate. The “total” here means we have to account for every path from A to D. There are two such paths in this graph: A → D, a direct path,and A → M → D, an indirect path. 
 
@@ -868,7 +678,8 @@ $D_{i} ∼ Normal(\mu_{i}, \sigma)$
 
 $\mu_{i} = \alpha + \beta_{A}A_{i}$
 
-```{r total effect ex}
+
+```r
 m5.1 <- quap(
     alist(
         D ~ dnorm( mu , sigma ) ,
@@ -881,11 +692,22 @@ m5.1 <- quap(
 ) , data = d )
 
 precis(m5.1)
+```
 
+```
+##                mean         sd       5.5%      94.5%
+## a     -1.077552e-09 0.09737878 -0.1556301  0.1556301
+## bA    -5.684034e-01 0.10999982 -0.7442044 -0.3926024
+## sigma  7.883258e-01 0.07801137  0.6636486  0.9130030
+```
+
+```r
 dag1.3 %>% 
 ggdag_dseparated(from = "A", to = "D", controlling_for = "A")+
   theme_dag()
 ```
+
+<img src="DAGjokes_files/figure-html/total effect ex-1.png" width="672" />
 
 
 
@@ -895,24 +717,7 @@ As you’ll see however, the indirect path does almost no work in this case. How
 
 We know from m5.2 that marriage rate is positively associated with divorce rate. But that isn’t enough to tell us that the path M → D is positive. It could be that the association between M and D arises entirely from A’s influence on both M and D. Like this:
 
-```{r dag mediation, echo =FALSE}
-coords <- list(
-  x = c(A = 1, M=2, D = 3),
-  y = c(A = 0, D = 0, M = 1)
-) %>% 
-   coords2df()
-
-dag1.2 <- dagify( 
-  M ~ A,
-  D ~ A, 
-  exposure = "A",
-  outcome = "D",
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-
-ggdag(dag1.2) +
-  theme_dag()
-```
+<img src="DAGjokes_files/figure-html/dag mediation-1.png" width="672" />
 
 This DAG is also consistent with the posterior distributions of models m5.1 and m5.2. Why? Because both M and D “listen” to A. They have information from A. So when you inspect the association between D and M, you pick up that common information that they both got from listening to A.
 
@@ -940,19 +745,41 @@ $X \!\perp\!\!\!\perp Y$ means "independent of"
 
 If we look in the data and find that any pair of variables are not associated, then something is wrong with the DAG (assuming the data are correct). In these data, all three pairs are in fact strongly associated. Check for yourself. You can use cor to measure simple correlations. Correlations are sometimes terrible measures of association—many different patterns of association with different implications can produce the same correlation. But they do honest work in this case.
 
-```{r cor}
+
+```r
 cor(d$D, d$M)
+```
+
+```
+## [1] 0.3737314
+```
+
+```r
 cor(d$D, d$A)
+```
+
+```
+## [1] -0.5972392
+```
+
+```r
 cor(d$M, d$A)
+```
+
+```
+## [1] -0.721096
 ```
 
 
 * **First DAG**: M has influence on D. 
 
-```{r dag1}
+
+```r
 ggdag(dag1.3) +
   theme_dag()
 ```
+
+<img src="DAGjokes_files/figure-html/dag1-1.png" width="672" />
 
 This DAG says: 
 
@@ -972,17 +799,21 @@ The testable implications are:
 (3) $A \not\!\perp\!\!\!\perp M$ D not independent of A 
 
   +implied conditional independencies = none
-```{r imp cond dag 1}
+
+```r
 DMA_dag1 <- dagitty('dag{ D <- A -> M -> D }')
 impliedConditionalIndependencies( DMA_dag1  )
 ```
 
 * **Second DAG**: M has no influence on D. 
 
-```{r dag no DM}
+
+```r
 ggdag(dag1.2) +
   theme_dag()
 ```
+
+<img src="DAGjokes_files/figure-html/dag no DM-1.png" width="672" />
 
 In this DAG, it is still true that all three variable are associated with one another. A is associated with D and M because it influences them both. And D and M are associated with one another, because M influences them both. They share a cause, and this leads them to be correlated with one another through that cause. 
 There are 3 causal assumptions that can be tested (one for every arrow). Before we condition on anything, we assume everything is associated with everything else.
@@ -1008,9 +839,14 @@ All 3 variables should be associated, before conditioning on anything:
 (4) $D \!\perp\!\!\!\perp M|A$ D and M should be independent after conditioning on A.
 
   + implied conditional independencies = D _||_ M | A
-```{r imp cond dag 2}
+
+```r
 DMA_dag2 <- dagitty('dag{ D <- A -> M }') 
 impliedConditionalIndependencies( DMA_dag2  )
+```
+
+```
+## D _||_ M | A
 ```
 
 * Test the difference betweet the two DAGs
@@ -1031,7 +867,8 @@ $D_{i} ∼ Normal(\mu_{i}, \sigma)$
 
 $\mu_{i} = \alpha + \beta_{M}M_{i} + \beta_{A}A_{i}$
 
-```{r m3 M A}
+
+```r
 m5.3 <- quap(
     alist(
         D ~ dnorm( mu , sigma ) ,
@@ -1042,20 +879,33 @@ m5.3 <- quap(
         sigma ~ dexp( 1 )
     ) , data = d )
 precis( m5.3 )
+```
 
+```
+##                mean         sd       5.5%      94.5%
+## a     -9.532940e-07 0.09707801 -0.1551504  0.1551485
+## bM    -6.519094e-02 0.15077841 -0.3061640  0.1757821
+## bA    -6.133169e-01 0.15098970 -0.8546276 -0.3720062
+## sigma  7.851390e-01 0.07784874  0.6607217  0.9095563
+```
+
+```r
 dag1.3 %>% 
 ggdag_dseparated(from = "A", to = "D", controlling_for = c("A", "M"))+
   theme_dag()
 ```
 
+<img src="DAGjokes_files/figure-html/m3 M A-1.png" width="672" />
+
 The posterior mean for marriage rate, bM, is now close to zero, with plenty of probability of both sides of zero. The posterior mean for age at marriage, bA, is essentially unchanged. It will help to visualize the posterior distributions for all three models, focusing just on the slope parameters βA and βM:
 
 
-```{r compare coefficients}
 
+```r
 plot(coeftab(m5.1,m5.2,m5.3), par=c("bA","bM"))
-
 ```
+
+<img src="DAGjokes_files/figure-html/compare coefficients-1.png" width="672" />
 
 bA doesn’t move, only grows a bit more uncertain, while bM is only associated with divorce when age at marriage is missing from the model. You can interpret these distributions as saying: *Once we know median age at marriage for a State, there is little or no additional predictive power in also knowing the rate of marriage in that State*, which means $D \!\perp\!\!\!\perp M|A$.  D and M are independent after conditioning on A, which corresponds to the second DAG. 
 
@@ -1069,35 +919,14 @@ We’re interested in the total causal effect of the number of Waffle Houses on 
 Let’s make a graph:
 
 
-```{r waffle dag, echo =FALSE}
-
-coords <- list(
-  x = c(A = 1, M=2, S= 1, W = 3, D = 3),
-  y = c(M = 0, S = 1, W = 1, D = -1, A=-1)
-) %>% 
-   coords2df()
-
-dag6 <- dagify( 
-  D~A,
-  M~A,
-  D~M,
-  A~S, 
-  M~S,
-  W~S,
-  D~W,
-  exposure = "W",
-  outcome = "D", 
-  coords = coords2list(coords))
-
-dag6 %>% 
-  ggdag_dseparated(from = "W", to = "D")+
-    theme_dag()
-
-adjustmentSets( dag6 , exposure="W" , outcome="D" )
-
-ggdag_adjustment_set(dag6)
+<img src="DAGjokes_files/figure-html/waffle dag-1.png" width="672" />
 
 ```
+## { A, M }
+## { S }
+```
+
+<img src="DAGjokes_files/figure-html/waffle dag-2.png" width="672" />
 
 We could control for either A and M or for S alone.
 This DAG is obviously not satisfactory—it assumes there are no unobserved confounds,
@@ -1105,8 +934,15 @@ which is very unlikely for this sort of data. But we can still learn something b
 
 Inspecting  implied conditional independencies, we can at least test some of the features of a graph.
 
-```{r cond indep}
+
+```r
  impliedConditionalIndependencies( dag6 )
+```
+
+```
+## A _||_ W | S
+## D _||_ S | A, M, W
+## M _||_ W | S
 ```
 
 1) The median age of marriage should be independent of (_||_) Waffle Houses, conditioning on (|) a State being in the south.

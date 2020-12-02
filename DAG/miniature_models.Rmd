@@ -842,4 +842,3 @@ Multilevel model is most important when it is close to complete pooling, when $\
 *How many groups?*
 When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When $\sigma_{\alpha}$ cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression 
 
-
