@@ -156,6 +156,8 @@ Proportion of the exposed individuals that becomes affected during a time period
 
 $$\frac{cases}{exposed}$$
 
+![Relationship between incidence and prevalence. Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.35.40.png)
+
 ### MORTALITY 
 
 ### mortality rate 
@@ -191,6 +193,7 @@ $$\frac{deaths}{cases}$$
 Fraction of all the deaths caused by disease X 
 
 $$\frac{deaths\:from\:disease\:X}{all\:deaths}$$
+
 ### RATES
 
 ### crude 
@@ -217,10 +220,85 @@ Observed: add all the observed cases in each specific subgroup
 
 ![indirect adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.08.05.png)
 
-## MEASURES OF DISEASE ASSOCIATION 
+## MEASURES OF DISEASE EFFECT OR ASSOCIATION 
 
-Risk Ratio (“relative risk”)
-Incidence Rate Ratio
+**Measures of effect** compare an exposed population to it's counterfactual unexposed population, that is the exact same population at the same time point had it not been exposed. That is, the effect of $E^+$ on the probability of being $D^+$ in the SAME population.
+
+**Measures of association** compare one exposed population to another unexposed population (a different population or the same population at a different time point) assuming that both populations are comparable. That is the effect of $E^+$ on the probability of being $D^+$ between $E^-$ and $E^+$. 
+
+![causal types](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.46.37.png)
+
+*Doomed* = always has disease, exposed or not
+
+*Susceptible* = has disease when exposed 
+
+*Protected*= does not have disease when exposed, but has disease when unexposed
+
+*Immune*= never has disease, exposed or not
+
+
+$P(D^+|E^+) = p_1 + p_2 = doomed + susceptible$
+
+$P(D^-|E^+) = p_3 + p_4 = protected + immune$
+
+$P(D^+|E^-) = p_1 + p_3 = doomed + protected$
+
+$P(D^-|E^-) = p_2 + p_4 = susceptible + immune$
+
+```{r vcov table, echo= FALSE, warning= FALSE, message=FALSE}
+
+A <- c("a = E(+) & D(+)", "c = E(-) & D(+)", "a+c = D(+)")
+B <- c("b = E(+) & D(-)", "d = E(-) & D(-)", "b+d = D(-)")
+C <- c("a+b = E(+)", "c+d = E(-)", "a+b+c+d = total")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Disease +", "Disease -", "Total")
+rownames(tble) <- c("Exposed +", "Exposed -", "Total")
+kable(tble)
+```
+
+![measures of disease effect or association ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.51.02.png)
+
+Conditional probability refresher = $P(A|B)=\frac{P(A \cup B)}{P(B)}$
+
+### absolute risk = incidence 
+
+Measures magnitude of risk. Does not take into account the unexposed population or whether risk is associated to exposure. 
+$$P(D^+|E^+)=\frac{a}{a+b}=\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:during\:period\:t}$$
+
+### relative risk = risk ratio
+
+Measures the strength of the association and possible causal relationship
+
+RR = 1 $\to$ no effect 
+
+$$\frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{incidence\:in\:exposed\:population}{incidence\:in\:unexposed\:population}$$
+It can be expressed as:
+
+ * **Risk Ratio** = **RR** = the ratio of cumulative incidence in the exposed and unexposed populations
+ 
+ $$\frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{D^+\:in\:exposed\:population}{D^-\:in\:unexposed\:population}$$
+  
+  * **Incidence Rate Ratio** = **IRR** = the ratio of incidence densities in the exposed and unexposed populations
+ 
+ $$\frac{D^+\:in\:person-time\:of\:exposed\:population}{D^+\:in\:person-time\:of\:unexposed\:population}=\frac{incidence\:in\:exposed\:population}{incidence\:in\:unexposed\:population}$$
+
+
+### odds ratio 
+
+Measures the strength of the association but cannot suggest a causal relationship
+
+$$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}=\frac{\frac{a}{b}}{\frac{c}{d}}=\frac{ad}{bc}=\frac{odds\:D^+\:in\:exposed\:population}{odds\:D^+\:in\:unexposed\:population}$$
+or 
+
+$$\frac{\frac{P(E^+|D^+)}{P(E^-|D^+)}}{\frac{P(E^+|D^-)}{P(E^-|D^-)}}=\frac{\frac{a}{c}}{\frac{b}{d}}=\frac{ad}{bc}=\frac{odds\:E^+\:in\:diseased\:population}{odds\:E^+\:in\:not\:diseased\:population}$$
+
+![A: cohort study, B: case-control study, Gordis Figure 11-5 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 16.17.24.png)
+
+
+* **matched-pairs OR**: 
+
+![Gordis Figure 11-9 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 16.22.42.png)
+
 Odds Ratio (including matched-pairs odds ratio, and the “rare disease assumption”)
 Attributable Risk
 Etiologic Fraction
@@ -228,11 +306,7 @@ Population Attributable Risk
 Risk/probability
 Rate
 Ratio
-Incidence/disease odds (versus exposure odds)
-Crude and conditional measures
-Standardized Rates
-  Directly standardized rates
-  Indirectly standardized rates / Standardized mortality (and morbidity) ratios
+
 
 
 ## MEASURES OF ACCURACY
@@ -292,8 +366,7 @@ A **sample** is the a subset of the subjects in the population that could have b
 
 ## Introduction
 
-
-"The questions that motivate most studies in the health, social and behavioral sciences are not associational but causal in nature. For example, what is the efficacy of a given drug in a given population? What was the cause of death of a given individual, in a specific incident? These are causal questions because they require some knowledge of the data-generating process; they cannot be computed from the data alone, nor from the distributions that govern the data" (Pearl 2009). 
+"The questions that motivate most studies in the health, social and behavioral sciences are not associational but causal in nature. For example, what is the efficacy of a given drug in a given population? What was the cause of death of a given individual, in a specific incident? These are causal questions because they require some knowledge of the data-generating process; they cannot be computed from the data alone, nor from the distributions that govern the data" (@Pearl2009). 
 
 "The aim of standard statistical analysis is to assess parameters of a distribution from samples drawn of that distribution. With the help of such parameters, associations among variables can be inferred, which permits the researcher to estimate probabilities of past and future events and update those probabilities in light of new information. These tasks are managed well by standard statistical analysis so long as experimental conditions remain the same. Causal analysis goes one step further; its aim is to infer probabilities under conditions that are **changing**, for example, changes induced by treatments or external interventions.
 
