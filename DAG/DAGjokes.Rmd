@@ -220,6 +220,187 @@ Observed: add all the observed cases in each specific subgroup
 
 ![indirect adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.08.05.png)
 
+# **CAUSAL INFERENCE** 
+
+## INTRODUCTION TO CAUSALITY
+
+"The questions that motivate most studies in the health, social and behavioral sciences are not associational but causal in nature. For example, what is the efficacy of a given drug in a given population? What was the cause of death of a given individual, in a specific incident? These are causal questions because they require some knowledge of the data-generating process; they cannot be computed from the data alone, nor from the distributions that govern the data" (@Pearl2009). 
+
+"The aim of standard statistical analysis is to assess parameters of a distribution from samples drawn of that distribution. With the help of such parameters, associations among variables can be inferred, which permits the researcher to estimate probabilities of past and future events and update those probabilities in light of new information. These tasks are managed well by standard statistical analysis so long as experimental conditions remain the same. Causal analysis goes one step further; its aim is to infer probabilities under conditions that are **changing**, for example, changes induced by treatments or external interventions.
+
+This distinction implies that causal and associational concepts do not mix; there is nothing in a distribution function to tell us how that distribution would differ if external conditions were to change—say from observational to experimental setup—because the laws of probability theory do not dictate how one property of a distribution ought to change when another property is modified. This information must be provided by **causal assumptions which identify relationships that remain invariant when external conditions change**.
+
+Causal relations cannot be expressed in the language of probability and, hence, that any mathematical approach to causal analysis must acquire new notation – probability calculus is insufficient. To illustrate, the syntax of probability calculus does not permit us to express the simple fact that “symptoms do not cause diseases,” let alone draw mathematical conclusions from such facts. All we can say is that two events are dependent—meaning that if we find one, we can expect to encounter the other, but we cannot distinguish statistical dependence, quantified by the conditional probability P(disease|symptom) from causal dependence, for which we have no expression in standard probability calculus." (Pearl 2010)
+
+**Summary**: The difference between association and causality is that causality is **directional**, which cannot be represented with standard calculus notation. 
+
+## **CAUSATION** 
+
+## types of associations
+
+A statistical association between an exposure and an outcome can be due to either or both a:
+
+* **causal effect**: the exposure causes the outcome. This is the effect we want to isolate using causal inference.
+
+```{r dag causal 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 2),
+  y = c(E = 0, O = 0)
+) %>% 
+   coords2df()
+dag1.1 <- dagify( 
+  O ~ E, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+* **spurious effect**: the exposed and the unexposed groups in the study are not comparable, or exchangeable, which is the ultimate source of the bias (the unexposed group is not the counterfactual of the exposed group) (@Hernan2002).
+
+```{r dag spurious 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+```
+
+
+* a **common effect** = **collider**
+
+```{r dag3 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ E,
+  C ~ O, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+## types of causal relationships 
+
+### necessary
+disease does not develop without this factor
+
+### sufficient
+disease always develops with this factor
+
+1. **necessary AND sufficient**: without that factor, the disease never develops, and in the presence of that factor, the disease always develops. This never occurs in nature, even pathogens require other factors. 
+
+2. **necessary AND NOT sufficient**: each factor is needed but alone is not able to cause disease. Ex: pathogen + immune susceptibility 
+
+3. **NOT necessary BUT sufficient**: each factor alone is able to cause disease, but so can other factors. Ex: leukemia can be caused by radiation or benzene exposure
+
+4. **NOT necessary NOR sufficient**: presence of the factor by itself does not cuase disease
+
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 13.31.01.png)
+![Gordis figure 14-12 to 14-15](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 13.31.41.png)
+
+### direct effect
+
+Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
+  
+```{r direct, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, D = 2),
+  y = c(A = 0, D = 0)
+) %>% 
+   coords2df()
+
+dag1.1 <- dagify( 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+### indirect effect
+
+Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
+  
+```{r indirect, echo =FALSE}
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.2 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  exposure = "A",
+  outcome = "D",
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+
+## guidelines for establishing a causal relationship
+
+### Koch-Henle Criteria
+
+1. The organism is **always** found with the disease
+
+2. The organism is **not** found with any other disease
+
+3. The organism isolated from one individual with disease **produces** the disease in other individuals
+
+### Bradford Hill Criteria
+
+Most important 
+
+1. temporal relationship: exposure to the factor occurs before disease
+
+2. biologic plausibility: the association makes sense in the contex of existing knowledge. 
+
+3. consistency: the same result is replicated in different studies and populations
+
+4. alternative explanations: confounding. exploration of the effect of other factors on the association. 
+
+Others
+
+5. strength: as measured by measures of effect (risk ratio or odds ratio)
+
+6. dose - response: the higher the exposure, the higher the risk of disease
+
+7. specificity: hard to ascertain as most outcomes are multifactorial
+
+8. cessation effect: if the exposure ceases, so does the effect
+
+
 ## MEASURES OF DISEASE EFFECT OR ASSOCIATION 
 
 **Measures of effect** compare an exposed population to it's counterfactual unexposed population, that is the exact same population at the same time point had it not been exposed. That is, the effect of $E^+$ on the probability of being $D^+$ in the SAME population.
@@ -245,7 +426,7 @@ $P(D^+|E^-) = p_1 + p_3 = doomed + protected$
 
 $P(D^-|E^-) = p_2 + p_4 = susceptible + immune$
 
-```{r vcov table, echo= FALSE, warning= FALSE, message=FALSE}
+```{r 4X4 table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
 
 A <- c("a = E(+) & D(+)", "c = E(-) & D(+)", "a+c = D(+)")
 B <- c("b = E(+) & D(-)", "d = E(-) & D(-)", "b+d = D(-)")
@@ -278,7 +459,7 @@ It can be expressed as:
  
  $$\frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{D^+\:in\:exposed\:population}{D^-\:in\:unexposed\:population}$$
   
-  * **Incidence Rate Ratio** = **IRR** = the ratio of incidence densities in the exposed and unexposed populations
+  * **Incidence Rate Ratio** = **IRR** or **IDR** = the ratio of incidence densities in the exposed and unexposed populations
  
  $$\frac{D^+\:in\:person-time\:of\:exposed\:population}{D^+\:in\:person-time\:of\:unexposed\:population}=\frac{incidence\:in\:exposed\:population}{incidence\:in\:unexposed\:population}$$
 
@@ -295,58 +476,110 @@ $$\frac{\frac{P(E^+|D^+)}{P(E^-|D^+)}}{\frac{P(E^+|D^-)}{P(E^-|D^-)}}=\frac{\fra
 ![A: cohort study, B: case-control study, Gordis Figure 11-5 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 16.17.24.png)
 
 
-* **matched-pairs OR**: 
+**matched-pairs OR**: 
 
 ![Gordis Figure 11-9 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 16.22.42.png)
 
-Odds Ratio (including matched-pairs odds ratio, and the “rare disease assumption”)
-Attributable Risk
-Etiologic Fraction
-Population Attributable Risk
-Risk/probability
-Rate
-Ratio
+
+**ODDS RATIO CAN BE A GOOD ESTIMATE OF RELATIVE RISK** When: 
+
+$$\frac{P(D^+|E^+)}{P(D^+|E^-)}\approx\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}$$
+$$\frac{\frac{a}{a+b}}{\frac{c}{c+d}} \approx \frac{\frac{a}{b}}{\frac{c}{d}}$$
+
+* We assume the disease is rare: 
+  + **rare disease assumption** 
+
+When the disease does not occur frequently $a+b \approx b$ and $c+d \approx d$
+
+![Gordis Figure 11-6, 11-7 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 10.47.42.png)
+
+* The cases are representative, with regards to the history of exposure, of all the people with disease in the population from which the cases were drawn: 
+
+* The controls are representative, with regards to the history of exposure, of all the people without disease in the population from which the cases were drawn: 
+
+The controls can be selected through different methods: 
+
+  + Not matched on time
+  
+    - *case-based sampling*: sampling occurs at the beginning of the study ($t_0$)
+    
+    - *cumulative incidence sampling*: sampling occurs at the end of the study ($t_1$)
+  
+**assumption of constant incidence density rate over the period of time**: $\frac{ID_{exposed(t)}}{ID_{unexposed(t)}}=\bar{IDR}_{t_0 \to t_1}$
+    
+**assumption of a stable population with respect to exposure** = **time is NOT a confounder**
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 11.21.04.png)
+  
+  + Matched on time
+  
+    - *incidence density sampling*: match on time with the cases ($t_0 - t_1$)
+  
+**assumption of constant incidence density rate over the period of time**: $\frac{ID_{exposed(t)}}{ID_{unexposed(t)}}=\bar{IDR}_{t_0 \to t_1} \to ID_{exposed(t)} = ID_{unexposed(t)} * \bar{IDR}_{t_0 \to t_1}$
+
+Both incidence and exposure change in function of time, therefore time is a confounder. By selecting the controls matching on time, we can interpret the odds ratio as a rate or risk measure, without making the rare disease assumption, by assuming only that the incidence is constant over time. 
+  
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 11.24.21.png)
+**INTERPRETATION OF ODDS RATIO**
+
+$$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}= \frac{\frac{a/a+b}{b/a+b}}{\frac{c/c+d}{d/c+d}} \ne \frac{\frac{a}{b}}{a+b}$$
+
+Ratio of average risk $\frac{P(D^+|E^+)}{P(D^-|E^+)}= \frac{a/a+b}{b/a+b}$ to average survival probability $\frac{P(D^+|E^-)}{P(D^-|E^-)}= \frac{c/c+d}{d/c+d}$ 
+
+which is not the same as the average disease odds $\frac{a/b}{a+b}$
 
 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/odds_interpretation1.jpg)
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/OR2.jpg)
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/OR3.jpg)
 
-## MEASURES OF ACCURACY
+### attributable risk
 
-Precision
-Validity
+Incidence of a disease in the exposed population that is attributable to the exposure. 
 
-## CAUSATION 
+If > 1 the risk in the presence of exposure is greater that not in the presence of exposure
 
-Necessary, Sufficient
-Koch-Henle Criteria
-Bradford Hill Criteria
+How much of the disease would be prevented if the exposure were eliminated? 
 
-## RANDOM ERROR/ VARIABILITY 
+$${P(D^+|E^+)}-{P(D^+|E^-)}={\frac{a}{a+b}}-{\frac{c}{c+d}}={incidence\:in\:exposed\:population} -{incidence\:in\:unexposed\:population}$$
 
-## BIAS 
-Selection
-Information/misclassification (differential/non-differential)
-Confounding
-	Methods for identifying/detecting confounding
-  Methods for controlling confounding
+as a proportion: 
 
-## INTERACTION (EFFECT MEASURE MODIFICATION)
+$$\frac{{P(D^+|E^+)}-{P(D^+|E^-)}}{P(D^+|E^+)}=\frac{{\frac{a}{a+b}}-{\frac{c}{c+d}}}{\frac{a}{a+b}}=\frac{{incidence\:in\:exposed\:population} -{incidence\:in\:unexposed\:population}}{incidence\:in\:exposed\:population}$$
+$$\frac{{P(D^+|E^+)}/{P(D^+|E^-)}-{P(D^+|E^-)}/{P(D^+|E^-)}}{P(D^+|E^+){P(D^+|E^-)}}= \frac{RR - 1}{RR}= 1- 1/RR$$
 
-Additive
-Multiplicative
-Absolute vs. Relative Measures of Effect
+![Grodis figure 12-1](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.11.43.png)
+![Gordis Table 12.1](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.13.13.png)
 
+**ATTRIBUTABLE FRACTIONS**
 
+* Etiologic fraction: proportion of cases in exposed population where exposure has a biological role in the disease
 
-# **ERROR**
+* Excess fraction: proportion of cases in exposed population where exposure has a role of incrementing the disease incidence vs the unexposed population 
 
-## **RANDOM ERROR**
+### population attributable risk 
 
-chance or random variation that remains unexplained
+Incidence of a disease in the total population that is attributable to the exposure. 
 
-### unexplained variation = non-deterministic counterfactuals 
+How much of the disease in the total population would be prevented if the exposure were eliminated? 
 
-### sampling error 
-This is the degree to which a sample population deviates from the total population. It's unpredictable and due to the sampling process. 
+Incidence in the total population: $P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)= \frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}= incidence\:in\:exposed\:population * proportion\:exposed\:population + incidence\:in\:unexposed\:population * proportion\:unexposed\:population$
+
+$$\frac{[P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)]-{P(D^+|E^-)}}{P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)}=\frac{[{\frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}}]-{\frac{c}{c+d}}}{\frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}}=\frac{{incidence\:in\:total\:population} -{incidence\:in\:unexposed\:population}}{incidence\:in\:total\:population}$$
+
+![Gordis formula 12-4](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.58.29.png)
+
+## **ERROR IN INFERENCE**
+
+### random error
+
+Chance or random variation that remains unexplained. 
+
+The association lacks precision. The results are less reproducible. 
+
+* **unexplained variation** : non-deterministic counterfactuals 
+
+* **sampling error** : the degree to which a sample population deviates from the total population. It's unpredictable and due to the sampling process. 
 
 A **sample** is the a subset of the subjects in the population that could have been included in the study/ a subset of the experiences the study subjects could have had.
 
@@ -357,90 +590,60 @@ A **sample** is the a subset of the subjects in the population that could have b
 * Representativeness assumption: the sample is representative of the subjects in the population that could have been included in the study
   
 
-## **SYSTEMATIC ERROR** = **BIAS**
+### systematic error = bias
+
+The association lacks validity. The results are biased. 
 
 *insert irva/Causal Inference: What If by Miguel A. Hernán, James M. Robins here*
 
+## MEASURES OF ACCURACY
 
-# **CAUSAL INFERENCE** 
+### precision/reliability
+the amount of random error. High precision indicates the results are always similar in different experiments. 
 
-## Introduction
+### validity
+the amount of systematic error. High validity indicates proximity to the true value
 
-"The questions that motivate most studies in the health, social and behavioral sciences are not associational but causal in nature. For example, what is the efficacy of a given drug in a given population? What was the cause of death of a given individual, in a specific incident? These are causal questions because they require some knowledge of the data-generating process; they cannot be computed from the data alone, nor from the distributions that govern the data" (@Pearl2009). 
+* **external validity**: generalizability of the results to the general population
 
-"The aim of standard statistical analysis is to assess parameters of a distribution from samples drawn of that distribution. With the help of such parameters, associations among variables can be inferred, which permits the researcher to estimate probabilities of past and future events and update those probabilities in light of new information. These tasks are managed well by standard statistical analysis so long as experimental conditions remain the same. Causal analysis goes one step further; its aim is to infer probabilities under conditions that are **changing**, for example, changes induced by treatments or external interventions.
+* **internal validity**: comparability among the groups in the study
 
-This distinction implies that causal and associational concepts do not mix; there is nothing in a distribution function to tell us how that distribution would differ if external conditions were to change—say from observational to experimental setup—because the laws of probability theory do not dictate how one property of a distribution ought to change when another property is modified. This information must be provided by **causal assumptions which identify relationships that remain invariant when external conditions change**.
-
-Causal relations cannot be expressed in the language of probability and, hence, that any mathematical approach to causal analysis must acquire new notation – probability calculus is insufficient. To illustrate, the syntax of probability calculus does not permit us to express the simple fact that “symptoms do not cause diseases,” let alone draw mathematical conclusions from such facts. All we can say is that two events are dependent—meaning that if we find one, we can expect to encounter the other, but we cannot distinguish statistical dependence, quantified by the conditional probability P(disease|symptom) from causal dependence, for which we have no expression in standard probability calculus." (Pearl 2010)
-
-### Summary: 
-
-The difference between association and causality is that causality is **directional**, which cannot be represented with standard calculus notation. 
-
-A statistical association between an exposure and an outcome can be due to either or both a :
-
-* **causal effect**: the exposure causes the outcome. This is the effect we want to isolate using causal inference.
-
-```{r dag causal, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 2),
-  y = c(E = 0, O = 0)
-) %>% 
-   coords2df()
-dag1.1 <- dagify( 
-  O ~ E, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-ggdag(dag1.1) +
-  theme_dag()
-```
-
-* **spurious effect**: the exposed and the unexposed groups in the study are not comparable, or exchangeable, which is the ultimate source of the bias (the unexposed group is not the counterfactual of the exposed group). (Hernan 2002)
-
-```{r dag spurious, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
-dag2 <- dagify( 
-  E ~ C,
-  O ~ C, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
-ggdag(dag2, layout= "grid") +
-  theme_dag()
-```
-
-A third effect between 2 variables can be 
-
-* a **common effect** = **collider**
-
-```{r dag3, echo =FALSE}
-coords <- list(
-  x = c(E = 1, O = 3, C=2),
-  y = c(E = 0, O = 0, C=1)
-) %>% 
-   coords2df()
+![Gordis figure 15-9](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 14.10.51.png)
 
 
-dag3 <- dagify( 
-  C ~ E,
-  C ~ O, 
-  exposure = "E",
-  outcome = "O", 
-  coords = coords2list(coords)) %>% 
-  tidy_dagitty()
+## STATISTICAL INFERENCE
 
-ggdag(dag3, layout= "grid") +
-  theme_dag()
 
-```
+
+## BIAS 
+Selection
+Information/misclassification (differential/non-differential)
+Confounding
+	Methods for identifying/detecting confounding
+  Methods for controlling confounding
+  
+  
+The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
+
+* There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
+
+* There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
+
+### counfounding
+
+**Confounder** 
+
+a variable that is: 
+
+* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
+* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
+* not on the causal pathway between the exposure and the outcome.
+
+## INTERACTION (EFFECT MEASURE MODIFICATION)
+
+Additive
+Multiplicative
+Absolute vs. Relative Measures of Effect
 
 
 
