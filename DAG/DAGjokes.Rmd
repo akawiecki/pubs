@@ -571,32 +571,19 @@ $$\frac{[P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)]-{P(D^+|E^-)}}{P(D^+|E^+) * P
 
 ## **ERROR IN INFERENCE**
 
-### random error
+* **random error**
 
 Chance or random variation that remains unexplained. 
 
 The association lacks precision. The results are less reproducible. 
 
-* **unexplained variation** : non-deterministic counterfactuals 
-
-* **sampling error** : the degree to which a sample population deviates from the total population. It's unpredictable and due to the sampling process. 
-
-A **sample** is the a subset of the subjects in the population that could have been included in the study/ a subset of the experiences the study subjects could have had.
-
-**ASSUMPTIONS OF SAMPLING**
-
-* Randomness assumption: the sample is a random selection of the subjects in the population that could have been included in the study
-
-* Representativeness assumption: the sample is representative of the subjects in the population that could have been included in the study
-  
-
-### systematic error = bias
+* **systematic error** = bias
 
 The association lacks validity. The results are biased. 
 
 *insert irva/Causal Inference: What If by Miguel A. Hernán, James M. Robins here*
 
-## MEASURES OF ACCURACY
+### MEASURES OF ACCURACY
 
 ### precision/reliability
 the amount of random error. High precision indicates the results are always similar in different experiments. 
@@ -611,33 +598,563 @@ the amount of systematic error. High validity indicates proximity to the true va
 ![Gordis figure 15-9](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 14.10.51.png)
 
 
-## STATISTICAL INFERENCE
+## RANDOM ERROR
+
+* **unexplained variation** : non-deterministic counterfactuals 
+
+* **sampling error** : the degree to which a sample population deviates from the total population. It's unpredictable and due to the sampling process. 
+
+A **sample** is 
+
+a subset of the subjects in the population that could have been included in the study = a subset of the experiences the study subjects could have had
+
+### STATISTICAL INFERENCE
+
+approaches to deal with random error
+
+**ASSUMPTIONS OF SAMPLING**
+
+* **Randomness assumption**: the sample is a random selection of the subjects in the population that could have been included in the study
+
+* **Representativeness assumption**: the sample is representative of the subjects in the population that could have been included in the study
 
 
+**SAMPLING DISTRIBUTION**
 
-## BIAS 
-Selection
-Information/misclassification (differential/non-differential)
-Confounding
-	Methods for identifying/detecting confounding
-  Methods for controlling confounding
+Different samples result in different measures of occurrence. 
+
+Sample size will determine: 
+
+ * the magnitude of the effect = the proximity of the measure of occurrence to the true value
+ 
+ * the precision of the estimation method = **statistical precision**: the inverse of the variance. 
+ 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 15.55.00.png)
+ 
+### hypothesis testing 
+
+**interpretation of the hypothesis test**: 
+
+$H_0$: hypothesis that there is no association between 2 variables in the superpopulation that was sampled. 
+
+* Reject the $H_0$: Under the sampling distribution of the $H_0$, the observed point estimate of the sample is inconsistent with the $H_0$ for a given critical threshold ($\alpha$ = 0.05). 
+
+* Fail to reject the $H_0$: Under the sampling distribution of the $H_0$, the observed point estimate of the sample is consistent with the $H_0$ for a given critical threshold ($\alpha$ = 0.05). We cannot reject the $H_0$ that the superpopulation groups are the same. 
+
+
+**MISinterpretation of the hypothesis test**: 
+
+* Reject the $H_0$: the superpopulation groups are the different. 
+
+There could be sources of uncontrolled bias, or chance alone could haveled to this point estimate. 
+
+* Fail to reject the the $H_0$:  the 2 observed groups from the superpopulation are the same. 
+
+![Hogg,Tannis,Zimmerman](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019hyp1.jpg)
+![Hogg,Tannis,Zimmerman](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019hyp2.jpg)
+
+### significance testing
+
+**interpretation of the significance test**: 
+
+p-value: probability of observing a more extreme point estimate than that observed in the sample if the $H_0$ were true. 
+
+Reject the $H_0$: probability of observing a more extreme point estimate than that observed in the sample if the $H_0$ were true is less than the probability of the critical region ($\alpha$ = 0.05) = the smallest critical region ($\alpha$) that would lead us to reject the $H_0$ if it were true. 
+
+
+**MISinterpretation of the significance test**: 
+
+* p-value: probability of the observed data under the test hypothesis
+Incorrect because the p-value includes all other configurations of the data that result in a more extreme test statistic than that observed in the sample. 
+
+* p-value: probability of the observed data would show as strong an association or stronger under the test hypothesis
+
+
+![Hogg,Tannis,Zimmerman](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019sig.jpg)
+
+
+**STATISTICAL ESTIMATION**
+
+Epidemiological analysis is a measurement, not a decision-making, problem. We want to estimate 
+
+* **the magnitude of the effect** = point estimate. The proximity of the measure of occurrence to the true value depends on sample size, bias, random error, etc...
+
+* **the precision** of the estimation method = **statistical precision**: the inverse of the variance. Uncertainty of the point estimate. It depends on the random variability, the sample size, etc...
+
+**Interval estimation**: provides information on:
+
+* the direction and magnitude of the association
+* the random variability in the point estimate. 
+ 
+**significance testing** reduce the information to a yes/no choice. It provides the degree of consistency between the data and a single hypothesis. 
+
+
+## SYSTEMATIC ERROR = BIAS 
+
+### SELECTION BIAS
+
+Non-comparability of the exposed and unexposed groups induced by a restriction in the analysis on certain level/s of a common effect of E or O or variables correlated with E or O. This can be caused by:
+
+* unbalanced sampling fractions between the exposed and non-exposed population (see example below).
+
+* over-matching: when the cases and controls are matched on a factor that is not associated with the outcome but is associated with exposure. 
+
+The difference with confounding:  confounding is due to unmeasured common causes and selection bias is due to errors in the selection of the two study groups that affects the internal validity. 
+
+* **non-response bias**: survey non-respondents may have different characteristics than those who do respond
+
+* **exclusion bias**: different eligibility criteria between cases and controls or the controls are selected from a different population than the cases
+Foor example, if the disease is very deadly and the information about the cases comes from proxies (relatives, friends) that are from a different population than the controls. 
+
+  + **berkson's bias**: "If the only way to cross the threshold is to score high, it is more common to score high on one item than on both. This general phenomenon is sometimes called Berkson’s paradox . But it is easier to remember if we call it the *selection-distortion effect*. Why do so many restaurants in good locations have bad food? The only way a restaurant with less-than-good food can survive is if it is in a nice location. Similarly, restaurants with excellent food can survive even in bad locations. Selection-distortion ruins your city."(@mcelreath). 
+In case-control studies that select cases from hospitals, often these cases are more likely to have concomitant diseases (hypertension, obesity) than the general population, which can lead to spurious associations. 
   
+  + **incidence/prevalence bias**: Studies that select cases from hospitals are selecting for severe disease and having survived longer. To avoid this bias it's better to select incidence cases. 
   
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva_sel.jpg)
+
+### INFORMATION BIAS
+
+Bias caused by measurement errors. Individuals are categorized incorrectly. 
+
+For continuous variables = **INFORMATION ERROR**
+
+For categorical variables = **MISCLASSIFICATION** 
+
+
+* DIFFERENTIAL: the classification error depends on the actual values of other variables, that is, it varies between the study groups. The bias can be either towards or away from the $H_0$. 
+
+    + **recall bias**: memory of events may bary between cases and controls. 
+    Example: Outcome: congenital malformation; Exposure: any; mothers of cases may have a better memory of the exposure than mothers of controls. 
+    
+    + **detection/surveillance bias**: the diagnosis of the outcome may be earlier or better in monitored study groups than in the general population. 
+    Example: Outcome: emphysema; Exposure: smoking; smokers have more respoiratory issues and seek out medical care more often, therefore emphysema is detected earlier and more often in the exposed than in the unexposed.
+    
+     + **observer bias**: there is a systematic difference in how data are collected between study participants belonging to different groups. Occurs when the interviewer is not blinded and when there is interviewer drift, that is, when the data collection procedure for the same interviewer changes over time. 
+
+* NON-DIFFERENTIAL: the classification error dos NOT depend on the actual values of other variables, and is due to a lack of accuracy in the data collection. This bias is usually towards the $H_0$, diluting the magnitude of effect (RR and OR), but it can be away from the $H_0$ if the exposure or outcome variables are non-binary, or if it's a dependent missclasification (depends on error in the classification of other variables).
+
+  + **observer bias**: Example: surrogate interviews, where the information might be inaccurate. 
+  
+  NON-DIFFERENTIAL EXPOSURE MISSCLASIFICATION 
+  
+  ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irvanondif.jpg)
+
+  NON-DIFFERENTIAL DISEASE MISSCLASIFICATION 
+  
+  ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irvadis.jpg)
+
+* DEPENDENT: the classification error depends on errors made measuring or classifying other variables. 
+
+* INDEPENDENT: the classification error does NOT depend on errors made measuring or classifying other variables.
+
+
+### CONFOUNDING 
+
 The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
+
+A **CONFOUNDER** is a variable that is: 
+
+* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
+Example: smoking is a risk factor for cancer
+
+* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
+Example: smoking is associated with drinking coffee
+
+* not on the causal pathway between the exposure and the outcome.
+Example: smoking is not a result of drinking coffee
+
+### difference between confouding and selection bias
 
 * There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
 
 * There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
 
-### counfounding
+### methods for identifying/detecting confounding 
 
-**Confounder** 
+The following methods are extracted from @Hernan2002
 
-a variable that is: 
+**Statistical criteria alone are insufficient to characterize either confounding or selection bias**. The only method to reliably identify a counfounder is to combine statistical associations from the data with background knowledge about the causal network that links exposure, outcome, and potential confounders. 
 
-* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
-* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
-* not on the causal pathway between the exposure and the outcome.
+* Methods relying on statistical associations that can easily be identified from the data: 
+
+1. **automatic variable selection procedures**: i.e stepwise regression. It's based on including variables with "significant" p-values. It assumes that all important confounders will be selected. 
+
+2. **change in effect estimate**: comparison of the effect estimates between adjusted and unadjusted effect estimates. The variable is selected as a confounder if there is a relative change greater than 10%. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
+
+Example: Is the association causal or confounded by age?
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/strat example.png)
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/strat.png)
+
+* Methods that combine statistical associations from the data with background knowledge: 
+
+3. **check whether the variable meets the criteria of a confounder**: combines information from statistical associations and background knowledge. The presence of common causes, and therefore of confounding, can be represented by causal diagrams known as directed acyclic graphs (DAGs). 
+
+**DAG = Directed Acyclic Graph**
+
+DAGs are diagrams that link variables by arrows that represent direct causal effects (protective or causative) of one variable on another. 
+
+There are only four types of variable relations that combine to form all possible paths (from @mcelreath2020):
+
+1) the **confounder** = **fork**: X ← Z → Y. This is the classic confounder:
+some variable Z is a common cause of X and Y, generating a correlation between them. If we condition on Z, then learning X tells us nothing about Y. X and Y are independent, conditional on Z.
+
+2) the **pipe** = **intermediary**: X → Z → Y. The treatment X influences Z which influences Y. If we condition on Z, we block the path from X to Y. X and Y are independent, conditional on Z.
+
+3) the **collider** = **common effect**:  X → Z ← Y. Conditioning on Z, the collider variable, opens the path. X and Y are dependent, conditional on Z, however neither X nor Y has any causal influence on the other.
+
+4) the **descendent** = **association?**: Z $\to$ D. Descendent is a variable influenced by another variable. Conditioning on a descendent partly conditions on its parent. Conditioning on D will also condition, to a lesser extent, on Z because D has some information about Z. 
+
+**Backdoor criterion**
+
+Path: any series of variables you could walk through to get from one variable to another, ignoring the directions of the arrows. 
+
+Blocking all confounding paths between some predictor X and some outcome Y is known as shutting the backdoor, thus eliminating spurious associations that are non-causal. 
+
+Example: 
+
+```{r confounder 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  O~E,
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+There are two paths connecting E and O: 
+
+(1) E → O 
+
+(2) E ← C → O. 
+
+Both of these paths create a statistical association between E and O. But only the first path is causal. The second path is non-causal. If only the second path existed, and we changed E, it would not change O. Any causal influence of E on O operates only on the first path.
+
+REMINDER: 
+
+* causal effect: The total causal effect is the sum of the direct and indirect effects: Example: age of marriage influences divorce in two ways. 
+
+    + direct effect.  A $\to$ D 
+    Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
+    
+    + indirect effect. A $\to$ M $\to$ D 
+    Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
+    
+```{r dag1.3 ex1, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.3 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.3) +
+  theme_dag()
+```
+
+* spurious effect
+
+```{r dag2 ex1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+**Do-operator**
+
+do(E) closes the backdoor paths into E, as in a manipulative experiment.
+
+P(O|do(E)) defines a causal relationship because it tells us the expected result of manipulating E on O
+
+* Confounding: P(O|E) $\ne$ P(O|do(E)). The relationship between the E and O when the backdoor paths are closed is not the same, indicating that there is confounding. 
+
+* Conditional probability, non-causal: P(O|E) $\ne$ P(O|not-E) doesn't close the backdoor, and therefore does not give a causal relationship. 
+
+* Total causal relationship: if P(O|do(E)) $\ne$ P(O|not-E), then E is the cause of O.
+
+* Direct causal relationship: might require closing more backdoor paths.
+
+Examples from @Hernan
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva dag1.jpg)
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva dag2.jpg)
+
+
+Example using all 3 methods of identifying confounders: 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-07\ at\ 13.39.14.png)
+
+**Steps to identify which variables are confounders and must be controlled to obtain and unbiased causal effect estimate**: 
+
+1. List all of the paths connecting E (the potential cause of interest) and O (the outcome).
+
+2. Classify each path by whether it is open or closed. A path is open unless it contains a collider.
+
+3. Classify each path by whether it is a backdoor path. A backdoor path has an arrow entering E.
+
+4. If there are any open backdoor paths, decide which variable(s) to condition on to close it (if possible). To obtain a **sufficient set**, use the smallest set of confounders (preferable closer to the outcome)
+
+* Obtaining an unbiased estimate of the **total causal effect** requires measuring and adjusting for all confounders of the E $\to$ O association 
+
+* Obtaining an unbiased estimate of the **direct causal effect** requires measuring and adjusting for all confounders of both the 
+
+  + E $\to$ O association 
+  
+  + J $\to$ O association 
+
+
+1. Example 1 
+
+```{r dag1.4 ex1, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 3, O = 3),
+  y = c(E = 0, O = 0, J = 1, C= 2)
+) %>% 
+   coords2df()
+
+dag1.4 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  O ~ C,
+  J ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.4 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the **total causal effect** we don't condition on C or J:
+
+  + C is a confounder of the J $\to$ O association but not the E $\to$ O association, thanks to J which is a collider and blocks the path between C $\to$ E, so it is unnecessary to control for C
+
+```{r adjust C ex, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "C")+
+  theme_dag()
+```
+  
+  + J is a **collider** of the E $\to$ C association so if we condition on J we create a backdoor path between O $\to$ E through C. 
+  
+```{r adjust J ex, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "J")+
+  theme_dag()
+```
+  
+
+* To obtain the **direct causal effect** we condition on both J and C, because we want only the 
+
+```{r adjust JC ex, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("J", "C"))+
+  theme_dag()
+```
+
+2. Example 2 
+
+```{r dag1.4 ex2, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 1, O = 3),
+  y = c(E = 0, O = 0, J = 1, C= 2)
+) %>% 
+   coords2df()
+
+dag1.4 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  E ~ C,
+  J ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.4 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the **total causal effect** we condition on C but not J:
+
+  + C is a confounder of the E $\to$ O association so we must condition on it to obtain the unbiased total causal effect 
+
+```{r adjust C ex2, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "C")+
+  theme_dag()
+```
+  
+  
+
+* To obtain the **direct causal effect** we condition on J. C is no longer a confounder because we block the path through J so it's no longer associated with O. 
+
+```{r adjust J ex2, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("J"))+
+  theme_dag()
+```
+
+
+3. Example 3. 
+
+```{r dag1.5 ex, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 3, O = 3, D = 2),
+  y = c(E = 0, O = 0, J = 1, C= 2, D = -1)
+) %>% 
+   coords2df()
+
+dag1.5 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  O ~ C,
+  J ~ C,
+  O ~ D, 
+  E~ D, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.5 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the total causal effect we condition on D
+
+```{r adjust D ex, echo =FALSE}
+dag1.5 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "D")+
+  theme_dag()
+```
+
+* To obtain the total causal effect we condition on C, D, J
+
+```{r adjust JCD ex, warning=FALSE, echo =FALSE}
+
+dag1.5 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("C", "D", "J"))+
+  theme_dag()
+```
+
+
+
+### methods for controlling confounding = obtaining an unbiased estimate of the causal effect
+
+**DURING STUDY DESIGN**
+
+Manipulation of the confounding factor in the study design removes the influence of C on E: when we determine E, the C variable does not influence E, thus blocking the non-causal path between E and O (E ← C → O). Once the path is blocked, there is only one way for information to go between E and O, and then measuring the association between E and O would yield a useful measure of causal influence. 
+
+* **Randomization**: limits confounding by unmeasured factors probabilistically and accounts quantitavely for any residual confounding they produce. 
+
+Limitations: feasibility, ethics
+
+* **Restriction**: the individuals in the study may be selected to have equal levels of the confounder. 
+
+Limitations: reduction of the number of available individuals, the factor that is used for restriction can't be analyzed, possible residual confounding if the restriction is insufficient.
+
+* **Matching**: it does not control for confounding, but it increases the efficiency of the study that does control for confounding, as the confounding factor may still be controlled in the analysis. 
+
+Limitations: expensive, complicated logistics, the factor that is used for matching can't be analyzed, as the variables must be collected before participant enrollment
+
+
+**DURING DATA ANALYSIS**
+
+Conditioning on the confounding factor in the study analysis: adding C to the model blocks the non-causal path E ← C → O. 
+
+Why?  Think of this path in isolation, as a complete model. 
+
+```{r dag confounder condition ex1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+Once you learn C, also learning E will give you no additional information about O. 
+
+Example: Suppose for example that C is the average wealth in a region. Regions with high wealth have better schools, resulting in more education (exposure E), as well as better paying jobs, resulting in higher wages (outcome O). If you don’t know the region a person lives in, learning the person’s education E will provide information about their wages O, because E and O are correlated across regions. But after you learn which region a person lives in, assuming there is no other path between E and O, then learning E tells you nothing more about O. This is the sense in which conditioning on C blocks the path — it makes E and O independent, conditional on C.
+
+* **multivariate adjustment**: using regression, ANOVA, etc.. It can handle multiple covariates at the same time. 
+
+Limitations: unless background knowledge is included in the variable selection, confounding can persist.
+
+* **stratification**: the data is stratified by a confounder and the weighted averages of the effect measure (RR or OR) across strata is calculated and then compared to the crude estimate and to each other using the Cochran-Maentel-Haenszel estimate.  $OR_{EO}$ vs $OR_{EO|C}$ 
+
+Limitations: can only be performed for few variables at a time
+
+* **standarization**: re-weight the stratum-specific effect measures (RR, OR) so that the categories are comparable using a reference population from the data set r an external source. 
+
+Limitations: can only be performed for few variables at a time
+
+* **inverse probability treatment**
+
+ ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva inverse.jpg)
 
 ## INTERACTION (EFFECT MEASURE MODIFICATION)
 
@@ -658,7 +1175,7 @@ The rate at which adults marry is a great predictor of divorce rate. But does ma
 Age at marriage is also a good predictor of divorce rate— higher age at marriage predicts less divorce. But there is no reason this has to be causal, either, unless age at marriage is very late and the spouses do not live long enough to get a divorce.
 
 
-```{r 5.1}
+```{r 5.1 ex}
 # load data and copy 
 library(rethinking) 
 data(WaffleDivorce) 
@@ -677,13 +1194,13 @@ The outcome and the predictor are both standardized, the intercept α should end
 
 What does the prior slope $\beta_{A}$ imply? If $\beta_{A}$ = 1, that would imply that a change of one standard deviation in age at marriage is associated likewise with a change of one standard deviation in divorce. To know whether or not that is a strong relationship, you need to know how big a standard deviation of age at marriage is:
 
-```{r sd A}
+```{r sd A ex}
  sd( d$MedianAgeMarriage )
 ```
 
 So when $\beta_{A}$ = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable. That seems like an insanely strong relationship. 
 
-```{r 5.3}
+```{r 5.3 ex}
 m5.1 <- quap(
     alist(
         D ~ dnorm( mu , sigma ) ,
@@ -700,7 +1217,7 @@ precis(m5.1)
 ```
 posterior for $\beta_{A}$ is reliably negative, as seen:
 
-```{r 5.5}
+```{r 5.5 ex}
 
 # compute percentile interval of mean
 A_seq <- seq( from=-3 , to=3.2 , length.out=30 )
@@ -719,7 +1236,7 @@ $D_{i} ∼ Normal(\mu_{i}, \sigma)$
 
 $\mu_{i} = \alpha + \beta_{M}M_{i}$
 
-```{r 5.6}
+```{r 5.6 ex}
 
 m5.2 <- quap(
     alist(
@@ -752,7 +1269,7 @@ The total causal effect is the sum of the direct and indirect effects
 Example: age of marriage influences divorce in two ways. 
 
 
-```{r dag1.3, echo =FALSE}
+```{r dag1.3 ex, echo =FALSE}
 
 coords <- list(
   x = c(A = 1, M=2, D = 3),
@@ -777,7 +1294,7 @@ ggdag(dag1.3) +
 
 Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
   
-```{r dag1.1, echo =FALSE}
+```{r dag1.1 ex, echo =FALSE}
 
 coords <- list(
   x = c(A = 1, D = 2),
@@ -800,7 +1317,7 @@ ggdag(dag1.1) +
 
 Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
   
-```{r dag1.2, echo =FALSE}
+```{r dag1.2 ex, echo =FALSE}
 coords <- list(
   x = c(A = 1, M=2, D = 3),
   y = c(A = 0, D = 0, M = 1)
