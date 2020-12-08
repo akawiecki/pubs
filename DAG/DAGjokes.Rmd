@@ -1206,7 +1206,7 @@ Limitations: can only be performed for few variables at a time
 
  ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva inverse.jpg)
 
-### confounding example
+### confounding example from @mcelreath2020
 
 We look into causal inference using a working example from Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath: Correlation between marriage rate (the exposure) and divorce rate (the outcome).
 
@@ -2201,6 +2201,172 @@ shade( mu_ci , rugged_seq )
 mtext("Non-African nations")
 ```
 
+## COLLIDER
+
+
+```{r collider, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=0)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ E,
+  C ~ O, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+
+The core concept is easy to understand: When you condition on a collider, it creates statistical—but not necessarily causal— associations among its causes. 
+
+ Collider bias arises from conditioning on a common consequence. If we can just get our graph sorted, we can avoid it. But it isn’t always so easy to see a potential collider, because there may be unmeasured causes. Unmeasured causes can still induce collider bias. So I’m sorry to say that we also have to consider the possibility that our DAG may be haunted.
+
+### children and education example from @mcelreath2020
+
+
+We want to infer the direct influence of both parents (P) and grandparents (G) on the educational achievement of children (C). Since grandparents also presumably influence their own children’s education, there is an arrow G → P. This sounds pretty easy, so far. It’s similar in structure to our divorce rate example from last chapter:
+
+
+```{r collider 2, echo =FALSE}
+coords <- list(
+  x = c(G = 1, P = 2, C=2),
+  y = c(G = 0, P = 0, C=-1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ P,
+  C ~ G, 
+  P ~ G, 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+But suppose there are unmeasured, common influences on parents and their children, such as neighborhoods, that are not shared by grandparents (who live on the south coast of Spain now). Then our DAG becomes haunted by the unobserved U:
+
+```{r collider 3, echo =FALSE}
+coords <- list(
+  x = c(G = 1, P = 2, C=2, U=3),
+  y = c(G = 0, P = 0, C=-2, U=-1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ P,
+  C ~ G, 
+  P ~ G, 
+  P ~ U, 
+  C ~ U,
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+Now P is a common consequence of G and U, so if we condition on P, it will bias inference about G → C, even if we never get to measure U. I don’t expect that fact to be immediately obvious. So let’s crawl through a quantitative example.
+
+```{r dag collider control, echo=FALSE}
+dag3%>% 
+ggdag_dseparated(from = "G", to = "C", controlling_for = c("P"))+
+  theme_dag()
+```
+
+First, let’s simulate 200 triads of grandparents, parents, and children. This simulation will be simple. We’ll just project our DAG as a series of implied functional relationships. The DAG above implies that:
+
+(1) P is some function of G and U
+
+(2) C is some function of G, P, and U
+
+(3) G and U are not functions of any other known variables
+
+We can make these implications into a simple simulation, using rnorm to generate simulated observations. But to do this, we need to be a bit more precise than “some function of.” So I’ll invent some strength of association:
+
+```{r coll coeff}
+N <- 200 # number of grandparent-parent-child triads 
+b_GP <- 1 # direct effect of G on P
+b_GC <- 0 # direct effect of G on C
+b_PC <- 1 # direct effect of P on C
+b_U<-2 #direct effect of U on P and C
+
+```
+
+These parameters are like slopes in a regression model. Notice that I’ve assumed that grand- parents G have zero effect on their grandkids C. The example doesn’t depend upon that effect being exactly zero, but it will make the lesson clearer. Now we use these slopes to draw random observations:
+
+```{r coll sim}
+set.seed(1)
+U <- 2*rbern( N , 0.5 ) - 1
+G <- rnorm( N )
+P <- rnorm( N , b_GP*G + b_U*U )
+C <- rnorm( N , b_PC*P + b_GC*G + b_U*U ) 
+d <- data.frame( C=C , P=P , G=G , U=U )
+```
+
+I’ve made the neighborhood effect, U, binary. This will make the example easier to under- stand. But the example doesn’t depend upon that assumption. The other lines are just linear models embedded in rnorm.
+
+Now what happens when we try to infer the influence of grandparents? Since some of the total effect of grandparents passes through parents, we realize we need to control for parents. 
+
+Here is a simple regression of C on P and G. Normally I would advise standardizing the variables, because it makes establishing sensible priors a lot easier. But I’m going to keep the simulated data on its original scale, so you can see what happens to inference about the slopes above. If we changed the scale, we shouldn’t expect to get those values back. But if we leave the scale alone, we should be able to recover something close to those values. So I apologize for using vague priors here, just to push forward in the example.
+
+
+```{r dag collider m6.11}
+m6.11 <- quap( alist(
+C ~ dnorm( mu , sigma ),
+mu <- a + b_PC*P + b_GC*G,
+a ~ dnorm( 0 , 1 ), 
+c(b_PC,b_GC) ~ dnorm( 0 , 1 ), 
+sigma ~ dexp( 1 )
+), data=d ) 
+precis(m6.11)
+```
+
+The inferred effect of parents looks too big, almost twice as large as it should be. That isn’t surprising. Some of the correlation between P and C is due to U, and the model doesn’t know about U. That’s a simple confound. More surprising is that the model is confident that the direct effect of grandparents is to hurt their grandkids. The regression is not wrong. But a causal interpretation of that association would be.
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-08\ at\ 17.56.05.png)
+Note that I did standardize the variables to make this plot. So the units on the axes are standard deviations. The horizontal axis is grandparent education. The vertical is grandchild education. There are two clouds of points. The blue cloud comprises children who live in good neighborhoods (U = 1). The black cloud comprises children who live in bad neighborhoods (U = −1). No- tice that both clouds of points show positive associations between G and C. More educated grandparents have more educated grandkids, but this effect arises entirely through parents. Why? Because we assumed it is so. The direct effect of G in the simulation is zero.
+
+So how does the negative association arise, when we condition on parents? Conditioning on parents is like looking within sub-populations of parents with similar education. So let’s try that. In the Figure, I’ve highlighted in filled points those parents between the 45th and 60th centiles of education. There is nothing special of this range. It just makes the phenomenon easier to see. Now if we draw a regression line through only these points, regressing C on G, the slope is negative. There is the negative association that our multiple regression finds. But why does it exist?
+
+It exists because, once we know P, learning G invisibly tells us about the neighborhood U, and U is associated with the outcome C. I know this is confusing. As I keep saying, if you are confused, it is only because you are paying attention. 
+
+So consider two different parents with the same education level, say for example at the median 50th centile. One of these parents has a highly educated grandparent. The other has a poorly educated grandparent. The only probable way, in this example, for these parents to have the same education is if they live in different types of neighborhoods. We can’t see these neighborhood effects—we haven’t measured them, recall—but the influence of neighborhood is still transmitted to the children C. So for our mythical two parents with the same education, the one with the highly educated grandparent ends up with a less well educated child. The one with the less educated grandparent ends up with the better educated child. G predicts lower C.
+
+
+The unmeasured U makes P a collider, and conditioning on P produces collider bias. So what can we do about this? You have to measure U. Here’s the regression that conditions also on U:
+
+```{r m6.12 }
+
+m6.12 <- quap( alist(
+C ~ dnorm( mu , sigma ),
+mu <- a + b_PC*P + b_GC*G + b_U*U,
+a ~ dnorm( 0 , 1 ),
+c(b_PC,b_GC,b_U) ~ dnorm( 0 , 1 ),
+sigma ~ dexp( 1 ) ), data=d )
+precis(m6.12)
+```
+
+And those are the slopes we simulated with.
+
+Rethinking: Statistical paradoxes and causal explanations. The grandparents example serves as an example of Simpson’s paradox: Including another predictor (P in this case) can reverse the direction of association between some other predictor (G) and the outcome (C). Usually, Simpson’s paradox is presented in cases where adding the new predictor helps us. But in this case, it misleads
+us. Simpson’s paradox is a statistical phenomenon. To know whether the reversal of the association correctly reflects causation, we need something more than just a statistical model. 
 
 ## MULTICOLLINEARITY
 
@@ -2208,12 +2374,17 @@ From @mcelreath2020:
 
 Multicollinearity means a very strong association between two or more predictor variables. The raw correlation isn’t what matters. Rather what matters is the association, conditional on the other variables in the model. The consequence of multicollinearity is that the posterior distribution will seem to suggest that none of the variables is reliably associated with the outcome, even if all of the variables are in reality strongly associated with the outcome.
 
+The problem of multicollinearity is a member of a family of problems with fitting models, a family sometimes known as non-identifiability. 
+
+### **non-identifiability**
+
+When a parameter is non-identifiable, it means that the structure of the data and model do not make it possible to estimate the parameter’s value. Sometimes this problem arises from mistakes in coding a model, but many important types of models present non-identifiable or weakly identifiable parameters, even when coded completely correctly. Nature does not owe us easy inference, even when the model is correct.
 
 ### leg example 
 
 $height \sim N(\mu_i, \sigma)$
 
-$\mu_i = \alpha_{0} + \beta_{l} x_{left\:leg}+ \beta_{r} x_{right\:leg}$
+$\mu_i = \alpha_{0} + \beta_{l} x_{leg\:left}+ \beta_{r} x_{leg\:right}$
 
 Imagine trying to predict an individual’s height using the length of his or her legs as predictor variables. Surely height is positively associated with leg length, or at least our simulation will assume it is. Nevertheless, once you put both legs (right and left) into the model, something vexing will happen.
 
@@ -2255,27 +2426,164 @@ Those posterior means and standard deviations look crazy. Both legs have almost 
 
 The posterior distribution here is the right answer to the question we asked. The problem is the question. Recall that a multiple linear regression answers the question: What is the value of knowing each predictor, after already knowing all of the other predictors? So in this case, the question becomes: What is the value of knowing each leg’s length, after already knowing the other leg’s length?
 
-```{r}
+The answer to this weird question is equally weird, but perfectly logical. The posterior distribution is the answer to this question, considering every possible combination of the parameters and assigning relative plausibilities to every combination, conditional on this model and these data. It might help to look at the joint posterior distribution for bl and br. The posterior distribution for these two parameters is very highly correlated, with all of the plausible values of bl and br lying along a narrow ridge. When bl is large, then br must be small. What has happened here is that since both leg variables contain almost exactly the same information, if you insist on including both in a model, then there will be a practically infinite number of combinations of bl and br that produce the same predictions.
+
+```{r leg post}
 
 post <- extract.samples(m6.1)
 plot( bl ~ br , post , col=col.alpha(rangi2,0.1) , pch=16 )
+```
 
+One way to think of this phenomenon is that you have approximated this model:
+
+$height \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_{0} + \beta_{1} x_{i}+ \beta_{2} x_{i}$
+
+The variable y is the outcome, like height in the example, and x is a single predictor, like the leg lengths in the example. Because the left and right legs are so correlated, it's like using x twice. From the golem’s perspective, the model for μi is:
+
+$\mu_i = \alpha_{0} + (\beta_{l} + \beta_{r}) x$
+
+The parameters β1 and β2 cannot be pulled apart, because they never separately influence the mean μ. Only their sum, β1+β2, influences μ. So this means the posterior distribution ends up reporting the very large range of combinations of β1 and β2 that make their sum close to the actual association of x with y.
+
+And the posterior distribution in this simulated example has done exactly that: It has produced a good estimate of the sum of bl and br. Here’s how you can compute the posterior distribution of their sum, and then plot it:
+
+```{r leg sum}
 sum_blbr <- post$bl + post$br
 dens( sum_blbr , col=rangi2 , lwd=2 , xlab="sum of bl and br" )
 ```
 
+The posterior mean is in the right neighborhood, a little over 2, and the standard deviation is much smaller than it is for either component of the sum, bl or br. If you fit a regression with only one of the leg length variables, you’ll get approximately the same posterior mean:
 
+```{r m6.2}
+
+m6.2 <- quap( alist(
+height ~ dnorm( mu , sigma ) , mu <- a + bl*leg_left,
+a ~ dnorm( 10 , 100 ) ,
+bl ~ dnorm( 2 , 10 ) ,
+sigma ~ dexp( 1 ) ) , data=d )
+precis(m6.2)
+```
+
+That 1.99 is almost identical to the mean value of sum_blbr.
+
+
+The basic lesson is only this: When two predictor variables are very strongly correlated
+(conditional on other variables in the model), including both in a model may lead to confu- sion. The posterior distribution isn’t wrong, in such cases. It’s telling you that the question you asked cannot be answered with these data. And that’s a great thing for a model to say, that it cannot answer your question. And if you are just interested in prediction, you’ll find that this leg model makes fine predictions. It just doesn’t make any claims about which leg is more important.
+ 
 ### milk example
 
+In this example, we are concerned with the perc.fat (percent fat) and perc.lactose (per- cent lactose) variables. We’ll use these to model the total energy content, kcal.per.g. The code above has already standardized these three variables. You’re going to use these three variables to explore a natural case of multicollinearity. 
+
+```{r milk data}
+library(rethinking)
+data(milk)
+d <- milk
+d$K <- scale( d$kcal.per.g )
+d$F <- scale( d$perc.fat )
+d$L <- scale( d$perc.lactose )
+```
 
 
+* 1. kcal.per.g regressed on perc.fat
 
-*include: colliders, multicollinearity, post-treatment bias. end of chapter 6* @mcelreath
+Start by modeling kcal.per.g as a function of perc.fat and perc.lactose, but in two bivariate regressions. 
 
 
+```{r m6.3 }
+
+# kcal.per.g regressed on perc.fat
+m6.3 <- quap(
+    alist(
+        K ~ dnorm( mu , sigma ) ,
+        mu <- a + bF*F ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bF ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data=d )
+# kcal.per.g regressed on perc.lactose
+m6.4 <- quap(
+    alist(
+        K ~ dnorm( mu , sigma ) ,
+        mu <- a + bL*L ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bL ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data=d )
+precis( m6.3 )
+precis( m6.4 )
+
+```
+
+The posterior distributions for bF and bL are essentially mirror images of one another. The posterior mean of bF is as positive as the mean of bL is negative. Both are narrow posterior distributions that lie almost entirely on one side or the other of zero. Given the strong association of each predictor with the outcome, we might conclude that both variables are reliable predictors of total energy in milk, across species. The more fat, the more kilocalories in the milk. The more lactose, the fewer kilocalories in milk. But watch what happens when we place both predictor variables in the same regression model:
+
+```{r m6.5}
+
+m6.5 <- quap(
+    alist(
+        K ~ dnorm( mu , sigma ) ,
+        mu <- a + bF*F + bL*L ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bF ~ dnorm( 0 , 0.5 ) ,
+        bL ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+),
+    data=d )
+precis( m6.5 )
+
+```
+
+Now the posterior means of both bF and bL are closer to zero. And the standard deviations for both parameters are twice as large as in the bivariate models (m6.3 and m6.4).
+
+This is the same statistical phenomenon as in the leg length example. What has happened is that the variables perc.fat and perc.lactose contain much of the same information. They are almost substitutes for one another. As a result, when you include both in a regression, the posterior distribution ends up describing a long ridge of combinations of bF and bL that are equally plausible. In the case of the fat and lactose, these two variables form essentially a single axis of variation. The easiest way to see this is to use a pairs plot:
 
 
-# EPI208
+```{r milk pairs}
+ pairs( ~ kcal.per.g + perc.fat + perc.lactose , data=d , col=rangi2 )
+```
+
+Percent fat is positively correlated with the outcome, while percent lactose is negatively correlated with it. 
+
+Now look at the right-most scatterplot in the middle row. This plot is the scatter of percent fat (vertical) against percent lactose (horizontal). Notice that the points line up almost entirely along a straight line. These two variables are negatively correlated, and so strongly so that they are nearly redundant. Either helps in predicting kcal.per.g, but neither helps as much *once you already know the other*.
+
+### how to detect multicollinearity 
+
+In the scientific literature, you might encounter a variety of dodgy ways of coping with multicollinearity. Few of them take a causal perspective. Some fields actually teach students to inspect pairwise correlations before fitting a model, to identify and drop highly correlated predictors. This is a mistake. Pairwise correlations are not the problem. It is the conditional associations—not correlations—that matter. And even then, the right thing to do will de- pend upon what is causing the collinearity. The associations within the data alone are not enough to decide what to do.
+
+
+What is likely going on in the milk example is that there is a core tradeoff in milk composition that mammal mothers must obey. If a species nurses often, then the milk tends to be watery and low in energy. Such milk is high in sugar (lactose). If instead a species nurses rarely, in short bouts, then the milk needs to be higher in energy. Such milk is very high in fat. This implies a causal model something like this:
+
+```{r milk dag, echo=FALSE}
+
+library(ggdag)
+
+dag_coords <-
+  tibble(name = c("L", "D", "F", "K"),
+         x    = c(1, 2, 3, 2),
+         y    = c(2, 2, 2, 1))
+
+dagify(L ~ D,
+       F ~ D,
+       K ~ L + F,
+       coords = dag_coords) %>%
+  
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(aes(color = name == "D"),
+                 alpha = 1/2, size = 6.5, show.legend = F) +
+  geom_point(x = 2, y = 2, 
+             size = 6.5, shape = 1, stroke = 1, color = "orange") +
+  geom_dag_text(color = "black") +
+  geom_dag_edges() +
+  scale_color_manual(values = c("steelblue", "orange")) +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(.1, .1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(.1, .1))
+
+```
+
+The central tradeoff decides how dense, D, the milk needs to be. We haven’t observed this variable, so it’s shown circled. Then fat, F, and lactose, L, are determined. Finally, the com- position of F and L determines the kilocalories, K. If we could **measure D**, or had an evolutionary and economic model to predict it based upon other aspects of a species, that would be better than stumbling through regressions.
+
+
+In general, there’s no guarantee that the available data contain much information about a parameter of interest. When that’s true, your Bayesian machine will return a posterior distribution very similar to the prior. **Comparing the posterior to the prior can therefore be a good idea**, a way of seeing how much information the model extracted from the data. When the posterior and prior are similar, it doesn’t mean the calculations are wrong—you got the right answer to the question you asked. But it might lead you to ask a better question.
 
 
 
