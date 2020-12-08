@@ -1,0 +1,48 @@
+---
+title: "DAG jokes"
+author: "Ania Kawiecki"
+date: "9/29/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+header-includes:
+  \usepackage{dcolumn}
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(message=FALSE)
+```
+
+```{r libraries, message= FALSE}
+
+library(tidyverse)
+library(rethinking)
+library(dagitty)
+library(knitr)
+library("ggdag")
+library("ggrepel")
+
+```
+
+## DIAGNOSTIC TEST EVALUATION AND SCREENING TESTS
+ balallalal
+
+| Johnson Family | Transformation | Parameter Conditions | X Condition |
+|----------------|-----------------------------------------------------------------------|---------------------------------------------------------|-------------------------------------|
+| $S_B$ | $Z = \gamma + \eta \ ln(\frac {X - \epsilon} {\lambda + \epsilon - X})$ | $\eta, \lambda >0, -\infty < \gamma, \epsilon < \infty$ | $\epsilon < X < \epsilon + \lambda$ |
+| $S_L$ | $Z = \gamma + \eta \ ln(X - \epsilon)$ | $\eta >0, -\infty < \gamma, \epsilon < \infty$ | $X > \epsilon$ |
+| $S_U$ | $Z = \gamma + \eta \sinh^{-1}(\frac {X - \epsilon} {\lambda})$ | $\eta, \lambda >0, -\infty < \gamma, \epsilon < \infty$ | $-\infty < X < \infty$ |
+
+```{r 4X4 table se sp, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("a = P[T(+) & D(+)] = true positive", "c = P[T(-) & D(+)] = false negative", "a+c = P[D(+)] = disease positive")
+B <- c("b = P[T(+) & D(-)] = false positive", "d = P[T(-) & D(-)] = true negative", "b+d = P[D(-)] = disease negative")
+C <- c("a+b = P[T(+)] = test positive", "c+d = P[T(-)] = test positive", "1=a+b+c+d = total")
+
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Disease +", "Disease -", "Total")
+rownames(tble) <- c("Test +", "Test -", "Total")
+kable(tble)
+```
+

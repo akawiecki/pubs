@@ -75,6 +75,62 @@ Observational
 ## DIAGNOSTIC TEST EVALUATION AND SCREENING TESTS
 
 
+```{r 4X4 table se sp, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("a = P[T(+) & D(+)] = true positive", "c = P[T(-) & D(+)] = false negative", "a+c = P[D(+)] = disease positive")
+B <- c("b = P[T(+) & D(-)] = false positive", "d = P[T(-) & D(-)] = true negative", "b+d = P[D(-)] = disease negative")
+C <- c("a+b = P[T(+)] = test positive", "c+d = P[T(-)] = test positive", "1=a+b+c+d = total")
+
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Disease +", "Disease -", "Total")
+rownames(tble) <- c("Test +", "Test -", "Total")
+kable(tble)
+```
+
+### sensivity 
+
+$$P(T^+|D^+)= \frac{P(T^+ \cap D^+)}{P(D^+)}$$
+
+### specificity 
+
+$$P(T^-|D^-)= \frac{P(T^- \cap D^-)}{P(D^-)}$$
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Gordis\ Epidemiology\ 5th\ se.jpg)
+
+### likelihood ratio negative
+
+$$\frac{P(T^-|D^+)}{P(T^-|D^-)}= \frac{1-P(T^+ | D^+)}{P(T^- | D^-)}= \frac{1-sensitivity}{specificity}$$
+
+### likelihood ratio positive 
+
+$$\frac{P(T^+|D^+)}{P(T^+|D^-)}= \frac{P(T^+ | D^+)}{1-P(T^- | D^-)}= \frac{sensitivity}{1-specificity}$$
+
+### ppv : positive predictive value
+
+$$P(D^+|T^-)= \frac{P(T^+ \cap D^+)}{P(T^+)}$$
+
+### npv : negative predictive value 
+
+$$P(D^-|T^-)= \frac{P(T^- \cap D^-)}{P(T^+)}$$
+
+### ROC curve 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-08\ at\ 21.07.27.png)
+
+
+### TEST PRECISION 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ test\ precision.jpg)
+
+### MULTIPLE TEST
+
+### sequential
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ seq.jpg)
+
+### simultaneous
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ simultaneous.jpg)
 
 Sensitivity and specificity
 Predictive value positive and predictive value negative
