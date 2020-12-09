@@ -84,6 +84,9 @@ Observational
 
 ## DIAGNOSTIC TEST EVALUATION AND SCREENING TESTS
 
+*test precision*: ability to produce consistent results when repeated under the same conditions: 
+* repeatability: consistency of test results under same condition except time
+* reproducibility: consistency of test results under different conditions
 
 ```{r 4X4 table se sp, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
 
@@ -96,64 +99,272 @@ colnames(tble) <- c("Disease +", "Disease -", "Total")
 rownames(tble) <- c("Test +", "Test -", "Total")
 kable(tble)
 ```
+### TEST PERFORMANCE CHARACTERISTICS
 
-### sensivity 
+### sensitivity 
+
+Probability that test is positive given that the individual is diseased
 
 $$P(T^+|D^+)= \frac{P(T^+ \cap D^+)}{P(D^+)}$$
 
 ### specificity 
 
+Probability that test is negative given that the individual is not diseased
+
 $$P(T^-|D^-)= \frac{P(T^- \cap D^-)}{P(D^-)}$$
 
+**TRADE-OFF** 
+
+In continuous results, the cut-off that for a positive  test can determine the specificiity and sensitivity of the test, and should be chosen depending on the purpose.
+
+* lower threshold:increases the sensitivity but decreases the specificity by increasing false positives
+
+* higher threshold:increases the specificity but decreases the sensitivity by increasing false negatives
+
+
 ![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Gordis\ Epidemiology\ 5th\ se.jpg)
+**ROC curve**: Receiver Operating Characteristic (ROC) curve: is a graphic portrayal of the sensitivity-specificity trade-off as cut-off values vary. 
+
+**AUC**: is the area under the curve. 
+
+* The AUC of a useful test must be $>$ 0.5
+  + area of the total square = 1
+  + area of a random process = 0.5
+  + 1 - 0.5 = 0.5 
+
+* It can also be defined as the probability that a randomly selected diseased individual will have a higher test value that a randomly selected non-diseased individual. 
+
+Example: AUC = 0.9 : a randomly selected diseased individual will have a higher test value that a randomly selected non-diseased individual 90 % of the time. 
+
+* It can also be defined as the:
+  + average sensitivity across all possible 1- specificity values 
+  + average true positive ratio across all possible false positive ratio 
+
+
+**Youden's index**= **J-statistic**: sensitivity + specificity - 1 = true positive ratio - false positive ratio 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 17.18.14.png)
+
+
 
 ### likelihood ratio negative
+
+likelihood that a non-diseased individual will test negative vs an individual that is not diseased = the odds that a negative test would be expected in a diseased individual 
 
 $$\frac{P(T^-|D^+)}{P(T^-|D^-)}= \frac{1-P(T^+ | D^+)}{P(T^- | D^-)}= \frac{1-sensitivity}{specificity}$$
 
 ### likelihood ratio positive 
 
+likelihood that a diseased individual will test positive vs an individual that is not diseased = the odds that a positive test would be expected in a diseased individual 
+
 $$\frac{P(T^+|D^+)}{P(T^+|D^-)}= \frac{P(T^+ | D^+)}{1-P(T^- | D^-)}= \frac{sensitivity}{1-specificity}$$
+
+**CHARACTERISTICS OF LIKELIHOOD RATIOS**
+
+1. independent from prevalence
+
+2. can be used to shorten list of diagnostic possibilities. If LR = 1, the test provides no information on disease status. 
+
+### POST-TEST PROBABILITIES
+
+once you have a test result, how likely is it that you have disease? 
 
 ### ppv : positive predictive value
 
-$$P(D^+|T^-)= \frac{P(T^+ \cap D^+)}{P(T^+)}$$
+Probability that the individual is diseased  given that the test was positive
+
+
+$$P(D^+|T^+)= \frac{P(T^+ \cap D^+)}{P(T^+)}$$
 
 ### npv : negative predictive value 
 
-$$P(D^-|T^-)= \frac{P(T^- \cap D^-)}{P(T^+)}$$
+Probability that the individual is not diseased  given that the test was negative
 
-### ROC curve 
 
-![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-08\ at\ 21.07.27.png)
+$$P(D^-|T^-)= \frac{P(T^- \cap D^-)}{P(T^-)}$$
+
+**WHAT AFFECTS PREDICTIVE VALUES ?**
+
+* prevalence
+
+The ppv of a test increased and the npv of a test decreases as the prevalence of the disease in the population increases. 
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 16.24.46.png)
+
+* specificity: for the same prevalence, a test with higher specificity has higher ppv. 
+
+  + in common diseases: the sensitivity has a larger effect on the ppv because it decreases the false positives. 
+  
+  + in rare diseases: the specificity  has a larger effect on the ppv because it decreases the false negatives. 
+  
+  Because disease are usually infrequent and there are more healthy individuals than diseases individuals, any increase in specifcity that affects the number of healthy individuals has a greater effect than finding diseased individuals. 
+  
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 16.23.06.png)
+
+ TO IMPROVE PREDICTIVE VALUES: 
+ 
+ * test high-risk populations
+ 
+ * increase the cut-off to increase specificity. 
+
 
 
 ### TEST PRECISION 
 
-![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ test\ precision.jpg)
+
+```{r kappa table se sp, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("a", "c", "a+c")
+B <- c("b", "d", "b+d")
+C <- c("a+b", "c+d", "1=a+b+c+d = total")
+
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Oberver A Test +", "Oberver A Test -", "Total")
+rownames(tble) <- c("Oberver B Test +", "Oberver B Test -", "Total")
+kable(tble)
+```
+
+### kappa statistic
+
+$$\kappa= \frac{P_O-P_E}{1-P_E}$$
+
+contrasts observed agreement with the agreement that would have been observed by chance alone. 
+
+* **percent agreement between 2 observers**: $P_O = \frac{a+d}{a+b+c+d}$
+
+* **expected agreement by chance**: % $P_E = \frac{[P(T_{ObserverA}^+) * T_{ObserverB}^+] + [P(T_{ObserverA}^-) * T_{ObserverB}^-]}{total}=\frac{\frac{a+c}{a+b+c+d}*(a+b) + \frac{b+d}{a+b+c+d}*(c+d)}{a+b+c+d}$
+
+Example: Pathologist A read 60% of all 75 slides (45 slides) as being grade II and 40% (30 slides) as grade III. If his or her readings had used criteria independent of those used by pathologist B (e.g., if pathologist A were to read 60% of any group of slides as grade II), we would expect that pathologist A would read as grade II both 60% of the slides that pathologist B had called grade II and 60% of the slides that patholo- gist B had called grade III. Therefore, we would expect that 60% (26.4) of the 44 slides called grade II by pathologist B would be called grade II by pathologist A and that 60% (18.6) of the 31 slides called grade III by pathologist B would also be called grade II by pathologist A. Of the 31 slides called grade III by pathologist B, 40% (12.4) would also be classified as grade III by pathologist A.
+
+$P_E = \frac{[0.6 * 44] + [0.4 * 31]}{75}= \frac{26.4+ 12.4}{75}= 51.7$
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 17.29.35.png)
+
+* -1 = perfect disagreement
+* 0 = agreement expected by chance
+* 1 = perfect agreement
+
+Kappa is affected by prevalence, and therefore can only be used within studies but not across studies. 
+
 
 ### MULTIPLE TEST
 
 ### sequential
 
-![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ seq.jpg)
+An individual is considered disease positive if the individual tests positive on both tests. 
+
+This method is often used for screening
+
+more opportunities to test negative lead to: 
+
+* decrease in sensitivity ($P(T^+|D^+)$): a diseased individual has more opportunities to test negative 
+
+* increase in specificity ($P(T^-|D^-)$): a non-diseased individual has more opportunities to be correctly diagnosed as negative
+
+* increase in ppv ($P(D^+|T^+)$): there are fewer false positive 
+
+* decrease in npv ($P(D^-|T^-)$): there are more false negatives 
+
+
+**EXAMPLE**
+
+* Original values: 
+
+sensitivity ($P(T^+|D^+)= 0.70$
+
+specificity $P(T^-|D^-) =  0.80$
+
+ppv $P(D^+|T^+)=  0.16$
+
+npv $P(D^-|T^-) = 0.98$
+
+
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 18.06.46.png)
+
+* After sequential testing: 505 individuals are positive in both tests
+
+net sensitivity ($P(T^+|D^+)= 315/500= 0.63$
+
+net specificity $P(T^-|D^-) = (1710+7600)/9500= 0.98$
+
+net ppv $P(D^+|T^+)= 350/505= 0.62$
+
+net npv $P(D^-|T^-)= (1710+7600)/ (7750+1745) = 0.98$
+
 
 ### simultaneous
 
-![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ simultaneous.jpg)
+An individual is considered disease positive if the individual tests positive on either tests. 
 
-Sensitivity and specificity
-Predictive value positive and predictive value negative
-Likelihood ratios (binary, ordinal and quantitative tests)
-Comparison of sensitivity and specificity of 2 tests
-Prevalence/apparent prevalence relationship
-Sensitivity, specificity and predictive values of tests in series and parallel
-Kappa for interobserver agreement
-ROC curves
+more opportunities to test positive lead to: 
 
-FOR PROJECT:sensitivity /spp of DENV PCR test and of surveillance method. 
-Validation of PCR test
-How do you define dengue exposure? What’s the PRNT cut-off?
+* increase in sensitivity ($P(T^+|D^+)$): a diseased individual has more opportunities to test positive 
+
+* decrease in specificity ($P(T^-|D^-)$): a non-diseased individual has more opportunities to be incorrectly diagnosed as positive, that is there are more false positives
+
+* decrease in ppv ($P(D^+|T^+)$): there are more false positives 
+
+* increase in npv ($P(D^-|T^-)$): if an individual is negative on both tests, it is more likely not to be diseased
+
+
+**EXAMPLE**
+
+* Original values: 
+
+TEST A
+
+sensitivity test A ($P(T^+|D^+)= 0.80$
+
+specificity test A $P(T^-|D^-) =  0.60$
+
+ppv test A $P(D^+|T^+)=  0.33$
+
+npv test A $P(D^-|T^-) = 0.92$
+
+TEST B
+
+sensitivity test B ($P(T^+|D^+)= 0.90$
+
+specificity test B $P(T^-|D^-) =  0.90$
+
+ppv test A $P(D^+|T^+)=  0.69$
+
+npv test A $P(D^-|T^-) = 0.97$
+
+
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 18.27.34.png)
+
+* After simultaneus testing:
+
+**net sensitivity**
+
+$T_A^+ =80\%sensitivity * total = 0.8*200= 160$
+
+$T_B^+ =90\%sensitivity * total = 0.9*200= 180$
+
+$T_{AB}^+ =90\%sensitivity * 80\%sensitivity* total = 0.8* 0.9*200= 144$
+
+ or $P(A)+P(B)-P(A\cap B) = 0.8+0.9+ (0.8*0.9) = 0.98$
+ 
+$T_{only A}^+ =  160-144=16$
+
+$T_{only B}^+ =  180-144=36$
+
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 18.34.40.png)
+**net specificity**
+
+$T_{AB}^-= 0.6*0.9 = 0.54$ 
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 18.47.04.png)
+
+
+net ppv = $196/564=0.35$
+
+net npv = $432/436=0.99$
 
 
 ## MEASURES OF DISEASE FREQUENCY 
@@ -2628,7 +2839,7 @@ In the scientific literature, you might encounter a variety of dodgy ways of cop
   
   + between categorical and continuous variables: 
     - 2 categories: t-test
-    - > 2 categories: ANOVA
+    - $>$ 2 categories: ANOVA
     
 * use VIF = variance inflation. If it's >10 it's a sign of collinearity. 
 
@@ -2762,29 +2973,46 @@ identity: $\mu = X \beta$
 
 ### assumptions
 
+Gelman and Hill 2005: 
+
 Decreasing importance
 
 1.**validity**: the outcome measure should accurately reflect the phenomenon of interest, the model should include all relevant predictors, and the model should generalize to the cases to which it will be applied. 
 
 2.**additivity and linearity**: its deterministic component is a linear function of the separate predictors: $\hat{y_i}=\beta_0 +\beta_1x_1...+\beta_n x_n$
 
+In other words, for every given value of x, the spread of positive residuals is the same as of negative residuals.
+
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 13.42.06.png )
+
 * If additivity is violated, it might make sense to transform the data (for example, if y = abc,then logy = loga + logb + logc )or to add interactions
 
 * If linearity is violated: 
-  + a predictor can be transformed: 
-    + 1/x or log(x) instead of simply linearly
-    + as a categorical variable 
+  + the dependent variable (y) can be transformed: usually to log
+  + a predictor (x) can be transformed: 
+    - 1/x or log(x) instead of simply linearly
+    - as a categorical variable 
   + a more complicated relationship could be expressed:
-    + by including both x and x2 as predictors.
-    + by using a nonlinear function such as a spline or other generalized additive model.
+    - by polynomials: including both x and x2 and/or x3 as predictors.
+    - by using a nonlinear function such as a spline or other generalized additive model.
 
 
-3.**independence of errors**: the errors from the prediction line are independent. 
+3.**independence of errors**: the errors from the prediction line are independent. In other words, for every given value of x, the values of y are statistically independent from each other. 
 
-4.**equal variance of errors**: If the variance of the regression errors are unequal, estimation is more eðciently performed using weighted least squares, 
+This is violated when observations are correlated, such as vision from each eye in one person, or height measured in the same person over time. 
 
-5.**normality of errors**: the regression assumption that is generally least important is that the errors are normally distributed. In fact, for the purpose of estimating the regression line (as compared to predicting individual data points), the assumption of normality is barely important at all. Thus, in contrast to many regression textbooks, we do not recommend diagnostics of the normality of re- gression residuals.
+4.**equal variance of errors**: If the variance of the regression errors are unequal, estimation is more efficiently performed using weighted least squares. In other words, for every given value of x, the values of y are have the same variance. 
 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/LinearReg+05252019\ homo.jpg)
+
+
+5.**normality of errors**: the regression assumption that is generally least important is that the errors are normally distributed. In fact, for the purpose of estimating the regression line (as compared to predicting individual data points), the assumption of normality is barely important at all. Thus, in contrast to many regression textbooks, we do not recommend diagnostics of the normality of regression residuals. In other words, for every given value of x, the values of y have a normal distribution. 
+
+Example: height ~ age. For any given age, for example 25, the values of height will follow a normal distribution. This will usually happen as long as the sample size is large enough thanks to the Central Limit Theorem. 
+
+Example of residuals with equal variance and linearity assumptions met: 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 13.50.52.png)
 
 ### parameter estimation
 
@@ -2824,8 +3052,16 @@ no hs: kid.score = -11+51·0+1.1·mom.iq-0.5·0·mom.iq = -11 + 1.1 · mom.iq
 
 The estimated slopes of 1.1 for children whose mothers did not complete high school and 0.6 for children of mothers who did are directly interpretable. The intercepts still suffer from the problem of only being interpretable at mothers’ IQs of 0.
 
+
+**CENTERING VARIABLES**
+
 Models with interactions can often be more easily interpreted if we first pre-process the data by centering each input variable about its mean or some other convenient reference point.
  
+ ![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-09\ at\ 13.31.28.png)
+examples: kid.score = 26 + 6 · mom.hs + 0.6 · (mom.iq- avg.mom.iq) + error
+
+$\beta_0$ The *intercept*. If a child had a mother with an IQ at the average IQ ( thus mom.iq= avg.mom.iq) and who did not complete high school (thus, mom.hs = 0), then we would predict this child’s test score to be 26. This is an interpretable prediction.
+
 
 ### inference 
 
@@ -2835,6 +3071,9 @@ The least squares estimate is the maximum likelihood estimate if the errors $\ep
 values. As a byproduct of the least squares estimation of $\beta$, the residuals ri will be uncorrelated with all the predictors in the model.
 
 *Residual standard deviation*: $\hat{\sigma}$ summarizes the scale of the residuals. For example, in the test scores example, $\hat{\sigma}$ = 18, which tells us that the linear model can predict children’s test scores to about an accuracy of 18 points.  It's like a measure of the average distance each observation falls from its prediction from the model. We are typically interested in it for its own sake—as a measure of the unexplained variation in the data—or because of its relevance to the precision of inferences about the regression coefficients $\beta$.
+
+
+### example 
 
 
 ## **GENERALIZED LINEAR MODELS**
