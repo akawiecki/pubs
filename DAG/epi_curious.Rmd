@@ -1,0 +1,3496 @@
+---
+title: "epi curious"
+author: "Ania Kawiecki"
+date: "9/29/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(message=FALSE)
+```
+
+```{r libraries, message= FALSE}
+
+library(tidyverse)
+library(rethinking)
+library(dagitty)
+library(knitr)
+library("ggdag")
+library("ggrepel")
+
+library(INLA)
+library(knitr)
+library(stringr)
+library("patchwork")
+library("ghibli")
+```
+
+
+# Resources
+
+* Intro to Epidemiology 
+
+Epidemiology,5th edition, Leon Gordis 
+
+
+* DAG and bias theory
+
+[Causal Inference: What If, by Miguel A. Hernán, James M. Robins](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
+
+[Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition, by Richard McElreath](http://xcelab.net/rm/statistical-rethinking/)
+
+[Causal Knowledge as a Prerequisite for Confounding Evaluation: An Application to Birth Defects Epidemiology, Hernàn 2002](https://academic.oup.com/aje/article/155/2/176/108106)
+
+[Causal inference in statistics: an overview, Pearl 2009](https://projecteuclid.org/euclid.ssu/1255440554http://projecteuclid.org/euclid.ssu/1255440554)
+
+[An introduction to causal inference, Pearl 2010](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2836213/)
+
+
+* ggdag
+
+https://ggdag.malco.io/
+
+https://malco.io/2019/09/17/tidy-causal-dags-with-ggdag-0-2-0/
+
+https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html
+
+https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
+
+# **INTRO TO EPIDEMIOLOGY**
+
+## STUDY DESIGN
+
+### OBSERVATIONAL STUDIES
+
+### ecological
+
+### 
+
+Experimental
+  Clinical Trials
+  Intervention Trials
+  Prevention Trials
+  Field Trials
+Observational
+  Cross-sectional studies
+  Cohort Studies (retrospective and prospective)
+  Case-control Studies (including “nested”)
+  Matched Case-control studies
+  Ecological studies
+
+
+## DIAGNOSTIC TEST EVALUATION AND SCREENING TESTS
+
+
+```{r 4X4 table se sp, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("a = P[T(+) & D(+)] = true positive", "c = P[T(-) & D(+)] = false negative", "a+c = P[D(+)] = disease positive")
+B <- c("b = P[T(+) & D(-)] = false positive", "d = P[T(-) & D(-)] = true negative", "b+d = P[D(-)] = disease negative")
+C <- c("a+b = P[T(+)] = test positive", "c+d = P[T(-)] = test positive", "1=a+b+c+d = total")
+
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Disease +", "Disease -", "Total")
+rownames(tble) <- c("Test +", "Test -", "Total")
+kable(tble)
+```
+
+### sensivity 
+
+$$P(T^+|D^+)= \frac{P(T^+ \cap D^+)}{P(D^+)}$$
+
+### specificity 
+
+$$P(T^-|D^-)= \frac{P(T^- \cap D^-)}{P(D^-)}$$
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Gordis\ Epidemiology\ 5th\ se.jpg)
+
+### likelihood ratio negative
+
+$$\frac{P(T^-|D^+)}{P(T^-|D^-)}= \frac{1-P(T^+ | D^+)}{P(T^- | D^-)}= \frac{1-sensitivity}{specificity}$$
+
+### likelihood ratio positive 
+
+$$\frac{P(T^+|D^+)}{P(T^+|D^-)}= \frac{P(T^+ | D^+)}{1-P(T^- | D^-)}= \frac{sensitivity}{1-specificity}$$
+
+### ppv : positive predictive value
+
+$$P(D^+|T^-)= \frac{P(T^+ \cap D^+)}{P(T^+)}$$
+
+### npv : negative predictive value 
+
+$$P(D^-|T^-)= \frac{P(T^- \cap D^-)}{P(T^+)}$$
+
+### ROC curve 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-08\ at\ 21.07.27.png)
+
+
+### TEST PRECISION 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ test\ precision.jpg)
+
+### MULTIPLE TEST
+
+### sequential
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ seq.jpg)
+
+### simultaneous
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ simultaneous.jpg)
+
+Sensitivity and specificity
+Predictive value positive and predictive value negative
+Likelihood ratios (binary, ordinal and quantitative tests)
+Comparison of sensitivity and specificity of 2 tests
+Prevalence/apparent prevalence relationship
+Sensitivity, specificity and predictive values of tests in series and parallel
+Kappa for interobserver agreement
+ROC curves
+
+FOR PROJECT:sensitivity /spp of DENV PCR test and of surveillance method. 
+Validation of PCR test
+How do you define dengue exposure? What’s the PRNT cut-off?
+
+
+## MEASURES OF DISEASE FREQUENCY 
+
+### MORBIDITY 
+
+### prevalence
+
+Proportion of the population affected at time t = snapshot of disease. 
+
+Units: 0-1 or 0-100%
+
+$$\frac{cases\:at\:time\:t\:(new + existing)}{total\:population\:at\:time\:t}$$
+Risk of *being* a case.
+
+$$prevalence = incidence * duration$$
+It's a bad measure of risk because it depends on the duration of disease. Chronic diseases will have high prevalnce, and very fatal diseases will have low prevalence, regardless of the incidence.
+
+* **point prevalence**: prevalence at a given timepoint t
+
+$$\frac{cases\:at\:time\:t\:(new + existing)}{total\:population\:at\:time\:t}$$
+
+* **period prevalence**: prevalence at any given timepoint during a time period t
+
+$$\frac{cases\:observed\:over\:period\:t\:(new + existing)}{total\:population\:at\:midpoint\:of\:period\:t}$$
+
+
+### incidence 
+
+Proportion of the population at risk of being affected that does become affected during a time period t.  cases/population * time at risk 
+
+$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:during\:period\:t}$$
+
+Risk of *becoming* a case.
+
+$$\frac{cases}{population*time\:at\:risk}$$
+It measures risk because it measures events or transitions from affected to not affected state. 
+
+* **cumulative incidence**
+
+The population at risk is a crude measure of the population at risk at the beginning of the time period. It assumes a static population at risk.
+
+Units: 0-1 or 0-100% per time interval. 
+
+$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:at\:start\:of\:time\:period\:t}$$
+Measures average risk. Is apt for short time-periods or static populations. 
+
+* **incidence density rate**
+
+The population at risk is the sum of all the disease-free/ at risk time periods for each individual. It assumes the risk of each person in the population does not change over time. 
+
+
+Units: 0- $\infty$ cases/population-time
+
+$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population-time}$$
+Measures risk by taking into account the time elapsed before disease occured for each individual, thus it also measures the speed at which disease occurs at a certain timepoint. Is apt for prolonged time-periods or dynamic populations. 
+
+To calculate population-time: 
+
+* sum all the disease-free time for each individual. 
+* estimate: 
+  + count the population-time midway through the time period
+  + average the population-time at the beginning and the end of the period. 
+
+### attack rate
+
+Proportion of the exposed individuals that becomes affected during a time period t.
+
+$$\frac{cases}{exposed}$$
+
+![Relationship between incidence and prevalence. Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.35.40.png)
+
+### MORTALITY 
+
+### mortality rate 
+
+Speed of death in time t.
+
+Measures risk: good measure when disease is mild, bad measure when disease is very deadly and the case-fatality is high. 
+
+$$\frac{deaths\:over\:period\:t}{total\:population\:at\:risk\:during\:time\:period\:t}$$
+
+* **crude mortality rate**
+
+overall deaths
+
+$$\frac{deaths\:over\:period\:t}{total\:population\:at\:risk\:during\:time\:period\:t}$$
+
+* **specific mortality rate**
+
+deaths in a specific subgroup (age, sex, diseased with a certain disease)
+
+$$\frac{deaths\:in\:subgroup\:over\:period\:t}{population\:at\:risk\:in\:subgroup\:during\:time\:period\:t}$$
+
+### case fatality rate
+
+Proportion of the individuals that become affected by disease X who die during a time period t.
+
+Measures disease severity
+
+$$\frac{deaths}{cases}$$
+
+### proportionate mortality 
+
+Fraction of all the deaths caused by disease X 
+
+$$\frac{deaths\:from\:disease\:X}{all\:deaths}$$
+
+### RATES
+
+### crude 
+overall population
+
+### adjusted 
+adjusted rates controlling for confounding factors to remove the effect of that factor
+
+* **direct**
+
+Apply the specific subgroup rates of each population to a standard population and calculate the rate on the standard population. 
+
+![direct adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.04.03.png)
+
+* **indirect** 
+
+Compare populations: subgroup vs general
+
+SMR = Strandard Mortality Ratio
+$$SMR= \frac{Observed}{Expected}$$
+
+Expected: Apply the general population rates to each specific subgroup and add all the cases
+Observed: add all the observed cases in each specific subgroup
+
+![indirect adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.08.05.png)
+
+# **CAUSAL INFERENCE** 
+
+## INTRODUCTION TO CAUSALITY
+
+"The questions that motivate most studies in the health, social and behavioral sciences are not associational but causal in nature. For example, what is the efficacy of a given drug in a given population? What was the cause of death of a given individual, in a specific incident? These are causal questions because they require some knowledge of the data-generating process; they cannot be computed from the data alone, nor from the distributions that govern the data" (@Pearl2009). 
+
+"The aim of standard statistical analysis is to assess parameters of a distribution from samples drawn of that distribution. With the help of such parameters, associations among variables can be inferred, which permits the researcher to estimate probabilities of past and future events and update those probabilities in light of new information. These tasks are managed well by standard statistical analysis so long as experimental conditions remain the same. Causal analysis goes one step further; its aim is to infer probabilities under conditions that are **changing**, for example, changes induced by treatments or external interventions.
+
+This distinction implies that causal and associational concepts do not mix; there is nothing in a distribution function to tell us how that distribution would differ if external conditions were to change—say from observational to experimental setup—because the laws of probability theory do not dictate how one property of a distribution ought to change when another property is modified. This information must be provided by **causal assumptions which identify relationships that remain invariant when external conditions change**.
+
+Causal relations cannot be expressed in the language of probability and, hence, that any mathematical approach to causal analysis must acquire new notation – probability calculus is insufficient. To illustrate, the syntax of probability calculus does not permit us to express the simple fact that “symptoms do not cause diseases,” let alone draw mathematical conclusions from such facts. All we can say is that two events are dependent—meaning that if we find one, we can expect to encounter the other, but we cannot distinguish statistical dependence, quantified by the conditional probability P(disease|symptom) from causal dependence, for which we have no expression in standard probability calculus." (Pearl 2010)
+
+**Summary**: The difference between association and causality is that causality is **directional**, which cannot be represented with standard calculus notation. 
+
+## **CAUSATION** 
+
+## types of associations
+
+A statistical association between an exposure and an outcome can be due to either or both a:
+
+* **causal effect**: the exposure causes the outcome. This is the effect we want to isolate using causal inference.
+
+```{r dag causal 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 2),
+  y = c(E = 0, O = 0)
+) %>% 
+   coords2df()
+dag1.1 <- dagify( 
+  O ~ E, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+* **spurious effect**: the exposed and the unexposed groups in the study are not comparable, or exchangeable, which is the ultimate source of the bias (the unexposed group is not the counterfactual of the exposed group) (@Hernan2002).
+
+```{r dag spurious 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+```
+
+
+* a **common effect** = **collider**
+
+```{r dag3 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ E,
+  C ~ O, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+## types of causal relationships 
+
+### necessary
+disease does not develop without this factor
+
+### sufficient
+disease always develops with this factor
+
+1. **necessary AND sufficient**: without that factor, the disease never develops, and in the presence of that factor, the disease always develops. This never occurs in nature, even pathogens require other factors. 
+
+2. **necessary AND NOT sufficient**: each factor is needed but alone is not able to cause disease. Ex: pathogen + immune susceptibility 
+
+3. **NOT necessary BUT sufficient**: each factor alone is able to cause disease, but so can other factors. Ex: leukemia can be caused by radiation or benzene exposure
+
+4. **NOT necessary NOR sufficient**: presence of the factor by itself does not cuase disease
+
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 13.31.01.png)
+![Gordis figure 14-12 to 14-15](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 13.31.41.png)
+
+### direct effect
+
+Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
+  
+```{r direct, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, D = 2),
+  y = c(A = 0, D = 0)
+) %>% 
+   coords2df()
+
+dag1.1 <- dagify( 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+### indirect effect
+
+Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
+  
+```{r indirect, echo =FALSE}
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.2 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  exposure = "A",
+  outcome = "D",
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+
+## guidelines for establishing a causal relationship
+
+### Koch-Henle Criteria
+
+1. The organism is **always** found with the disease
+
+2. The organism is **not** found with any other disease
+
+3. The organism isolated from one individual with disease **produces** the disease in other individuals
+
+### Bradford Hill Criteria
+
+Most important 
+
+1. temporal relationship: exposure to the factor occurs before disease
+
+2. biologic plausibility: the association makes sense in the contex of existing knowledge. 
+
+3. consistency: the same result is replicated in different studies and populations
+
+4. alternative explanations: confounding. exploration of the effect of other factors on the association. 
+
+Others
+
+5. strength: as measured by measures of effect (risk ratio or odds ratio)
+
+6. dose - response: the higher the exposure, the higher the risk of disease
+
+7. specificity: hard to ascertain as most outcomes are multifactorial
+
+8. cessation effect: if the exposure ceases, so does the effect
+
+
+## MEASURES OF DISEASE EFFECT OR ASSOCIATION 
+
+**Measures of effect** compare an exposed population to it's counterfactual unexposed population, that is the exact same population at the same time point had it not been exposed. That is, the effect of $E^+$ on the probability of being $D^+$ in the SAME population.
+
+**Measures of association** compare one exposed population to another unexposed population (a different population or the same population at a different time point) assuming that both populations are comparable. That is the effect of $E^+$ on the probability of being $D^+$ between $E^-$ and $E^+$. 
+
+![causal types](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.46.37.png)
+
+*Doomed* = always has disease, exposed or not
+
+*Susceptible* = has disease when exposed 
+
+*Protected*= does not have disease when exposed, but has disease when unexposed
+
+*Immune*= never has disease, exposed or not
+
+
+$P(D^+|E^+) = p_1 + p_2 = doomed + susceptible$
+
+$P(D^-|E^+) = p_3 + p_4 = protected + immune$
+
+$P(D^+|E^-) = p_1 + p_3 = doomed + protected$
+
+$P(D^-|E^-) = p_2 + p_4 = susceptible + immune$
+
+```{r 4X4 table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("a = E(+) & D(+)", "c = E(-) & D(+)", "a+c = D(+)")
+B <- c("b = E(+) & D(-)", "d = E(-) & D(-)", "b+d = D(-)")
+C <- c("a+b = E(+)", "c+d = E(-)", "a+b+c+d = total")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Disease +", "Disease -", "Total")
+rownames(tble) <- c("Exposed +", "Exposed -", "Total")
+kable(tble)
+```
+
+![measures of disease effect or association ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.51.02.png)
+
+Conditional probability refresher = $P(A|B)=\frac{P(A \cup B)}{P(B)}$
+
+### absolute risk = incidence 
+
+Measures magnitude of risk. Does not take into account the unexposed population or whether risk is associated to exposure. 
+$$P(D^+|E^+)=\frac{a}{a+b}=\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:during\:period\:t}$$
+
+### relative risk = risk ratio
+
+Measures the strength of the association and possible causal relationship
+
+RR = 1 $\to$ no effect 
+
+$$\frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{incidence\:in\:exposed\:population}{incidence\:in\:unexposed\:population}$$
+It can be expressed as:
+
+ * **Risk Ratio** = **RR** = the ratio of cumulative incidence in the exposed and unexposed populations
+ 
+ $$\frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{D^+\:in\:exposed\:population}{D^-\:in\:unexposed\:population}$$
+  
+  * **Incidence Rate Ratio** = **IRR** or **IDR** = the ratio of incidence densities in the exposed and unexposed populations
+ 
+ $$\frac{D^+\:in\:person-time\:of\:exposed\:population}{D^+\:in\:person-time\:of\:unexposed\:population}=\frac{incidence\:in\:exposed\:population}{incidence\:in\:unexposed\:population}$$
+
+
+### odds ratio 
+
+Measures the strength of the association but cannot suggest a causal relationship
+
+$$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}=\frac{\frac{a}{b}}{\frac{c}{d}}=\frac{ad}{bc}=\frac{odds\:D^+\:in\:exposed\:population}{odds\:D^+\:in\:unexposed\:population}$$
+or 
+
+$$\frac{\frac{P(E^+|D^+)}{P(E^-|D^+)}}{\frac{P(E^+|D^-)}{P(E^-|D^-)}}=\frac{\frac{a}{c}}{\frac{b}{d}}=\frac{ad}{bc}=\frac{odds\:E^+\:in\:diseased\:population}{odds\:E^+\:in\:not\:diseased\:population}$$
+
+![A: cohort study, B: case-control study, Gordis Figure 11-5 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 16.17.24.png)
+
+
+**matched-pairs OR**: 
+
+![Gordis Figure 11-9 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 16.22.42.png)
+
+
+**ODDS RATIO CAN BE A GOOD ESTIMATE OF RELATIVE RISK** When: 
+
+$$\frac{P(D^+|E^+)}{P(D^+|E^-)}\approx\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}$$
+$$\frac{\frac{a}{a+b}}{\frac{c}{c+d}} \approx \frac{\frac{a}{b}}{\frac{c}{d}}$$
+
+* We assume the disease is rare: 
+  + **rare disease assumption** 
+
+When the disease does not occur frequently $a+b \approx b$ and $c+d \approx d$
+
+![Gordis Figure 11-6, 11-7 ](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 10.47.42.png)
+
+* The cases are representative, with regards to the history of exposure, of all the people with disease in the population from which the cases were drawn: 
+
+* The controls are representative, with regards to the history of exposure, of all the people without disease in the population from which the cases were drawn: 
+
+The controls can be selected through different methods: 
+
+  + Not matched on time
+  
+    - *case-based sampling*: sampling occurs at the beginning of the study ($t_0$)
+    
+    - *cumulative incidence sampling*: sampling occurs at the end of the study ($t_1$)
+  
+**assumption of constant incidence density rate over the period of time**: $\frac{ID_{exposed(t)}}{ID_{unexposed(t)}}=\bar{IDR}_{t_0 \to t_1}$
+    
+**assumption of a stable population with respect to exposure** = **time is NOT a confounder**
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 11.21.04.png)
+  
+  + Matched on time
+  
+    - *incidence density sampling*: match on time with the cases ($t_0 - t_1$)
+  
+**assumption of constant incidence density rate over the period of time**: $\frac{ID_{exposed(t)}}{ID_{unexposed(t)}}=\bar{IDR}_{t_0 \to t_1} \to ID_{exposed(t)} = ID_{unexposed(t)} * \bar{IDR}_{t_0 \to t_1}$
+
+Both incidence and exposure change in function of time, therefore time is a confounder. By selecting the controls matching on time, we can interpret the odds ratio as a rate or risk measure, without making the rare disease assumption, by assuming only that the incidence is constant over time. 
+  
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 11.24.21.png)
+**INTERPRETATION OF ODDS RATIO**
+
+$$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}= \frac{\frac{a/a+b}{b/a+b}}{\frac{c/c+d}{d/c+d}} \ne \frac{\frac{a}{b}}{a+b}$$
+
+Ratio of average risk $\frac{P(D^+|E^+)}{P(D^-|E^+)}= \frac{a/a+b}{b/a+b}$ to average survival probability $\frac{P(D^+|E^-)}{P(D^-|E^-)}= \frac{c/c+d}{d/c+d}$ 
+
+which is not the same as the average disease odds $\frac{a/b}{a+b}$
+
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/odds_interpretation1.jpg)
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/OR2.jpg)
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/OR3.jpg)
+
+### attributable risk
+
+Incidence of a disease in the exposed population that is attributable to the exposure. 
+
+If > 1 the risk in the presence of exposure is greater that not in the presence of exposure
+
+How much of the disease would be prevented if the exposure were eliminated? 
+
+$${P(D^+|E^+)}-{P(D^+|E^-)}={\frac{a}{a+b}}-{\frac{c}{c+d}}={incidence\:in\:exposed\:population} -{incidence\:in\:unexposed\:population}$$
+
+as a proportion: 
+
+$$\frac{{P(D^+|E^+)}-{P(D^+|E^-)}}{P(D^+|E^+)}=\frac{{\frac{a}{a+b}}-{\frac{c}{c+d}}}{\frac{a}{a+b}}=\frac{{incidence\:in\:exposed\:population} -{incidence\:in\:unexposed\:population}}{incidence\:in\:exposed\:population}$$
+$$\frac{{P(D^+|E^+)}/{P(D^+|E^-)}-{P(D^+|E^-)}/{P(D^+|E^-)}}{P(D^+|E^+){P(D^+|E^-)}}= \frac{RR - 1}{RR}= 1- 1/RR$$
+
+![Grodis figure 12-1](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.11.43.png)
+![Gordis Table 12.1](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.13.13.png)
+
+**ATTRIBUTABLE FRACTIONS**
+
+* Etiologic fraction: proportion of cases in exposed population where exposure has a biological role in the disease
+
+* Excess fraction: proportion of cases in exposed population where exposure has a role of incrementing the disease incidence vs the unexposed population 
+
+### population attributable risk 
+
+Incidence of a disease in the total population that is attributable to the exposure. 
+
+How much of the disease in the total population would be prevented if the exposure were eliminated? 
+
+Incidence in the total population: $P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)= \frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}= incidence\:in\:exposed\:population * proportion\:exposed\:population + incidence\:in\:unexposed\:population * proportion\:unexposed\:population$
+
+$$\frac{[P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)]-{P(D^+|E^-)}}{P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)}=\frac{[{\frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}}]-{\frac{c}{c+d}}}{\frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}}=\frac{{incidence\:in\:total\:population} -{incidence\:in\:unexposed\:population}}{incidence\:in\:total\:population}$$
+
+![Gordis formula 12-4](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.58.29.png)
+
+## **ERROR IN INFERENCE**
+
+* **random error**
+
+Chance or random variation that remains unexplained. 
+
+The association lacks precision. The results are less reproducible. 
+
+* **systematic error** = bias
+
+The association lacks validity. The results are biased. 
+
+*insert irva/Causal Inference: What If by Miguel A. Hernán, James M. Robins here*
+
+### MEASURES OF ACCURACY
+
+### precision/reliability
+the amount of random error. High precision indicates the results are always similar in different experiments. 
+
+### validity
+the amount of systematic error. High validity indicates proximity to the true value
+
+* **external validity**: generalizability of the results to the general population
+
+* **internal validity**: comparability among the groups in the study
+
+![Gordis figure 15-9](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 14.10.51.png)
+
+
+## RANDOM ERROR
+
+* **unexplained variation** : non-deterministic counterfactuals 
+
+* **sampling error** : the degree to which a sample population deviates from the total population. It's unpredictable and due to the sampling process. 
+
+A **sample** is 
+
+a subset of the subjects in the population that could have been included in the study = a subset of the experiences the study subjects could have had
+
+### STATISTICAL INFERENCE
+
+approaches to deal with random error
+
+**ASSUMPTIONS OF SAMPLING**
+
+* **Randomness assumption**: the sample is a random selection of the subjects in the population that could have been included in the study
+
+* **Representativeness assumption**: the sample is representative of the subjects in the population that could have been included in the study
+
+
+**SAMPLING DISTRIBUTION**
+
+Different samples result in different measures of occurrence. 
+
+Sample size will determine: 
+
+ * the magnitude of the effect = the proximity of the measure of occurrence to the true value
+ 
+ * the precision of the estimation method = **statistical precision**: the inverse of the variance. 
+ 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 15.55.00.png)
+ 
+### hypothesis testing 
+
+**interpretation of the hypothesis test**: 
+
+$H_0$: hypothesis that there is no association between 2 variables in the superpopulation that was sampled. 
+
+* Reject the $H_0$: Under the sampling distribution of the $H_0$, the observed point estimate of the sample is inconsistent with the $H_0$ for a given critical threshold ($\alpha$ = 0.05). 
+
+* Fail to reject the $H_0$: Under the sampling distribution of the $H_0$, the observed point estimate of the sample is consistent with the $H_0$ for a given critical threshold ($\alpha$ = 0.05). We cannot reject the $H_0$ that the superpopulation groups are the same. 
+
+
+**MISinterpretation of the hypothesis test**: 
+
+* Reject the $H_0$: the superpopulation groups are the different. 
+
+There could be sources of uncontrolled bias, or chance alone could haveled to this point estimate. 
+
+* Fail to reject the the $H_0$:  the 2 observed groups from the superpopulation are the same. 
+
+![Hogg,Tannis,Zimmerman](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019hyp1.jpg)
+![Hogg,Tannis,Zimmerman](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019hyp2.jpg)
+
+### significance testing
+
+**interpretation of the significance test**: 
+
+p-value: probability of observing a more extreme point estimate than that observed in the sample if the $H_0$ were true. 
+
+Reject the $H_0$: probability of observing a more extreme point estimate than that observed in the sample if the $H_0$ were true is less than the probability of the critical region ($\alpha$ = 0.05) = the smallest critical region ($\alpha$) that would lead us to reject the $H_0$ if it were true. 
+
+
+**MISinterpretation of the significance test**: 
+
+* p-value: probability of the observed data under the test hypothesis
+Incorrect because the p-value includes all other configurations of the data that result in a more extreme test statistic than that observed in the sample. 
+
+* p-value: probability of the observed data would show as strong an association or stronger under the test hypothesis
+
+
+![Hogg,Tannis,Zimmerman](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019sig.jpg)
+
+
+**STATISTICAL ESTIMATION**
+
+Epidemiological analysis is a measurement, not a decision-making, problem. We want to estimate 
+
+* **the magnitude of the effect** = point estimate. The proximity of the measure of occurrence to the true value depends on sample size, bias, random error, etc...
+
+* **the precision** of the estimation method = **statistical precision**: the inverse of the variance. Uncertainty of the point estimate. It depends on the random variability, the sample size, etc...
+
+**Interval estimation**: provides information on:
+
+* the direction and magnitude of the association
+* the random variability in the point estimate. 
+ 
+**significance testing** reduce the information to a yes/no choice. It provides the degree of consistency between the data and a single hypothesis. 
+
+
+## SYSTEMATIC ERROR = BIAS 
+
+### SELECTION BIAS
+
+Non-comparability of the exposed and unexposed groups induced by a restriction in the analysis on certain level/s of a common effect of E or O or variables correlated with E or O.
+
+This can be caused by:
+
+* unbalanced sampling fractions between the exposed and non-exposed population (see example below).
+
+* over-matching: when the cases and controls are matched on a factor that is not associated with the outcome but is associated with exposure. 
+
+The difference with confounding:  confounding is due to unmeasured common causes and selection bias is due to errors in the selection of the two study groups that affects the internal validity. 
+
+* **non-response bias**: survey non-respondents may have different characteristics than those who do respond
+
+* **exclusion bias**: different eligibility criteria between cases and controls or the controls are selected from a different population than the cases
+Foor example, if the disease is very deadly and the information about the cases comes from proxies (relatives, friends) that are from a different population than the controls. 
+
+  + **berkson's bias**: "If the only way to cross the threshold is to score high, it is more common to score high on one item than on both. This general phenomenon is sometimes called Berkson’s paradox . But it is easier to remember if we call it the *selection-distortion effect*. Why do so many restaurants in good locations have bad food? The only way a restaurant with less-than-good food can survive is if it is in a nice location. Similarly, restaurants with excellent food can survive even in bad locations. Selection-distortion ruins your city."(@mcelreath). 
+In case-control studies that select cases from hospitals, often these cases are more likely to have concomitant diseases (hypertension, obesity) than the general population, which can lead to spurious associations. 
+  
+  + **incidence/prevalence bias**: Studies that select cases from hospitals are selecting for severe disease and having survived longer. To avoid this bias it's better to select incidence cases. 
+  
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva_sel.jpg)
+
+Selection bias does not depend only on exposure, it depends on the sampling fraction of all the cells, that means it can also depend on disease. 
+
+```{r dag selection bias, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, S=2),
+  y = c(E = 0, O = 0, S=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  S ~ O,
+  S ~ E, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+### INFORMATION BIAS
+
+Bias caused by measurement errors. Individuals are categorized incorrectly. 
+
+For continuous variables = **INFORMATION ERROR**
+
+For categorical variables = **MISCLASSIFICATION** 
+
+
+* DIFFERENTIAL: the classification error depends on the actual values of other variables, that is, it varies between the study groups. The bias can be either towards or away from the $H_0$. 
+
+    + **recall bias**: memory of events may bary between cases and controls. 
+    Example: Outcome: congenital malformation; Exposure: any; mothers of cases may have a better memory of the exposure than mothers of controls. 
+    
+    + **detection/surveillance bias**: the diagnosis of the outcome may be earlier or better in monitored study groups than in the general population. 
+    Example: Outcome: emphysema; Exposure: smoking; smokers have more respoiratory issues and seek out medical care more often, therefore emphysema is detected earlier and more often in the exposed than in the unexposed.
+    
+     + **observer bias**: there is a systematic difference in how data are collected between study participants belonging to different groups. Occurs when the interviewer is not blinded and when there is interviewer drift, that is, when the data collection procedure for the same interviewer changes over time. 
+
+* NON-DIFFERENTIAL: the classification error dos NOT depend on the actual values of other variables, and is due to a lack of accuracy in the data collection. This bias is usually towards the $H_0$, diluting the magnitude of effect (RR and OR), but it can be away from the $H_0$ if the exposure or outcome variables are non-binary, or if it's a dependent missclasification (depends on error in the classification of other variables).
+
+  + **observer bias**: Example: surrogate interviews, where the information might be inaccurate. 
+  
+  NON-DIFFERENTIAL EXPOSURE MISSCLASIFICATION 
+  
+  ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irvanondif.jpg)
+
+  NON-DIFFERENTIAL DISEASE MISSCLASIFICATION 
+  
+  ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irvadis.jpg)
+
+* DEPENDENT: the classification error depends on errors made measuring or classifying other variables. 
+
+* INDEPENDENT: the classification error does NOT depend on errors made measuring or classifying other variables.
+
+
+### CONFOUNDING 
+
+The exposed and the unexposed in the study are not comparable, or exchangeable, which is the ultimate source of the bias ( the unexposed group is not the counterfactual of the exposed group)
+
+A **CONFOUNDER** is a variable that is: 
+
+* associated with the outcome, conditional on the exposure (i.e. in the exposed group)
+Example: smoking is a risk factor for cancer
+
+* associated with the exposure, conditional on the exposure (i.e. in the exposed group)
+Example: smoking is associated with drinking coffee
+
+* not on the causal pathway between the exposure and the outcome.
+Example: smoking is not a result of drinking coffee
+
+### difference between confouding and selection bias
+
+* There is **confounding** when the association between exposure and outcome includes a noncausal component attributable to their having an uncontrolled common cause. 
+
+* There is **selection bias** when the association between exposure and outcome includes a noncausal component attributable to restricting the analysis to certain level(s) of a common effect of exposure and outcome or, more generally, to conditioning on a common effect of variables correlated with exposure and outcome. 
+
+### methods for identifying/detecting confounding 
+
+The following methods are extracted from @Hernan2002
+
+**Statistical criteria alone are insufficient to characterize either confounding or selection bias**. The only method to reliably identify a counfounder is to combine statistical associations from the data with background knowledge about the causal network that links exposure, outcome, and potential confounders. 
+
+* Methods relying on statistical associations that can easily be identified from the data: 
+
+1. **automatic variable selection procedures**: i.e stepwise regression. It's based on including variables with "significant" p-values. It assumes that all important confounders will be selected. 
+
+2. **change in effect estimate**: comparison of the effect estimates between adjusted and unadjusted effect estimates. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
+
+We evaluate the effect measure of the exposure of interest: crude and stratified by the possible confounder. If the stratum-specific effect measures are similar to each other but different to the crude effect measure and the relative change greater than 10%, the variable is selected as a confounder. This change can be evaluated on the probability scale or transformed scale (exampe $\beta$ coefficient or OR for the exposure in a logistic model)
+
+Example: Is the association causal or confounded by age?
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/strat example.png)
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/strat.png)
+
+* Methods that combine statistical associations from the data with background knowledge: 
+
+3. **check whether the variable meets the criteria of a confounder**: combines information from statistical associations and background knowledge. The presence of common causes, and therefore of confounding, can be represented by causal diagrams known as directed acyclic graphs (DAGs). 
+
+**DAG = Directed Acyclic Graph**
+
+DAGs are diagrams that link variables by arrows that represent direct causal effects (protective or causative) of one variable on another. 
+
+There are only four types of variable relations that combine to form all possible paths (from @mcelreath2020):
+
+1) the **confounder** = **fork**: X ← Z → Y. This is the classic confounder:
+some variable Z is a common cause of X and Y, generating a correlation between them. If we condition on Z, then learning X tells us nothing about Y. X and Y are independent, conditional on Z.
+
+2) the **pipe** = **intermediary**: X → Z → Y. The treatment X influences Z which influences Y. If we condition on Z, we block the path from X to Y. X and Y are independent, conditional on Z.
+
+3) the **collider** = **common effect**:  X → Z ← Y. Conditioning on Z, the collider variable, opens the path. X and Y are dependent, conditional on Z, however neither X nor Y has any causal influence on the other.
+
+4) the **descendent** = **association?**: Z $\to$ D. Descendent is a variable influenced by another variable. Conditioning on a descendent partly conditions on its parent. Conditioning on D will also condition, to a lesser extent, on Z because D has some information about Z. 
+
+**Backdoor criterion**
+
+Path: any series of variables you could walk through to get from one variable to another, ignoring the directions of the arrows. 
+
+Blocking all confounding paths between some predictor X and some outcome Y is known as shutting the backdoor, thus eliminating spurious associations that are non-causal. 
+
+Example: 
+
+```{r confounder 1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  O~E,
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+There are two paths connecting E and O: 
+
+(1) E → O 
+
+(2) E ← C → O. 
+
+Both of these paths create a statistical association between E and O. But only the first path is causal. The second path is non-causal. If only the second path existed, and we changed E, it would not change O. Any causal influence of E on O operates only on the first path.
+
+REMINDER: 
+
+* causal effect: The total causal effect is the sum of the direct and indirect effects: Example: age of marriage influences divorce in two ways. 
+
+    + direct effect.  A $\to$ D 
+    Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
+    
+    + indirect effect. A $\to$ M $\to$ D 
+    Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
+    
+```{r dag1.3 ex1, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.3 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.3) +
+  theme_dag()
+```
+
+* spurious effect
+
+```{r dag2 ex1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+**Do-operator**
+
+do(E) closes the backdoor paths into E, as in a manipulative experiment.
+
+P(O|do(E)) defines a causal relationship because it tells us the expected result of manipulating E on O
+
+* Confounding: P(O|E) $\ne$ P(O|do(E)). The relationship between the E and O when the backdoor paths are closed is not the same, indicating that there is confounding. 
+
+* Conditional probability, non-causal: P(O|E) $\ne$ P(O|not-E) doesn't close the backdoor, and therefore does not give a causal relationship. 
+
+* Total causal relationship: if P(O|do(E)) $\ne$ P(O|not-E), then E is the cause of O.
+
+* Direct causal relationship: might require closing more backdoor paths.
+
+Examples from @Hernan2002
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva dag1.jpg)
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva dag2.jpg)
+
+
+Example using all 3 methods of identifying confounders: 
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-07\ at\ 13.39.14.png)
+
+**Steps to identify which variables are confounders and must be controlled to obtain and unbiased causal effect estimate**: 
+
+1. List all of the paths connecting E (the potential cause of interest) and O (the outcome).
+
+2. Classify each path by whether it is open or closed. A path is open unless it contains a collider.
+
+3. Classify each path by whether it is a backdoor path. A backdoor path has an arrow entering E.
+
+4. If there are any open backdoor paths, decide which variable(s) to condition on to close it (if possible). To obtain a **sufficient set**, use the smallest set of confounders (preferable closer to the outcome)
+
+* Obtaining an unbiased estimate of the **total causal effect** requires measuring and adjusting for all confounders of the E $\to$ O association 
+
+* Obtaining an unbiased estimate of the **direct causal effect** requires measuring and adjusting for all confounders of both the 
+
+  + E $\to$ O association 
+  
+  + J $\to$ O association 
+
+
+1. Example 1 
+
+```{r dag1.4 ex1, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 3, O = 3),
+  y = c(E = 0, O = 0, J = 1, C= 2)
+) %>% 
+   coords2df()
+
+dag1.4 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  O ~ C,
+  J ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.4 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the **total causal effect** we don't condition on C or J:
+
+  + C is a confounder of the J $\to$ O association but not the E $\to$ O association, thanks to J which is a collider and blocks the path between C $\to$ E, so it is unnecessary to control for C
+
+```{r adjust C ex, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "C")+
+  theme_dag()
+```
+  
+  + J is a **collider** of the E $\to$ C association so if we condition on J we create a backdoor path between O $\to$ E through C. 
+  
+```{r adjust J ex, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "J")+
+  theme_dag()
+```
+  
+
+* To obtain the **direct causal effect** we condition on both J and C, because we want only the 
+
+```{r adjust JC ex, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("J", "C"))+
+  theme_dag()
+```
+
+2. Example 2 
+
+```{r dag1.4 ex2, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 1, O = 3),
+  y = c(E = 0, O = 0, J = 1, C= 2)
+) %>% 
+   coords2df()
+
+dag1.4 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  E ~ C,
+  J ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.4 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the **total causal effect** we condition on C but not J:
+
+  + C is a confounder of the E $\to$ O association so we must condition on it to obtain the unbiased total causal effect 
+
+```{r adjust C ex2, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "C")+
+  theme_dag()
+```
+  
+  
+
+* To obtain the **direct causal effect** we condition on J. C is no longer a confounder because we block the path through J so it's no longer associated with O. 
+
+```{r adjust J ex2, echo =FALSE}
+dag1.4 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("J"))+
+  theme_dag()
+```
+
+
+3. Example 3. 
+
+```{r dag1.5 ex, echo =FALSE}
+
+coords <- list(
+  x = c(E = 1, J=2, C= 3, O = 3, D = 2),
+  y = c(E = 0, O = 0, J = 1, C= 2, D = -1)
+) %>% 
+   coords2df()
+
+dag1.5 <- dagify( 
+  J ~ E,
+  O ~ J, 
+  O ~ E,
+  O ~ C,
+  J ~ C,
+  O ~ D, 
+  E~ D, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.5 %>% 
+  ggdag_dseparated(from = "E", to = "O")+
+    theme_dag()
+```
+
+* To obtain the total causal effect we condition on D
+
+```{r adjust D ex, echo =FALSE}
+dag1.5 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = "D")+
+  theme_dag()
+```
+
+* To obtain the total causal effect we condition on C, D, J
+
+```{r adjust JCD ex, warning=FALSE, echo =FALSE}
+
+dag1.5 %>% 
+ggdag_dseparated(from = "E", to = "O", controlling_for = c("C", "D", "J"))+
+  theme_dag()
+```
+
+
+**TESTABLE IMPLICATIONS**
+
+Testable implications can be read off the diagrams using a graphical criterion known as **d- separation** (Pearl, 1988). Each diagram encodes causal assumptions, each corresponding to a missing arrow or a missing double-arrow between a pair of variables. 
+
+DAGs imply that some variables are independent of others under certain conditions, therefore the testable implications of a DAG are it's **CONDITIONAL INDEPENDENCIES**.
+
+**CONDITIONAL INDEPENDENCIES** describe which variables should be associated with one another (or not) in the data, and which variables become disassociated when we condition on some other set of variables. 
+
+Condition independencies are pairs of variables that are not associated, once we condition on some set of other variables.
+
+**Conditioning**: conditioning on a variable Z means learning its value and then asking if X adds any additional information about Y. If learning X doesn’t give you any more information about Y, then we might say that Y is independent of X conditional on Z. This conditioning statement is sometimes written as: $Y \!\perp\!\!\!\perp X|Z$
+
+
+$X \not\!\perp\!\!\!\perp Y$ means "not independent of"
+
+$X \!\perp\!\!\!\perp Y$ means "independent of"
+
+**Marginal and conditional assotiation**
+
+
+![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva ass.jpg)
+
+### methods for controlling confounding = obtaining an unbiased estimate of the causal effect
+
+**DURING STUDY DESIGN**
+
+Manipulation of the confounding factor in the study design removes the influence of C on E: when we determine E, the C variable does not influence E, thus blocking the non-causal path between E and O (E ← C → O). Once the path is blocked, there is only one way for information to go between E and O, and then measuring the association between E and O would yield a useful measure of causal influence. 
+
+* **Randomization**: limits confounding by unmeasured factors probabilistically and accounts quantitavely for any residual confounding they produce. 
+
+Limitations: feasibility, ethics
+
+* **Restriction**: the individuals in the study may be selected to have equal levels of the confounder. 
+
+Limitations: reduction of the number of available individuals, the factor that is used for restriction can't be analyzed, possible residual confounding if the restriction is insufficient.
+
+* **Matching**: it does not control for confounding, but it increases the efficiency of the study that does control for confounding, as the confounding factor may still be controlled in the analysis. 
+
+Limitations: expensive, complicated logistics, the factor that is used for matching can't be analyzed, as the variables must be collected before participant enrollment
+
+
+**DURING DATA ANALYSIS**
+
+Conditioning on the confounding factor in the study analysis: adding C to the model blocks the non-causal path E ← C → O. 
+
+Why?  Think of this path in isolation, as a complete model. 
+
+```{r dag confounder condition ex1, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=1)
+) %>% 
+   coords2df()
+
+
+dag2 <- dagify( 
+  E ~ C,
+  O ~ C, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+
+Once you learn C, also learning E will give you no additional information about O. 
+
+Example: Suppose for example that C is the average wealth in a region. Regions with high wealth have better schools, resulting in more education (exposure E), as well as better paying jobs, resulting in higher wages (outcome O). If you don’t know the region a person lives in, learning the person’s education E will provide information about their wages O, because E and O are correlated across regions. But after you learn which region a person lives in, assuming there is no other path between E and O, then learning E tells you nothing more about O. This is the sense in which conditioning on C blocks the path — it makes E and O independent, conditional on C.
+
+* **multivariate adjustment**: using regression, ANOVA, etc.. It can handle multiple covariates at the same time. 
+
+Limitations: unless background knowledge is included in the variable selection, confounding can persist.
+
+* **stratification**: the data is stratified by a confounder and the weighted averages of the effect measure (RR or OR) across strata is calculated and then compared to the crude estimate and to each other using the Cochran-Maentel-Haenszel estimate.  $OR_{EO}$ vs $OR_{EO|C}$ 
+
+Limitations: can only be performed for few variables at a time
+
+* **standarization**: re-weight the stratum-specific effect measures (RR, OR) so that the categories are comparable using a reference population from the data set r an external source. 
+
+Limitations: can only be performed for few variables at a time
+
+* **inverse probability treatment**: creates a pseudo-population without confounding by re-weighting, yet the true exposure is not altered. It can be used for time-dependent confounding, when earlier exposure can influence later exposure. 
+
+ ![Modern Epidemiology](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 207\ notes\ irva inverse.jpg)
+
+### confounding example from @mcelreath2020
+
+We look into causal inference using a working example from Statistical Rethinking: A Bayesian Course with Examples in R and Stan. Second edition by Richard McElreath: Correlation between marriage rate (the exposure) and divorce rate (the outcome).
+
+```{r 5.1 ex}
+# load data and copy 
+library(rethinking) 
+data(WaffleDivorce) 
+d <- WaffleDivorce
+# standardize variables
+d$D <- standardize( d$Divorce )
+d$M <- standardize( d$Marriage )
+d$A <- standardize( d$MedianAgeMarriage )
+```
+
+
+**EXAMPLE 1**
+
+There are three observed variables in play: divorce rate (D), marriage rate (M), and the median age at marriage (A) in each State of the U.S. Both marriage rates and median age at marriage are great predictors of the divorce rate in a given State, but are these relationships causal? 
+
+The rate at which adults marry (M) is a great predictor of divorce rate. But does marriage cause divorce? In a trivial sense it obviously does: One cannot get a divorce without first getting married. But there’s no reason high marriage rate must cause more divorce. It’s easy to imagine high marriage rate indicating high cultural valuation of marriage and therefore being associated with low divorce rate.
+
+Age at marriage (A) is also a good predictor of divorce rate— higher age at marriage predicts less divorce. But there is no reason this has to be causal, either, unless age at marriage is very late and the spouses do not live long enough to get a divorce.
+
+Age of marriage influences divorce in two ways:
+
+
+```{r dag1.3 ex, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.3 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.3) +
+  theme_dag()
+```
+
+ * direct effect: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.
+  
+```{r dag1.1 ex, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, D = 2),
+  y = c(A = 0, D = 0)
+) %>% 
+   coords2df()
+
+dag1.1 <- dagify( 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.1) +
+  theme_dag()
+```
+
+* indirect effect: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.
+  
+```{r dag1.2 ex, echo =FALSE}
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.2 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  exposure = "A",
+  outcome = "D",
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+
+To infer the strength of these different arrows, we need more than one statistical model. 
+
+To obtain the **total effect** of of age at marriage on divorce rate we condition on age at marriage. 
+
+The total causal effect is the sum of the direct and indirect effects 
+
+
+```{r dag ex1, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.3 <- dagify( 
+  M ~ A,
+  D ~ M, 
+  D ~ A, 
+  exposure = "A",
+  outcome = "D", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+dag1.3 %>% 
+ggdag_dseparated(from = "A", to = "D")+
+  theme_dag()
+```
+
+
+We assume that these variables are associated. If we look in the data and find that any pair of variables are not associated, then something is wrong with the DAG (assuming the data are correct). In these data, all three pairs are in fact strongly associated. We can use cor to measure simple correlations. Correlations are sometimes terrible measures of association—many different patterns of association with different implications can produce the same correlation. But they do honest work in this case.
+
+```{r cor}
+cor(d$D, d$M)
+cor(d$D, d$A)
+cor(d$M, d$A)
+```
+
+* **Model conditioning on A**
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{A}A_{i}$
+
+
+```{r total effect ex}
+m5.1 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bA * A ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        #when βA = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable (divorce)
+        #only 5% of plausible slopes more extreme than 1.
+        bA ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+precis(m5.1)
+
+```
+
+
+The outcome and the predictor are both standardized, the intercept α should end up very close to zero. 
+
+What does the prior slope $\beta_{A}$ imply? If $\beta_{A}$ = 1, that would imply that a change of one standard deviation in age at marriage is associated likewise with a change of one standard deviation in divorce. To know whether or not that is a strong relationship, you need to know how big a standard deviation of age at marriage is:
+
+```{r sd A ex}
+ sd( d$MedianAgeMarriage )
+```
+
+So when $\beta_{A}$ = 1, a change of 1.2 years in median age at marriage is associated with a full standard deviation change in the outcome variable. That seems like an insanely strong relationship. 
+
+posterior for $\beta_{A}$ is reliably negative, as seen:
+
+```{r 5.5 ex}
+
+# compute percentile interval of mean
+A_seq <- seq( from=-3 , to=3.2 , length.out=30 )
+mu <- link( m5.1 , data=list(A=A_seq) )
+mu.mean <- apply( mu , 2, mean )
+mu.PI <- apply( mu , 2 , PI )
+# plot it all
+plot( D ~ A , data=d , col=rangi2 )
+lines( A_seq , mu.mean , lwd=2 )
+shade( mu.PI , A_seq )
+
+```
+
+Model m5.1, the regression of D on A, tells us only that the total influence of age at marriage is strongly negative with divorce rate. The “total” here means we have to account for every path from A to D. There are two such paths in this graph: A → D, a direct path,and A → M → D, an indirect path. 
+
+```{r total effect dag ex, echo=FALSE}
+dag1.3 %>% 
+ggdag_dseparated(from = "A", to = "D", controlling_for = "A")+
+  theme_dag()
+```
+
+
+In general, it is possible that a variable like A has no direct effect at all on an outcome like D. It could still be associated with D entirely through the indirect path. That type of relationship is known as **mediation**.
+
+As you’ll see however, the indirect path does almost no work in this case. How can we show that? 
+
+* **Model conditioning on M**
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{M}M_{i}$
+
+```{r 5.6 ex}
+
+m5.2 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bM * M ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bM ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data = d )
+
+precis(m5.2)
+# compute percentile interval of mean
+M_seq <- seq( from=-3 , to=3.2 , length.out=30 )
+mu <- link( m5.2 , data=list(M=M_seq) )
+mu.mean <- apply( mu , 2, mean )
+mu.PI <- apply( mu , 2 , PI )
+# plot it all
+plot( D ~ M , data=d , col=rangi2 )
+lines( M_seq , mu.mean , lwd=2 )
+shade( mu.PI , M_seq )
+```
+
+This relationship isn’t as strong as the one between A and D. 
+
+The pattern we see in the previous two models is symptomatic of a situation in which only one of the predictor variables, A in this case, has a causal impact on the outcome, D, even though both predictor variables are strongly associated with the outcome.
+
+
+We know from the model conditioning on M (m5.2) that marriage rate is positively associated with divorce rate. But that isn’t enough to tell us that the path M → D is positive. It could be that the association between M and D arises entirely from A’s influence on both M and D. Like this:
+
+```{r dag mediation, echo =FALSE}
+coords <- list(
+  x = c(A = 1, M=2, D = 3),
+  y = c(A = 0, D = 0, M = 1)
+) %>% 
+   coords2df()
+
+dag1.2 <- dagify( 
+  M ~ A,
+  D ~ A, 
+  exposure = "A",
+  outcome = "D",
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+This DAG is also consistent with the posterior distributions of models m5.1 and m5.2. Why? Because both M and D “listen” to A. They have information from A. So when you inspect the association between D and M, you pick up that common information that they both got from listening to A.
+
+So which is it? Is there a direct effect of marriage rate, or rather is age at marriage just driving both, creating a spurious correlation between marriage rate and divorce rate? To find out, we need to consider carefully what each DAG implies.
+
+
+1. **M has influence on D**
+
+```{r dag1, echo= FALSE }
+ggdag(dag1.3) +
+  theme_dag()
+```
+
+This DAG says: 
+
+(1) A directly influences D 
+(2) M directly influences D
+(3) A directly influences M
+
+There are 3 causal assumptions that can be tested (one for every arrow). 
+
+Before we condition on anything, we assume everything is associated with everything else.
+
+
+The testable implications are:
+
+(1) $D \not\!\perp\!\!\!\perp A$ A not independent of D 
+(2) $D \not\!\perp\!\!\!\perp M$ M not independent of D 
+(3) $A \not\!\perp\!\!\!\perp M$ D not independent of A 
+
+implied conditional independencies = none
+
+```{r imp cond dag 1}
+DMA_dag1 <- dagitty('dag{ D <- A -> M -> D }')
+
+impliedConditionalIndependencies( DMA_dag1  )
+```
+
+2. **M has no influence on D**
+
+```{r dag no DM, echo= FALSE}
+ggdag(dag1.2) +
+  theme_dag()
+```
+
+In this DAG, it is still true that all three variable are associated with one another. A is associated with D and M because it influences them both. And D and M are associated with one another, because A influences them both. They share a cause, and this leads them to be correlated with one another through that cause. 
+
+
+There are 2 causal assumptions that can be tested (one for every arrow).
+
+(1) A causes D 
+
+~~(2) M causes D~~
+
+(3) A causes M
+
+But suppose we condition on A. All of the information in M that is relevant to predicting D is in A. So once we’ve conditioned on A, M tells us nothing more about D. So in the second DAG, a testable implication is that D is independent of M, conditional on A. In other words, $D \!\perp\!\!\!\perp M|A$ 
+
+The testable implications are:
+
+All 3 variables should be associated, before conditioning on anything:
+
+(1) $D \not\!\perp\!\!\!\perp A$ A not independent of D 
+
+(2) $D \not\!\perp\!\!\!\perp M$ M not independent of D 
+
+(3) $A \not\!\perp\!\!\!\perp M$ D not independent of A 
+
+(4) $D \!\perp\!\!\!\perp M|A$ D and M should be independent after conditioning on A.
+
+implied conditional independencies = D _||_ M | A
+```{r imp cond dag 2}
+DMA_dag2 <- dagitty('dag{ D <- A -> M }') 
+impliedConditionalIndependencies( DMA_dag2  )
+```
+
+ **Test the difference between the two DAGs**
+
+The only implication that differs between these DAGs is the last one:$D \!\perp\!\!\!\perp M|A$ D and M should be independent after conditioning on A.
+
+To test this implication, we need a statistical model that conditions on A, so we can see whether that renders D independent of M. And that is what multiple regression helps with. It can address a useful descriptive question: *Is there any additional value in knowing a variable, once I already know all of the other predictor variables?*
+
+So for example once you fit a multiple regression to predict divorce using both marriage rate and age at marriage, the model addresses the questions:
+(1) After I already know marriage rate, what additional value is there in also knowing age at marriage?
+(2) After I already know age at marriage, what additional value is there in also knowing marriage rate?
+
+The parameter estimates corresponding to each predictor are the (often opaque) answers to these questions. The questions above are descriptive, and the answers are also descriptive. It is only the derivation of the testable implications above that give these descriptive results a causal meaning. But that meaning is still dependent upon believing the DAG.
+
+For each predictor, the parameter measures its conditional association with the outcome.
+
+* **Model conditioning on A and M**
+
+$D_{i} ∼ Normal(\mu_{i}, \sigma)$ 
+
+$\mu_{i} = \alpha + \beta_{M}M_{i} + \beta_{A}A_{i}$
+
+```{r m3 M A}
+m5.3 <- quap(
+    alist(
+        D ~ dnorm( mu , sigma ) ,
+        mu <- a + bM*M + bA*A ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bM ~ dnorm( 0 , 0.5 ) ,
+        bA ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+    ) , data = d )
+precis( m5.3 )
+
+```
+
+The posterior mean for marriage rate, bM, is now close to zero, with plenty of probability of both sides of zero. The posterior mean for age at marriage, bA, is essentially unchanged. It will help to visualize the posterior distributions for all three models, focusing just on the slope parameters βA and βM:
+
+
+```{r compare coefficients}
+
+plot(coeftab(m5.1,m5.2,m5.3), par=c("bA","bM"))
+
+```
+
+bA doesn’t move, only grows a bit more uncertain, while bM is only associated with divorce when age at marriage is missing from the model. You can interpret these distributions as saying: *Once we know median age at marriage for a State, there is little or no additional predictive power in also knowing the rate of marriage in that State*, which means $D \!\perp\!\!\!\perp M|A$.  D and M are independent after conditioning on A, which corresponds to the second DAG. 
+
+```{r dag 5.3, echo= FALSE}
+dag1.3 %>% 
+ggdag_dseparated(from = "A", to = "D", controlling_for = c("A", "M"))+
+  theme_dag()
+```
+
+Note that this does not mean that there is no value in knowing marriage rate. Consistent with the earlier DAG, if you didn’t have access to age-at-marriage data, then you’d definitely find value in knowing the marriage rate. M is predictive but not causal. Assuming there are no other causal variables missing from the model, this implies there is no important direct causal path from marriage rate to divorce rate. The association between marriage rate and divorce rate is spurious, caused by the influence of age of marriage on both marriage rate and divorce rate. 
+
+
+**EXAMPLE 2**
+
+We’re interested in the total causal effect of the number of Waffle Houses on divorce rate in each State. Presumably, the naive correlation between these two variables is spurious. What is the minimal adjustment set that will block backdoor paths from Waffle House to divorce? 
+
+Let’s make a graph:
+
+
+```{r waffle dag, echo =FALSE}
+
+coords <- list(
+  x = c(A = 1, M=2, S= 1, W = 3, D = 3),
+  y = c(M = 0, S = 1, W = 1, D = -1, A=-1)
+) %>% 
+   coords2df()
+
+dag6 <- dagify( 
+  D~A,
+  M~A,
+  D~M,
+  A~S, 
+  M~S,
+  W~S,
+  D~W,
+  exposure = "W",
+  outcome = "D", 
+  coords = coords2list(coords))
+
+dag6 %>% 
+  ggdag_dseparated(from = "W", to = "D")+
+    theme_dag()
+
+adjustmentSets( dag6 , exposure="W" , outcome="D" )
+
+ggdag_adjustment_set(dag6)
+
+```
+
+We could control for either A and M or for S alone.
+This DAG is obviously not satisfactory—it assumes there are no unobserved confounds,
+which is very unlikely for this sort of data. But we can still learn something by analyzing it. While the data cannot tell us whether a graph is correct, it can sometimes suggest how a graph is wrong. 
+
+Inspecting  implied conditional independencies, we can at least test some of the features of a graph.
+
+```{r cond indep}
+ impliedConditionalIndependencies( dag6 )
+```
+
+1) The median age of marriage should be independent of (_||_) Waffle Houses, conditioning on (|) a State being in the south.
+
+2) Divorce and being in the south should be independent when we simultaneously condition on all of median age of marriage, marriage rate, and Waffle Houses. 
+
+3) Marriage rate and Waffle Houses should be independent, conditioning on being in the south.
+
+
+## INTERACTION and EFFECT MEASURE MODIFICATION
+
+An interaction occurs when the measure of association between a risk factor and outcome depends on the level of another factor. 
+
+### difference between interaction and confounding
+
+
+```{r conf vs interaction table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("property of distribution in source popuation", 
+       "differs by exposure status",
+       "yes",
+       "similar across strata",
+       "differ from stratum-specific measures",
+       "makes sense",
+       "cannot test",
+       "if a strong interaction exists, it makes no sense to discuss confounding")
+       
+B <- c(    "biologic, sociologic...", 
+           "can be statistically independent of exposure",
+           "not necessarily",
+           "differ across strata",
+           "falls between stratum-specific measures",
+           "not meaningful",
+           "can test",
+           "both may occur")
+
+tble <- bind_cols(A, B )
+
+colnames(tble) <- c("confounding", "interaction")
+rownames(tble) <- c("origin", 
+                    "distribution of the 3d variable",
+                    "does the 3d variable predic the outcome?", 
+                    "stratum-specific measures", 
+                    "crude overall measure",
+                    "summary adjusted measure", 
+                    "testing", 
+                    "relationship to the other")
+kable(tble)
+```
+
+### difference between interaction and effect measure modification
+
+Interaction, effect modification and effect heterogeneity sometimes are used to mean the same thing. 
+
+Interaction Tables
+
+* Risk of disease
+
+
+```{r interaction Risk table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("Rab", "RaB")
+B <- c("RAb", "RAB")
+tble <- bind_cols(A, B)
+colnames(tble) <- c("A no", "A yes")
+rownames(tble) <- c("B no", "B yes")
+kable(tble)
+```
+
+
+* **INTERACTION**: we are equally interested in the change in RR in the presence of A and B and the combination of A and B. 
+
+Relative Risk in Interaction
+
+```{r interaction RR table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "RaB/Rab")
+B <- c("RAb/Rab", "RAB/Rab")
+tble <- bind_cols(A, B)
+colnames(tble) <- c("A no", "A yes")
+rownames(tble) <- c("B no", "B yes")
+kable(tble)
+```
+
+
+* **EFFECT MODIFICATION**: we are interested in the change in RR of one of the variables in the presence of the other variable. Example: how does B change on different levels of A? 
+
+To obtain the relative risk measure, we divide the risk measures in the presence of A by the referent within each level of B, thus we have 2 groups, one for each strata.
+
+Relative Risk in effect modification 
+
+```{r em RR table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "1")
+B <- c("RaB/Rab", "RAB/RAb")
+tble <- bind_cols(A, B)
+colnames(tble) <- c("A no", "A yes")
+rownames(tble) <- c("B no", "B yes")
+kable(tble)
+```
+
+### types of interaction
+
+* **synergism**: the additive measure of joint exposure is MORE THAN the sum of the measures of association between exposure and outcome for each exposure alone. 
+
+* **antagonism**: the additive measure of joint exposure is LESS THAN the sum of the measures of association between the exposure and outcome for each exposure alone.
+
+### types of interaction effect
+
+* **additive**: Excess risk and linear regression are on the additive scale. 
+
+* **multiplicative**: Relative risk, logistic, Poisson and porportional hazards models all assume factors act multiplicatively unless an interaction effect is included. 
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ multadd.jpg)
+
+
+Example: 
+
+A logistic regression is on the additive scale when it's transformed: 
+
+$logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\beta_0 +\beta_A x_A + \beta_B x_B + +\beta_{AB} x_A x_B$
+
+But a logistic regression is on the multiplicative scale when it's on the original probability scale: 
+
+$p_i/(1-p_i) = ODDS =e^{\beta_0 +\beta_A x_A + \beta_B x_B + +\beta_{AB} x_A x_B}$
+
+
+Is A and effect modifier of B? What is the effect of B versus no B?
+
+* In the presence of A: $x_A = 1$
+
+  + In the presence of B: $x_B = 1$
+  
+  $log(ODDS) =\beta_0 +\beta_A x_A + \beta_B x_B + \beta_{AB} x_A x_B$
+  
+  + Not in the presence of B: $x_B = 0$
+  
+  $log(ODDS) =\beta_0 +\beta_A x_A$
+  
+The difference in effect between B yes and B no is $\beta_B + \beta_{AB}$
+
+ $(\beta_0 +\beta_A x_A + \beta_B x_B + \beta_{AB} x_A x_B) - (\beta_0 +\beta_A x_A ) = \beta_B + \beta_{AB}$
+ 
+ 
+* Not in the presence of A: $x_A = 0$
+
+  + In the presence of B: $x_B = 1$
+  
+  $log(ODDS) =\beta_0 + \beta_B x_B$
+  
+  + Not in the presence of B: $x_B = 0$
+  
+  $log(ODDS) =\beta_0$
+  
+The difference in effect between B yes and B no is $\beta_B$
+
+ $(\beta_0 + \beta_B x_B) - (\beta_0) = \beta_B$
+ 
+ 
+ 
+There is effect modification if $\beta_B \ne \beta_B+ \beta_{AB}$, that is, if the presence of B has a different effect on the different levels of A. 
+
+### methods for identifying interactions
+
+1. **automatic variable selection procedures**: i.e stepwise regression. It's based on including variables with "significant" p-values. An interaction exists if an interaction coefficient has a "significant p-value". 
+
+2. **change in effect estimate**: comparison of the effect estimates between adjusted and unadjusted effect estimates.
+
+We evaluate the crude effect measure and the effect measure stratified by the possible confounder or effect modifier. If the stratum-specific effect measures are different from each other and the relative change greater than 10%, the variable is selected as a interaction.
+
+If  $\beta_B$ in the presence of B but not A  $\ne$ $\beta_B+ \beta_{AB}$ in the presence of B and A, that is, if the presence of B has a different effect on the different levels of A. 
+
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ ex\ interaction.jpg)
+
+
+### interaction example 1
+
+Age adjusted rate ratios for lung cancer due to arsenic exposure. 
+
+```{r interaction example1 table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "8.3")
+B <- c("2.3", "17.5")
+C <- c("8.4", "26.2")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+1. *Relative risk : multiplicative*
+
+**Does smoking interact multiplicatively with arsenic?**
+
+```{r interaction example int table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "8.3")
+B <- c("2.3 * 8.3 = 19", "17.5")
+C <- c("8.4 * 8.3 = 69", "26.2")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+
+There is no multiplicative interaction between smoking and residential arsenic exposure on lung cancer risk: $2.3 * 8.3 = 19 \approx 17.5$ 
+
+There is an antagonistic multiplicative interaction between smoking and smelter worker arsenic exposure on lung cancer risk: $8.4 * 8.3 = 69 \ne 26.2$ 
+
+
+**Is smoking an effect modifier of the arsenic relative risk?**
+
+```{r interaction example1 em table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "8.3/8.3")
+B <- c("2.3/1", "17.5/8.3")
+C <- c("8.4/1", "26.2/8.3")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+```{r interaction example1 em sol table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "1")
+B <- c("2.3", "2.1")
+C <- c("8.4", "3.2")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+Smoking does not modify the effect of residential arsenic exposure on lung cancer risk: $2.3 \approx 2.1$ 
+
+Smoking does modify the effect of smelter workers' arsenic exposure on lung cancer risk: this exposure has a much larger effect on non-smokers that smokers: $8.4 > 3.2$ 
+
+
+2. *Excess risk : additive*
+
+If we were looking at excess risk instead of relative risk, we would look at the additive effect. 
+
+
+**Is smoking an effect modifier of the arsenic excess risk?**
+
+```{r interaction example1 add table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "8.3")
+B <- c("2.3-1", "17.5-8.3")
+C <- c("8.4-1", "26.2-8.3")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+```{r interaction example1 em add sol table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "8.3")
+B <- c("1.3", "9.2")
+C <- c("7.4", "17.9")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+Smoking does modify the effect of residential arsenic exposure on lung cancer excess risk synergistically: $1.3 < 9.2$ 
+
+Smoking does modify the effect of smelter workers' arsenic exposure on lung cancer excess risk synergistically: $7.4 < 17.9$ 
+
+**Does smoking interact additively with arsenic?**
+
+```{r interaction example1 add int table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "8.3-1")
+B <- c("2.3-1", "17.5-1")
+C <- c("8.4-1", "26.2-1")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+
+```{r interaction example1 add int sol table, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
+
+A <- c("1", "7.3")
+B <- c("1.3", "16.5")
+C <- c("7.4", "25.2")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("Unexposed area", "Residentially exposed", "Smelter worker")
+rownames(tble) <- c("Non smokers", "Smokers-")
+kable(tble)
+```
+
+There is additive interaction between smoking and residential arsenic exposure on lung cancer risk: $1.3 + 7.3 = 8.6 \ne 16.5$ 
+
+There is no additive interaction between smoking and smelter worker arsenic exposure on lung cancer risk: $7.4 + 16.5 = 23.9 \approx 25.2$ 
+
+
+### interaction example from @mcelreath2020 Chapter 8
+
+
+Africa is geographically special, in a puzzling way: Bad geography tends to be related to bad economies outside of Africa, but African economies may actually benefit from bad geography. To appreciate the puzzle, look at regressions of terrain ruggedness—a particular kind of bad geography—against economic performance (log GDP136 per capita in the year 2000), both inside and outside of Africa. The variable rugged is a Terrain Ruggedness Index137 that quantifies the topographic heterogeneity of a landscape. The outcome variable here is the logarithm of real gross domestic product per capita, from the year 2000, rgdppc_2000. We use the logarithm of it, because the logarithm of GDP is the magnitude of GDP. 
+
+```{r africa data}
+
+library(rethinking) 
+data(rugged)
+d <- rugged
+
+# make the log version of criterion
+d <- 
+  d %>%
+  mutate(log_gdp = log(rgdppc_2000))
+
+# extract countries with GDP data
+dd <-
+  d %>%
+  filter(complete.cases(rgdppc_2000)) %>% 
+  # re-scale variables
+  mutate(log_gdp_std = log_gdp / mean(log_gdp), 
+         rugged_std  = rugged / max(rugged))
+
+```
+
+
+```{r africa plot, echo= FALSE}
+library(ggrepel)
+library(patchwork)
+library("ggthemes")
+
+# African nations
+p1 <-
+  dd %>% 
+  filter(cont_africa == 1) %>% 
+  ggplot(aes(x = rugged_std, y = log_gdp_std)) +
+  geom_smooth(method = "lm", formula = y ~ x,
+              fill = palette_pander(n = 2)[1],
+              color = palette_pander(n = 2)[1]) +
+  geom_point(color = palette_pander(n = 2)[1]) +
+  geom_text_repel(data = . %>% 
+                    filter(country %in% c("Lesotho", "Seychelles")),  
+                  aes(label = country), 
+                  size = 3, family = "Times", seed = 8) +
+  labs(subtitle = "African nations",
+       x = "ruggedness (standardized)",
+       y = "log GDP (as proportion of mean)")
+
+# Non-African nations
+p2 <-
+  dd %>% 
+  filter(cont_africa == 0) %>% 
+  ggplot(aes(x = rugged_std, y = log_gdp_std)) +
+  geom_smooth(method = "lm", formula = y ~ x,
+              fill = palette_pander(n = 2)[2],
+              color = palette_pander(n = 2)[2]) +
+  geom_point(color = palette_pander(n = 2)[2]) +
+  geom_text_repel(data = . %>% 
+                    filter(country %in% c("Switzerland", "Tajikistan")),  
+                  aes(label = country), 
+                  size = 3, family = "Times", seed = 8) +
+  xlim(0, 1) +
+  labs(subtitle = "Non-African nations",
+       x = "ruggedness (standardized)",
+       y = "log GDP (as proportion of mean)")
+
+# combine
+p1 + p2 + plot_annotation(title = "Figure 8.2. Separate linear regressions inside and outside of Africa")
+```
+
+
+If this relationship is at all causal, it may be because rugged regions of Africa were pro- tected against the Atlantic and Indian Ocean slave trades. Slavers preferred to raid easily accessed settlements, with easy routes to the sea. Those regions that suffered under the slave trade understandably continue to suffer economically, long after the decline of slave-trading markets. However, an outcome like GDP has many influences, and is furthermore a strange measure of economic activity. And ruggedness is correlated with other geographic features, like coastlines, that also influence the economy. So it is hard to be sure what’s going on here.
+
+The causal hypothesis, in DAG form, might be (where R is terrain ruggedness, G is GDP, C is continent): 
+```{r dag2 africa, echo =FALSE}
+
+
+
+dag2 <- dagify( 
+  G ~ R,
+  G ~ C) %>% 
+  tidy_dagitty()
+
+ggdag(dag2, layout= "grid") +
+  theme_dag()
+
+```
+ R and C both influence G. This could mean that they are independent influences or rather that they interact (one moderates the influence of the other). The DAG does not display an interaction. That’s because DAGs do not specify how variables combine to influence other variables. The DAG above implies only that there is some function that uses R and C to generate G. In typical notation, G = f(R, C).
+ 
+So we need a statistical approach to judge different propositions for f(R, C). 
+
+
+So we need a statistical approach to judge different propositions for f(R, C). How do we make a model that produces the conditionality in Figure 8.2? We could cheat by splitting the data into two data frames, one for Africa and one for all the other continents. But it’s not a good idea to split the data in this way. Here are four reasons:
+
+1. First, there are usually some parameters, such as σ, that the model says do not depend in any way upon continent. By splitting the data table, you are hurting the accuracy of the es- timates for these parameters, because you are essentially making two less-accurate estimates instead of pooling all of the evidence into one estimate. In effect, you have accidentally as- sumed that variance differs between African and non-African nations. Now, there’s nothing wrong with that sort of assumption. But you want to avoid accidental assumptions.
+
+2. Second, in order to acquire probability statements about the variable you used to split the data, cont_africa in this case, you need to include it in the model. Otherwise, you have a weak statistical argument. Isn’t there uncertainty about the predictive value of distinguishing between African and non-African nations? Of course there is. Unless you analyze all of the data in a single model, you can’t easily quantify that uncertainty. If you just let the posterior distribution do the work for you, you’ll have a useful measure of that uncertainty.
+
+3. Third, we may want to use information criteria or another method to compare models. In order to compare a model that treats all continents the same way to a model that allows different slopes in different continents, we need models that use all of the same data (as explained in Chapter 7). This means we can’t split the data for two separate models. We have to let a single model internally split the data.
+
+4. Fourth, once you begin using multilevel models (Chapter 13), you’ll see that there are advantages to borrowing information across categories like “Africa” and “not Africa.” This is especially true when sample sizes vary across categories, such that overfitting risk is higher within some categories. In other words, what we learn about ruggedness outside of Africa should have some effect on our estimate within Africa, and visa versa. Multilevel models (Chapter 13) borrow information in this way, in order to improve estimates in all categories. When we split the data, this borrowing is impossible.
+
+We look at the different possibilities to model the association between log(GDP) and ruggedness
+ 
+1. m8.1 **ignoring continent**.
+
+Fit a single model to all the data, ignoring continent.
+
+$log(y_i) \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_0 + \beta (r_i - \bar{r})$
+
+```{r m8.1}
+m8.1 <- quap(
+    alist(
+        log_gdp_std ~ dnorm( mu , sigma ) ,
+        mu <- a + b*( rugged_std - 0.215 ) ,
+        a ~ dnorm( 1 , 0.1 ) ,
+        b ~ dnorm( 0 , 0.3 ) ,
+        sigma ~ dexp(1)
+    ) , data=dd )
+
+ precis( m8.1 )
+ 
+```
+
+
+
+```{r m8.1 plot, echo= FALSE}
+
+ #extract the prior and plot the implied lines
+set.seed(7)
+prior <- extract.prior( m8.1 )
+# set up the plot dimensions
+plot( NULL , xlim=c(0,1) , ylim=c(0.5,1.5) ,
+    xlab="ruggedness" , ylab="log GDP" )
+abline( h=min(dd$log_gdp_std) , lty=2 )
+abline( h=max(dd$log_gdp_std) , lty=2 )
+# draw 50 lines from the prior
+rugged_seq <- seq( from=-0.1 , to=1.1 , length.out=30 )
+mu <- link( m8.1 , post=prior , data=data.frame(rugged_std=rugged_seq) )
+for ( i in 1:50 ) lines( rugged_seq , mu[i,] , col=col.alpha("black",0.3) )
+```
+
+Really no overall association between terrain ruggedness and log GDP. 
+
+Next we’ll see how to split apart the continents.
+
+2.  m8.2 **adding indicator variable for African nations**
+
+The first thing to realize is that just in- cluding an indicator variable for African nations, cont_africa here, won’t reveal the re- versed slope. It’s worth fitting this model to prove it to yourself, though. 
+
+$log(y_i) \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_0 + \beta (r_i - \bar{r}) + \gamma A_i$
+
+where $A_i$ is cont_africa, a 0/1 indicator variable.
+
+The problem here, and in general, is that we need a prior for $\gamma$. Okay, we can do priors. But what that prior will necessarily do is tell the model that $\mu_i$ for a nation in Africa is more uncertain, before seeing the data, than $\mu_i$ outside Africa. And that makes no sense. 
+
+There is a simple solution: Nations in Africa will get one intercept and those outside Africa another.
+
+$log(y_i) \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_{CID[i]} + \beta (r_i - \bar{r})$
+
+where cid is an index variable, continent ID. It takes the value 1 for African nations and 2 for all other nations. This means there are two parameters, $\alpha_{1}$ and $\alpha_{2}$ one for each unique index value. The notation cid[i] just means the value of cid on row i. Using this approach, instead of the conventional approach of adding another term with the 0/1 indicator variable, doesn’t force us to say that the mean for Africa is inherently less certain than the mean for all other continents.
+
+
+```{r m8.2}
+
+#make variable to index Africa (1) or not (2)
+dd$cid <- ifelse( dd$cont_africa==1 , 1 , 2 )
+
+m8.2 <- quap( alist(
+log_gdp_std ~ dnorm( mu , sigma ) ,
+mu <- a[cid] + b*( rugged_std - 0.215 ) , a[cid] ~ dnorm( 1 , 0.1 ) ,
+b ~ dnorm( 0 , 0.3 ) ,
+sigma ~ dexp( 1 )
+) , data=dd )
+
+precis( m8.2 , depth=2 )
+```
+
+The parameter a[1] is the intercept for African nations. It seems reliably lower than a[2].
+
+
+Now to compare these models, using WAIC:
+
+```{r comp m8.1 m8.2, echo= FALSE}
+compare( m8.1 , m8.2 )
+```
+
+m8.2 gets all the model weight. And while the standard error of the difference in WAIC is 15, the difference itself is 64. So the continent variable seems to be picking up some important association in the sample.
+
+Let’s plot the posterior predictions for m8.2, so you can see how, despite it’s predictive superiority to m8.1, it still doesn’t manage different slopes inside and outside of Africa. African nations are shown in blue, while nations outside Africa are shown in gray. What you’ve ended up with here is a rather weak negative relationship between economic development and ruggedness. The African nations do have lower overall economic development, and so the blue regression line is below, but parallel to, the black line. All including a dummy variable for African nations has done is allow the model to predict a lower mean for African nations. It can’t do anything to the slope of the line. The fact that WAIC tells you that the model with the dummy variable is hugely better only indicates that African nations on average do have lower GDP.
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-08\ at\ 16.27.33.png)
+
+3. m8.3 **adding interaction variable for African nations**
+
+How can you recover the change in slope you saw at the start of this section? You need a proper interaction effect. This just means we also make the slope conditional on continent. 
+
+And again, there is a conventional approach to specifying an interaction that uses an indica-
+tor variable and a new interaction parameter. It would look like this:
+
+$log(y_i) \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_{CID[i]} + (\beta + \gamma A_i) (r_i - \bar{r})= \alpha_{CID[i]} +\beta(r_i - \bar{r})+ \gamma A_i(r_i - \bar{r})$
+
+where Ai is a 0/1 indicator for African nations. This is equivalent to our index approach, but it is much harder to state sensible priors. Any prior we put on γ makes the slope inside Africa more uncertain than the slope outside Africa. And again that makes no sense. But in the indexing approach, we can easily assign the same prior to the slope, no matter which continent.
+
+$log(y_i) \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_{CID[i]} + \beta_{CID[i]}(r_i - \bar{r})$
+
+
+```{r 8.13}
+
+m8.3 <- quap(
+    alist(
+        log_gdp_std ~ dnorm( mu , sigma ) ,
+        mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+        a[cid] ~ dnorm( 1 , 0.1 ) ,
+        b[cid] ~ dnorm( 0 , 0.3 ) ,
+        sigma ~ dexp( 1 )
+) , data=dd )
+
+precis( m8.3 , depth=2 )
+```
+
+The slope is essentially reversed inside Africa, 0.13 instead of −0.14.
+
+
+How much does allowing the slope to vary improve expected prediction? Let’s use PSIS
+to compare this new model to the previous two. You could use WAIC here as well. It’ll give almost identical results. 
+```{r compare all interaction, echo=FALSE}
+ compare( m8.1 , m8.2 , m8.3 , func=PSIS )
+```
+
+Model family m8.3 has more than 95% of the weight. That’s very strong support for including the interaction effect, if prediction is our goal. But the modicum of weight given to m8.2 suggests that the posterior means for the slopes in m8.3 are a little overfit. And the standard error of the difference in PSIS between the top two models is almost the same as the difference itself. 
+
+```{r plot 8.14}
+# plot Africa - cid=1
+d.A1 <- dd[ dd$cid==1 , ]
+plot( d.A1$rugged_std , d.A1$log_gdp_std , pch=16 , col=rangi2 ,
+    xlab="ruggedness (standardized)" , ylab="log GDP (as proportion of mean)" ,
+    xlim=c(0,1) )
+mu <- link( m8.3 , data=data.frame( cid=1 , rugged_std=rugged_seq ) )
+mu_mean <- apply( mu , 2 , mean )
+mu_ci <- apply( mu , 2 , PI , prob=0.97 )
+lines( rugged_seq , mu_mean , lwd=2 )
+shade( mu_ci , rugged_seq , col=col.alpha(rangi2,0.3) )
+
+
+mtext("African nations")
+# plot non-Africa - cid=2
+d.A0 <- dd[ dd$cid==2 , ]
+plot( d.A0$rugged_std , d.A0$log_gdp_std , pch=1 , col="black" ,
+    xlab="ruggedness (standardized)" , ylab="log GDP (as proportion of mean)" ,
+    xlim=c(0,1) )
+mu <- link( m8.3 , data=data.frame( cid=2 , rugged_std=rugged_seq ) )
+mu_mean <- apply( mu , 2 , mean )
+mu_ci <- apply( mu , 2 , PI , prob=0.97 )
+lines( rugged_seq , mu_mean , lwd=2 )
+shade( mu_ci , rugged_seq )
+mtext("Non-African nations")
+```
+
+## COLLIDER
+
+
+```{r collider, echo =FALSE}
+coords <- list(
+  x = c(E = 1, O = 3, C=2),
+  y = c(E = 0, O = 0, C=0)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ E,
+  C ~ O, 
+  exposure = "E",
+  outcome = "O", 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+
+The core concept is easy to understand: When you condition on a collider, it creates statistical—but not necessarily causal— associations among its causes. 
+
+ Collider bias arises from conditioning on a common consequence. If we can just get our graph sorted, we can avoid it. But it isn’t always so easy to see a potential collider, because there may be unmeasured causes. Unmeasured causes can still induce collider bias. So I’m sorry to say that we also have to consider the possibility that our DAG may be haunted.
+
+### children and education example from @mcelreath2020
+
+
+We want to infer the direct influence of both parents (P) and grandparents (G) on the educational achievement of children (C). Since grandparents also presumably influence their own children’s education, there is an arrow G → P. This sounds pretty easy, so far. It’s similar in structure to our divorce rate example from last chapter:
+
+
+```{r collider 2, echo =FALSE}
+coords <- list(
+  x = c(G = 1, P = 2, C=2),
+  y = c(G = 0, P = 0, C=-1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ P,
+  C ~ G, 
+  P ~ G, 
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+But suppose there are unmeasured, common influences on parents and their children, such as neighborhoods, that are not shared by grandparents (who live on the south coast of Spain now). Then our DAG becomes haunted by the unobserved U:
+
+```{r collider 3, echo =FALSE}
+coords <- list(
+  x = c(G = 1, P = 2, C=2, U=3),
+  y = c(G = 0, P = 0, C=-2, U=-1)
+) %>% 
+   coords2df()
+
+
+dag3 <- dagify( 
+  C ~ P,
+  C ~ G, 
+  P ~ G, 
+  P ~ U, 
+  C ~ U,
+  coords = coords2list(coords)) %>% 
+  tidy_dagitty()
+
+
+ggdag(dag3, layout= "grid") +
+  theme_dag()
+
+```
+
+Now P is a common consequence of G and U, so if we condition on P, it will bias inference about G → C, even if we never get to measure U. I don’t expect that fact to be immediately obvious. So let’s crawl through a quantitative example.
+
+```{r dag collider control, echo=FALSE}
+dag3%>% 
+ggdag_dseparated(from = "G", to = "C", controlling_for = c("P"))+
+  theme_dag()
+```
+
+First, let’s simulate 200 triads of grandparents, parents, and children. This simulation will be simple. We’ll just project our DAG as a series of implied functional relationships. The DAG above implies that:
+
+(1) P is some function of G and U
+
+(2) C is some function of G, P, and U
+
+(3) G and U are not functions of any other known variables
+
+We can make these implications into a simple simulation, using rnorm to generate simulated observations. But to do this, we need to be a bit more precise than “some function of.” So I’ll invent some strength of association:
+
+```{r coll coeff}
+N <- 200 # number of grandparent-parent-child triads 
+b_GP <- 1 # direct effect of G on P
+b_GC <- 0 # direct effect of G on C
+b_PC <- 1 # direct effect of P on C
+b_U<-2 #direct effect of U on P and C
+
+```
+
+These parameters are like slopes in a regression model. Notice that I’ve assumed that grand- parents G have zero effect on their grandkids C. The example doesn’t depend upon that effect being exactly zero, but it will make the lesson clearer. Now we use these slopes to draw random observations:
+
+```{r coll sim}
+set.seed(1)
+U <- 2*rbern( N , 0.5 ) - 1
+G <- rnorm( N )
+P <- rnorm( N , b_GP*G + b_U*U )
+C <- rnorm( N , b_PC*P + b_GC*G + b_U*U ) 
+d <- data.frame( C=C , P=P , G=G , U=U )
+```
+
+I’ve made the neighborhood effect, U, binary. This will make the example easier to under- stand. But the example doesn’t depend upon that assumption. The other lines are just linear models embedded in rnorm.
+
+Now what happens when we try to infer the influence of grandparents? Since some of the total effect of grandparents passes through parents, we realize we need to control for parents. 
+
+Here is a simple regression of C on P and G. Normally I would advise standardizing the variables, because it makes establishing sensible priors a lot easier. But I’m going to keep the simulated data on its original scale, so you can see what happens to inference about the slopes above. If we changed the scale, we shouldn’t expect to get those values back. But if we leave the scale alone, we should be able to recover something close to those values. So I apologize for using vague priors here, just to push forward in the example.
+
+
+```{r dag collider m6.11}
+m6.11 <- quap( alist(
+C ~ dnorm( mu , sigma ),
+mu <- a + b_PC*P + b_GC*G,
+a ~ dnorm( 0 , 1 ), 
+c(b_PC,b_GC) ~ dnorm( 0 , 1 ), 
+sigma ~ dexp( 1 )
+), data=d ) 
+precis(m6.11)
+```
+
+The inferred effect of parents looks too big, almost twice as large as it should be. That isn’t surprising. Some of the correlation between P and C is due to U, and the model doesn’t know about U. That’s a simple confound. More surprising is that the model is confident that the direct effect of grandparents is to hurt their grandkids. The regression is not wrong. But a causal interpretation of that association would be.
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-08\ at\ 17.56.05.png)
+Note that I did standardize the variables to make this plot. So the units on the axes are standard deviations. The horizontal axis is grandparent education. The vertical is grandchild education. There are two clouds of points. The blue cloud comprises children who live in good neighborhoods (U = 1). The black cloud comprises children who live in bad neighborhoods (U = −1). No- tice that both clouds of points show positive associations between G and C. More educated grandparents have more educated grandkids, but this effect arises entirely through parents. Why? Because we assumed it is so. The direct effect of G in the simulation is zero.
+
+So how does the negative association arise, when we condition on parents? Conditioning on parents is like looking within sub-populations of parents with similar education. So let’s try that. In the Figure, I’ve highlighted in filled points those parents between the 45th and 60th centiles of education. There is nothing special of this range. It just makes the phenomenon easier to see. Now if we draw a regression line through only these points, regressing C on G, the slope is negative. There is the negative association that our multiple regression finds. But why does it exist?
+
+It exists because, once we know P, learning G invisibly tells us about the neighborhood U, and U is associated with the outcome C. I know this is confusing. As I keep saying, if you are confused, it is only because you are paying attention. 
+
+So consider two different parents with the same education level, say for example at the median 50th centile. One of these parents has a highly educated grandparent. The other has a poorly educated grandparent. The only probable way, in this example, for these parents to have the same education is if they live in different types of neighborhoods. We can’t see these neighborhood effects—we haven’t measured them, recall—but the influence of neighborhood is still transmitted to the children C. So for our mythical two parents with the same education, the one with the highly educated grandparent ends up with a less well educated child. The one with the less educated grandparent ends up with the better educated child. G predicts lower C.
+
+
+The unmeasured U makes P a collider, and conditioning on P produces collider bias. So what can we do about this? You have to measure U. Here’s the regression that conditions also on U:
+
+```{r m6.12 }
+
+m6.12 <- quap( alist(
+C ~ dnorm( mu , sigma ),
+mu <- a + b_PC*P + b_GC*G + b_U*U,
+a ~ dnorm( 0 , 1 ),
+c(b_PC,b_GC,b_U) ~ dnorm( 0 , 1 ),
+sigma ~ dexp( 1 ) ), data=d )
+precis(m6.12)
+```
+
+And those are the slopes we simulated with.
+
+Rethinking: Statistical paradoxes and causal explanations. The grandparents example serves as an example of Simpson’s paradox: Including another predictor (P in this case) can reverse the direction of association between some other predictor (G) and the outcome (C). Usually, Simpson’s paradox is presented in cases where adding the new predictor helps us. But in this case, it misleads
+us. Simpson’s paradox is a statistical phenomenon. To know whether the reversal of the association correctly reflects causation, we need something more than just a statistical model. 
+
+## MULTICOLLINEARITY
+
+From @mcelreath2020:
+
+Multicollinearity means a very strong association between two or more predictor variables. The raw correlation isn’t what matters. Rather what matters is the association, conditional on the other variables in the model. The consequence of multicollinearity is that the posterior distribution will seem to suggest that none of the variables is reliably associated with the outcome, even if all of the variables are in reality strongly associated with the outcome.
+
+The problem of multicollinearity is a member of a family of problems with fitting models, a family sometimes known as non-identifiability. 
+
+### **non-identifiability**
+
+When a parameter is non-identifiable, it means that the structure of the data and model do not make it possible to estimate the parameter’s value. Sometimes this problem arises from mistakes in coding a model, but many important types of models present non-identifiable or weakly identifiable parameters, even when coded completely correctly. Nature does not owe us easy inference, even when the model is correct.
+
+### leg example 
+
+$height \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_{0} + \beta_{l} x_{leg\:left}+ \beta_{r} x_{leg\:right}$
+
+Imagine trying to predict an individual’s height using the length of his or her legs as predictor variables. Surely height is positively associated with leg length, or at least our simulation will assume it is. Nevertheless, once you put both legs (right and left) into the model, something vexing will happen.
+
+The code below will simulate the heights and leg lengths of 100 individuals. For each, first a height is simulated from a Gaussian distribution. Then each individual gets a simulated proportion of height for their legs, ranging from 0.4 to 0.5. Finally, each leg is salted with a little measurement or developmental error, so the left and right legs are not exactly the same length, as is typical in real populations. At the end, the code puts height and the two leg lengths into a common data frame.
+
+Now let’s analyze these data, predicting the outcome height with both predictors, leg_left and leg_right. Before approximating the posterior, however, consider what we expect. On average, an individual’s legs are 45% of their height (in these simulated data). So we should expect the beta coefficient that measures the association of a leg with height to end up around the average height (10) divided by 45% of the average height (4.5). This is 10/4.5 ≈ 2.2. Now let’s see what happens instead. I’ll use very vague, bad priors here, just so we can be sure that the priors aren’t responsible for what is about to happen.
+
+
+```{r 6.2}
+
+
+N <- 100
+set.seed(909)
+height <- rnorm(N,10,2)
+leg_prop <- runif(N,0.4,0.5)
+leg_left <- leg_prop*height +
+    rnorm( N , 0 , 0.02 )
+leg_right <- leg_prop*height +
+    rnorm( N , 0 , 0.02 )
+d <- data.frame(height,leg_left,leg_right)
+
+
+m6.1 <- quap(
+    alist(
+        height ~ dnorm( mu , sigma ) ,
+        mu <- a + bl*leg_left + br*leg_right ,
+        a ~ dnorm( 10 , 100 ) ,
+        bl ~ dnorm( 2 , 10 ) ,
+        br ~ dnorm( 2 , 10 ) ,
+        sigma ~ dexp( 1 )
+),
+    data=d )
+precis(m6.1)
+plot(precis(m6.1))
+
+```
+
+Those posterior means and standard deviations look crazy. Both legs have almost identical lengths, and height is so strongly associated with leg length, then why is this posterior distribution so weird? Did the posterior approximation work correctly?
+
+The posterior distribution here is the right answer to the question we asked. The problem is the question. Recall that a multiple linear regression answers the question: What is the value of knowing each predictor, after already knowing all of the other predictors? So in this case, the question becomes: What is the value of knowing each leg’s length, after already knowing the other leg’s length?
+
+The answer to this weird question is equally weird, but perfectly logical. The posterior distribution is the answer to this question, considering every possible combination of the parameters and assigning relative plausibilities to every combination, conditional on this model and these data. It might help to look at the joint posterior distribution for bl and br. The posterior distribution for these two parameters is very highly correlated, with all of the plausible values of bl and br lying along a narrow ridge. When bl is large, then br must be small. What has happened here is that since both leg variables contain almost exactly the same information, if you insist on including both in a model, then there will be a practically infinite number of combinations of bl and br that produce the same predictions.
+
+```{r leg post}
+
+post <- extract.samples(m6.1)
+plot( bl ~ br , post , col=col.alpha(rangi2,0.1) , pch=16 )
+```
+
+One way to think of this phenomenon is that you have approximated this model:
+
+$height \sim N(\mu_i, \sigma)$
+
+$\mu_i = \alpha_{0} + \beta_{1} x_{i}+ \beta_{2} x_{i}$
+
+The variable y is the outcome, like height in the example, and x is a single predictor, like the leg lengths in the example. Because the left and right legs are so correlated, it's like using x twice. From the golem’s perspective, the model for μi is:
+
+$\mu_i = \alpha_{0} + (\beta_{l} + \beta_{r}) x$
+
+The parameters β1 and β2 cannot be pulled apart, because they never separately influence the mean μ. Only their sum, β1+β2, influences μ. So this means the posterior distribution ends up reporting the very large range of combinations of β1 and β2 that make their sum close to the actual association of x with y.
+
+And the posterior distribution in this simulated example has done exactly that: It has produced a good estimate of the sum of bl and br. Here’s how you can compute the posterior distribution of their sum, and then plot it:
+
+```{r leg sum}
+sum_blbr <- post$bl + post$br
+dens( sum_blbr , col=rangi2 , lwd=2 , xlab="sum of bl and br" )
+```
+
+The posterior mean is in the right neighborhood, a little over 2, and the standard deviation is much smaller than it is for either component of the sum, bl or br. If you fit a regression with only one of the leg length variables, you’ll get approximately the same posterior mean:
+
+```{r m6.2}
+
+m6.2 <- quap( alist(
+height ~ dnorm( mu , sigma ) , mu <- a + bl*leg_left,
+a ~ dnorm( 10 , 100 ) ,
+bl ~ dnorm( 2 , 10 ) ,
+sigma ~ dexp( 1 ) ) , data=d )
+precis(m6.2)
+```
+
+That 1.99 is almost identical to the mean value of sum_blbr.
+
+
+The basic lesson is only this: When two predictor variables are very strongly correlated
+(conditional on other variables in the model), including both in a model may lead to confu- sion. The posterior distribution isn’t wrong, in such cases. It’s telling you that the question you asked cannot be answered with these data. And that’s a great thing for a model to say, that it cannot answer your question. And if you are just interested in prediction, you’ll find that this leg model makes fine predictions. It just doesn’t make any claims about which leg is more important.
+ 
+### milk example
+
+In this example, we are concerned with the perc.fat (percent fat) and perc.lactose (per- cent lactose) variables. We’ll use these to model the total energy content, kcal.per.g. The code above has already standardized these three variables. You’re going to use these three variables to explore a natural case of multicollinearity. 
+
+```{r milk data}
+library(rethinking)
+data(milk)
+d <- milk
+d$K <- scale( d$kcal.per.g )
+d$F <- scale( d$perc.fat )
+d$L <- scale( d$perc.lactose )
+```
+
+
+* 1. kcal.per.g regressed on perc.fat
+
+Start by modeling kcal.per.g as a function of perc.fat and perc.lactose, but in two bivariate regressions. 
+
+
+```{r m6.3 }
+
+# kcal.per.g regressed on perc.fat
+m6.3 <- quap(
+    alist(
+        K ~ dnorm( mu , sigma ) ,
+        mu <- a + bF*F ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bF ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data=d )
+# kcal.per.g regressed on perc.lactose
+m6.4 <- quap(
+    alist(
+        K ~ dnorm( mu , sigma ) ,
+        mu <- a + bL*L ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bL ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+) , data=d )
+precis( m6.3 )
+precis( m6.4 )
+
+```
+
+The posterior distributions for bF and bL are essentially mirror images of one another. The posterior mean of bF is as positive as the mean of bL is negative. Both are narrow posterior distributions that lie almost entirely on one side or the other of zero. Given the strong association of each predictor with the outcome, we might conclude that both variables are reliable predictors of total energy in milk, across species. The more fat, the more kilocalories in the milk. The more lactose, the fewer kilocalories in milk. But watch what happens when we place both predictor variables in the same regression model:
+
+```{r m6.5}
+
+m6.5 <- quap(
+    alist(
+        K ~ dnorm( mu , sigma ) ,
+        mu <- a + bF*F + bL*L ,
+        a ~ dnorm( 0 , 0.2 ) ,
+        bF ~ dnorm( 0 , 0.5 ) ,
+        bL ~ dnorm( 0 , 0.5 ) ,
+        sigma ~ dexp( 1 )
+),
+    data=d )
+precis( m6.5 )
+
+```
+
+Now the posterior means of both bF and bL are closer to zero. And the standard deviations for both parameters are twice as large as in the bivariate models (m6.3 and m6.4).
+
+This is the same statistical phenomenon as in the leg length example. What has happened is that the variables perc.fat and perc.lactose contain much of the same information. They are almost substitutes for one another. As a result, when you include both in a regression, the posterior distribution ends up describing a long ridge of combinations of bF and bL that are equally plausible. In the case of the fat and lactose, these two variables form essentially a single axis of variation. The easiest way to see this is to use a pairs plot:
+
+
+```{r milk pairs}
+ pairs( ~ kcal.per.g + perc.fat + perc.lactose , data=d , col=rangi2 )
+```
+
+Percent fat is positively correlated with the outcome, while percent lactose is negatively correlated with it. 
+
+Now look at the right-most scatterplot in the middle row. This plot is the scatter of percent fat (vertical) against percent lactose (horizontal). Notice that the points line up almost entirely along a straight line. These two variables are negatively correlated, and so strongly so that they are nearly redundant. Either helps in predicting kcal.per.g, but neither helps as much *once you already know the other*.
+
+### how to detect multicollinearity 
+
+In the scientific literature, you might encounter a variety of dodgy ways of coping with multicollinearity. Few of them take a causal perspective. Some fields actually teach students to inspect pairwise correlations before fitting a model, to identify and drop highly correlated predictors. This is a mistake. Pairwise correlations are not the problem. It is the conditional associations—not correlations—that matter. And even then, the right thing to do will depend upon what is causing the collinearity. The associations within the data alone are not enough to decide what to do.
+
+* look at bivariate associations: 
+
+  + quantitative variables: 
+    - if the variable is normally distributed: pearson correlation coefficient 
+    - correlation matrix
+  
+  + ordinal variables: spearman rank correlation coefficient.
+  
+  + between nominal (binomial or multinomial) variables: chi-square test
+  
+  + between categorical and continuous variables: 
+    - 2 categories: t-test
+    - > 2 categories: ANOVA
+    
+* use VIF = variance inflation. If it's >10 it's a sign of collinearity. 
+
+What is likely going on in the milk example is that there is a core tradeoff in milk composition that mammal mothers must obey. If a species nurses often, then the milk tends to be watery and low in energy. Such milk is high in sugar (lactose). If instead a species nurses rarely, in short bouts, then the milk needs to be higher in energy. Such milk is very high in fat. This implies a causal model something like this:
+
+```{r milk dag, echo=FALSE}
+
+library(ggdag)
+
+dag_coords <-
+  tibble(name = c("L", "D", "F", "K"),
+         x    = c(1, 2, 3, 2),
+         y    = c(2, 2, 2, 1))
+
+dagify(L ~ D,
+       F ~ D,
+       K ~ L + F,
+       coords = dag_coords) %>%
+  
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(aes(color = name == "D"),
+                 alpha = 1/2, size = 6.5, show.legend = F) +
+  geom_point(x = 2, y = 2, 
+             size = 6.5, shape = 1, stroke = 1, color = "orange") +
+  geom_dag_text(color = "black") +
+  geom_dag_edges() +
+  scale_color_manual(values = c("steelblue", "orange")) +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(.1, .1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(.1, .1))
+
+```
+
+The central tradeoff decides how dense, D, the milk needs to be. We haven’t observed this variable, so it’s shown circled. Then fat, F, and lactose, L, are determined. Finally, the com- position of F and L determines the kilocalories, K. If we could **measure D**, or had an evolutionary and economic model to predict it based upon other aspects of a species, that would be better than stumbling through regressions.
+
+
+In general, there’s no guarantee that the available data contain much information about a parameter of interest. When that’s true, your Bayesian machine will return a posterior distribution very similar to the prior. **Comparing the posterior to the prior can therefore be a good idea**, a way of seeing how much information the model extracted from the data. When the posterior and prior are similar, it doesn’t mean the calculations are wrong—you got the right answer to the question you asked. But it might lead you to ask a better question.
+
+
+# **MODELS**
+
+**FREQUENTIST APPROACH**
+
+The frequentist approach requires that all probabilities be defined by connection to the frequencies of events in very large samples. 
+**Frequentist uncertainty** is premised on the imaginary resampling of data—if we were to repeat the measurement many many times, we would end up collecting a list of values that will have some pattern to it. It means also that parameters and models cannot have probability distributions, only measurements can. This resampling is never done, and in general it doesn’t even make sense—it is absurd to consider repeat sampling of the diversification of song birds in the Andes.But in many contexts, like controlled greenhouse experiments, it’s a useful device for describing uncertainty. Whatever the context, it’s just part of the model, an assumption about what the data would look like under resampling.
+
+**Sampling distribution** is the distribution of these measurements. 
+
+Example: Bayesian vs frequentist
+ Galileo turned a primitive telescope to the night sky and became the first human to see Saturn’s rings. Well, he probably saw a blob, with some smaller blobs attached to it. Since the telescope was primitive, it couldn’t really focus the image very well. Saturn always appeared blurred. This is a statistical problem, of a sort. There’s uncertainty about the planet’s shape, but notice that none of the uncertainty is a result of variation in repeat measurements. We could look through the telescope a thousand times, and it will always give the same blurred image (for any given position of the Earth and Saturn). So the sampling distribution of any measurement is constant, because the measurement is deterministic—there’s nothing “random” about it. Frequentist statistical inference has a lot of trouble getting started here. In contrast, Bayesian inference proceeds as usual, because the deterministic “noise” can still be modeled using probability, as long as we don’t identify probability with frequency. 
+
+resampling of data—if we were to repeat the measurement many many times, we would end up collecting a list of values that will have some pattern to it. It means also that parameters and models cannot have probability distributions, only measurements can. The distribution of these measurements is called a sampling distribution. This resampling is never done, and in general it doesn’t even make sense—it is absurd to consider repeat sampling of the diversification of song birds in the Andes. 
+
+**BAYESIAN APPROACH**
+In modest terms, Bayesian data analysis is no more than counting the numbers of ways the data could happen, according to our assumptions. Things that can happen more ways are more plausible. 
+
+
+**model selection**
+
+*information*: "The reduction in uncertainty when we learn an outcome." @mcelreath2020
+
+*information entropy*: If there are n different possible events and each event i has probability pi, and we call the list of probabilities p, then the unique measure of uncertainty we seek is: $H(p) = -E log(p_i) = -\sum_{i=1}^n p_i log(p_i)$
+The uncertainty contained in a probability distribution is the average log-probability of an event. The lower this measure the less uncertainty. 
+
+*divergence*: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: $D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)$
+The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p (see the Overthinking box on the next page for some more detail). When p = q, we know the actual probabilities of the events and $D_{KL} = 0$. As q grows more different from p, the divergence also grows.
+
+
+To use DKL to compare models, it seems like we would have to know p, the target proba- bility distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much.
+All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r. 
+
+*deviance*: 
+-2 * the total log-probability score for the model and data.$-2\sum_{i}log(q_i)$
+
+
+## Epidemiological reasoning behind OR vs RR 
+
+You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event. 
+
+You CAN'T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event. 
+ 
+Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.
+
+
+1.COHORT study: follow up people with certain exposure and cases occur randomly.
+
+random event = disease; fixed event = exposure. 
+
+Risk = P(D+|E+) and P(D+|E-)
+
+2.CASE-CONTROL study: follow up people with disease and look at if they had exposure.
+
+random event = exposure, fixed event = disease . 
+
+Risk = P(D+|E+) and P(D+|E-) --> can't compute!!! 
+
+OR= odds D+ in E+ group/ odds D+ in E- group --> can't compute
+
+OR= odds E+ in D+ group/ odds E+ in D- group --> CAN compute because exposure can be treated as a random event.
+
+(P(E+|D+)/1- P(E+|D+))/(P(E+|D-)/1- P(E+|D-))
+
+OR are symmetric from the perspective of exposure and outcome, so it doesn't matter! :) 
+
+3.CROSS-SECTIONAL STUDY:
+
+Risk: can be estimated only if the x-sectional study is a probability sample (each person has the same probability of being included in the study) --> rare
+
+OR: can always be estimated
+
+## LINEAR REGRESSION
+
+### outcome
+
+continuous
+
+### distribution
+
+normal  $y_i \to Normal(\mu_i, \sigma)$
+
+### model
+
+$\hat{y_i}=\beta_0 +\beta_1x_1...+\beta_n x_n$  or $\hat{y_i}=\alpha +\beta(x_i-\bar{x}) + \epsilon_i$
+
+linear predictor: $\mu_i$ = E(y)
+
+dispersion parameter: $\sigma^2$ = Variance ( $y | \mu$ ) 
+
+### link
+
+identity: $\mu = X \beta$ 
+
+### assumptions
+
+Decreasing importance
+
+1.**validity**: the outcome measure should accurately reflect the phenomenon of interest, the model should include all relevant predictors, and the model should generalize to the cases to which it will be applied. 
+
+2.**additivity and linearity**: its deterministic component is a linear function of the separate predictors: $\hat{y_i}=\beta_0 +\beta_1x_1...+\beta_n x_n$
+
+* If additivity is violated, it might make sense to transform the data (for example, if y = abc,then logy = loga + logb + logc )or to add interactions
+
+* If linearity is violated: 
+  + a predictor can be transformed: 
+    + 1/x or log(x) instead of simply linearly
+    + as a categorical variable 
+  + a more complicated relationship could be expressed:
+    + by including both x and x2 as predictors.
+    + by using a nonlinear function such as a spline or other generalized additive model.
+
+
+3.**independence of errors**: the errors from the prediction line are independent. 
+
+4.**equal variance of errors**: If the variance of the regression errors are unequal, estimation is more eðciently performed using weighted least squares, 
+
+5.**normality of errors**: the regression assumption that is generally least important is that the errors are normally distributed. In fact, for the purpose of estimating the regression line (as compared to predicting individual data points), the assumption of normality is barely important at all. Thus, in contrast to many regression textbooks, we do not recommend diagnostics of the normality of re- gression residuals.
+
+
+### parameter estimation
+
+estimate the parameters \beta by minimizing the sum of the prediction errors = deviance = least square estimates $(\hat{y_i}- \hat{y_i})^{2}$ 
+
+
+### interpretation of coefficients
+
+EXAMPLE child test score from maternal education and maternal IQ. The fitted model is: 
+kid.score = 26 + 6 · mom.hs + 0.6 · mom.iq + error
+
+In this model the slope of the regression of child’s test score on mother’s IQ is forced to be equal across subgroups defined by mother’s high school completion,
+
+$\beta_0$ The *intercept*. If a child had a mother with an IQ of 0 and who did not complete high school (thus, mom.hs = 0), then we would predict this child’s test score to be 26. This is not a useful prediction, since no mothers have IQs of 0.
+
+$\beta_{momhs}$  The coefficient of maternal high school completion. Comparing children whose mothers have the same IQ, but who differed in whether they completed high school, the model predicts an expected difference of 6 in their test scores.
+
+$\beta_{momiq}$ The coeðcient of maternal IQ. Comparing children with the same value of mom.hs, but whose mothers differ by 1 point in IQ, we would expect to see a difference of 0.6 points in the child’s test score (equivalently, a difference of 10 in mothers’ IQs corresponds to a difference of 6 points for their children).
+
+$\beta_{momiq:momhs}$ **interaction** allows the slope to vary across subgroups.
+
+EXAMPLE kid.score = -11 + 51 · mom.hs + 1.1 · mom.iq - 0.5 · mom.hs · mom.iq + error
+
+1. The intercept represents the predicted test scores for children whose mothers did not complete high school and had IQs of 0—not a meaningful scenario.
+
+2. The coefficient of mom.hs can be conceived as the difference between the predicted test scores for children whose mothers did not complete high school and had IQs of 0, and children whose mothers did complete high school and had IQs of 0. You can see this by just plugging in the appropriate numbers and comparing the equations. Since it is implausible to imagine mothers with IQs of zero, this coefficient is not easily interpretable.
+
+3. The coefficient of mom.iq can be thought of as the comparison of mean test scores across children whose mothers did not complete high school, but whose mothers differ by 1 point in IQ. 
+
+4. The coefficient on the interaction term represents the difference in the slope for mom.iq, comparing children with mothers who did and did not complete high school.
+
+Another way of looking at this is modeling different slopes for moms that did complete high school and moms that didn't
+
+no hs: kid.score = -11+51·0+1.1·mom.iq-0.5·0·mom.iq = -11 + 1.1 · mom.iq
+
+   hs: kid.score =  -11+51·1+1.1·mom.iq-0.5·1·mom.iq = 40 + 0.6 · mom.iq.
+
+The estimated slopes of 1.1 for children whose mothers did not complete high school and 0.6 for children of mothers who did are directly interpretable. The intercepts still suffer from the problem of only being interpretable at mothers’ IQs of 0.
+
+Models with interactions can often be more easily interpreted if we first pre-process the data by centering each input variable about its mean or some other convenient reference point.
+ 
+
+### inference 
+
+The least squares estimate is the maximum likelihood estimate if the errors $\epsilon_i$ are independent with equal variance and normally distributed, and for the model $y=X\beta+\epsilon$ it is the $\hat{\beta}$ that minimizes the sum of squares $(y_i- X_i\hat{\beta})^{2}$. If we are trying to predict an outcome using other variables, we want to do so in such a way as to minimize the error of our prediction. 
+
+*Residuals*: $r_i= y_i- X_i\hat{\beta}$ are the differences between the data and the fitted
+values. As a byproduct of the least squares estimation of $\beta$, the residuals ri will be uncorrelated with all the predictors in the model.
+
+*Residual standard deviation*: $\hat{\sigma}$ summarizes the scale of the residuals. For example, in the test scores example, $\hat{\sigma}$ = 18, which tells us that the linear model can predict children’s test scores to about an accuracy of 18 points.  It's like a measure of the average distance each observation falls from its prediction from the model. We are typically interested in it for its own sake—as a measure of the unexplained variation in the data—or because of its relevance to the precision of inferences about the regression coefficients $\beta$.
+
+
+## **GENERALIZED LINEAR MODELS**
+
+generalize the linear regression strategy—replace a parameter describing the shape of the likelihood with a linear model—to probability distributions other than the Gaussian.
+
+Steps: 
+
+1.We need a linear predictor of the same form as in linear regression $\beta X$. Such a linear predictor can generate any type of number as a prediction: positive, negative, or zero
+
+2.We choose a suitable distribution for the type of data we are predicting (normal for any number, gamma for positive numbers, binomial for binary responses, Poisson for counts)
+
+3.We create a link function which maps the mean of the distribution onto the set of all possible linear prediction results, which is the whole real line (-∞, ∞)
+
+4.The inverse of the link function takes the linear predictor to the actual prediction
+
+
+
+## LOGISTIC REGRESSION
+
+### outcome
+
+binary (0,1)
+
+### distribution
+
+binomial: $y_i \to Binomial(n, p_i)$
+
+### model
+
+$f(\hat{p_i})=\alpha +\beta(x_i-\bar{x})$
+
+linear predictor: $\eta_i$ = $logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\alpha +\beta x_i$
+
+### link
+
+**LOGIT LINK**: The logit link maps a parameter that is defined as a probability mass, and therefore constrained to lie between zero and one, onto a linear model that can take on any real value ( possible means (probabilities) (0,1) to the scale of linear predictors (-∞, ∞)). This link is extremely common when working with binomial GLMs. In the context of a model definition, it looks like this: 
+
+$logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\alpha +\beta x_i$
+
+if p→0 then logit(p) → −∞ 
+
+if p→1 then logit(p) → ∞
+
+**log-odds**:  the logit function  $logit(\hat{p_i}) = log(p_i/(1-p_i))$
+
+The “odds” of an event are just the probability it happens divided by the probability it does not happen. So really all that is being stated here is: $log(p_i/(1-p_i))= \alpha +\beta x_i$
+
+**inverse-logit**: it inverts the logit transform to figure out the definition of pi implied here: $p_i = e^{(\alpha +\beta x_i)} / 1 + e^{(\alpha +\beta x_i)}$
+
+x → −∞ then inverse logit (x) → 0
+
+x → + ∞ then inverse logit (x) → 1
+
+```{r logit lik, echo=FALSE}
+
+# first, we'll make data for the horizontal lines
+alpha <- 0
+beta  <- 4
+
+lines <-
+  tibble(x = seq(from = -1, to = 1, by = .25)) %>% 
+  mutate(`log-odds`  = alpha + x * beta,
+         probability = exp(alpha + x * beta) / (1 + exp(alpha + x * beta)))
+
+# now we're ready to make the primary data
+beta  <- 2
+d <-
+  tibble(x = seq(from = -1.5, to = 1.5, length.out = 50)) %>% 
+  mutate(`log-odds`  = alpha + x * beta,
+         probability = exp(alpha + x * beta) / (1 + exp(alpha + x * beta))) 
+
+# now we make the individual plots
+p1 <-
+  d %>% 
+  ggplot(aes(x = x, y = `log-odds`)) +
+  geom_hline(data = lines,
+             aes(yintercept = `log-odds`)) +
+  geom_line(size = 1.5) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+
+p2 <-
+  d %>% 
+  ggplot(aes(x = x, y = probability)) +
+  geom_hline(data = lines,
+             aes(yintercept = probability)) +
+  geom_line(size = 1.5) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+
+# finally, we're ready to mash the plots together and behold their nerdy glory
+(p1 | p2) +
+  plot_annotation(subtitle = "The logit link transforms a linear model (left) into a probability (right).")
+```
+"What all of this means is that when you use a logit link for a parameter, you are defining the parameter’s value to be the logistic transform of the linear model. On the left, the geometry of the linear model is shown, with horizontal lines indicating unit changes in the value of the linear model as the value of a predictor x changes. This is the log-odds space, which extends continuously in both positive and negative directions. On the right, the linear space is trans- formed and is now constrained entirely between zero and one. The horizontal lines have been compressed near the boundaries, in order to make the linear space fit within the probability space. This compression produces the characteristic logistic shape of the transformed linear model shown in the right-hand plot.
+
+No longer does a unit change in a predictor variable produce a constant change in the mean of the outcome variable. Instead, a unit change in xi may produce a larger or smaller change in the probability pi, depending upon how far from zero the log-odds are. For example, in the figure, when x = 0 the linear model has a value of zero on the log-odds scale. A half- unit increase in x results in about a 0.25 increase in probability. But each addition half-unit will produce less and less of an increase in probability, until any increase is vanishingly small. The key lesson for now is just that no regression coefficient, such as β, from a GLM ever produces a constant change on the outcome scale." @mcelreath2020
+
+### assumptions
+
+* linearity: $logit(\hat{p_i})$ is a linear function of the predictors = it is linear in the coefficients
+* independence: the different observations are statistically independent
+* variance function: $\sigma^2 = p(1-p)$
+* binomial: the error distribution is binomial
+
+### parameter estimation
+
+**MAXIMUM LIKELIHOOD ESTIMATION**
+
+The likelihood is the pdf of the data thought of as a function of the parameters for data already observed (the data is fixed, the values of the parameters vary accordingly).
+
+Maximum likelihood (ML) is an established method of estimating the parameters in a data analysis problem.
+
+
+**Binomial distribution** pmf: function of x, given a certain n and p :$f ( x | n , p ) = \begin{pmatrix} n \\ x \end{pmatrix} p^x (1-p)^{n-x}$
+
+
+**Likelihood function**: function of p, given a certain n and x (given by the data) $f ( p | n , x ) =\begin{pmatrix} n \\x \end{pmatrix} p^x (1-p)^{n-x}$
+
+Log of the Likelihood function (omitting the first term because it doesn't depend on p): $g(p)= x ln(p) + (n-x) ln(1-p)$
+
+Derivative of the Log of the Likelihood function $g'(p)= (x/p) -  (n-x)/(1-p) = 0$
+
+The *Maximum likelihood estimator* is: $\hat{p} = x/n$
+
+The likelihood is a graph of the value of the different values of p for a given value of n and x
+
+*Likelihood of the ith observation*
+
+$p_{i}^{x_{i}}(1-p_{i})^{1-x_{i}}$
+
+So for $y_1, y_2 ... y_n \to b(m, p_i)$
+
+The **Maximum likelihood estimator** is: $\hat{p} = y_i/m$
+
+**Likelihood** = product of the likelihoods of the m individual i observations and n parameterns
+
+$f ( p_i | m , y_i ) = \begin{pmatrix} m \\ y_i \end{pmatrix} (y_i/m)^{y_i}  (1-y_i/m)^{m-y_i}$
+
+
+Log of the Likelihood function: $g(p_i)= y_i ln(y_i/m) + \sum(m-y_i) ln(1-y_i/m)$
+
+
+The Log likelihood is maximized with respect to $\beta_{0}$ and $\beta_{1}$ that are chosen so that:
+
+$p_{i}$ is large when $x_{i} = 1$ because we want $\sum_{x_{i} = 1} ln (p_{i})$ to be big
+
+$p_{i}$ is small when $x_{i} = 0$ because we want $\sum_{x_{i} = 0}ln(1-p_{i})$ to be big
+
+Because $p_{i}^{x_{i}}(1-p_{i})^{1-x_{i}}$ then 
+
+$x_{i} = 0 \rightarrow (1-p_{i})$
+
+$x_{i} = 1 \rightarrow p_{i}$
+
+
+
+### interpretation of coefficients
+
+**interpretation of coefficients as probabilities**
+
+The curve of the logistic function requires us to choose where to evaluate changes, if we want to interpret on the probability scale. The mean of the input variables in the data is often a useful starting point.
+
+EXAMPLE: Pr(Bush support) = invlogit (-1.40 + 0.33 · income)
+
+$\beta_0$:
+
+For this dataset,  income is on a 1–5 scale. We can evaluate Pr(Bush support) at the central income category (3) and get inverse logit(-1.40 + 0.33 · 3) = 0.40.
+
+$\beta_{income}$: A difference of 1 in income (on this 1–5 scale) corresponds to a positive difference of 0.33 in the logit probability of supporting Bush. 
+
+* *evaluate how the probability differs with a unit difference in x near the central value*:
+
+In this example: $\bar{x}= 3.1$, so we can evaluate the logistic regression function at x = 3 and x = 2 ( 3 - 2 = 1 unit difference in x). 
+
+inverse logit(-1.40 + 0.33 · 3) - inverse logit(-1.40 + 0.33 · 2) = 0.08
+
+A difference of 1 in income category corresponds to a positive difference of 8% in the probability of supporting Bush.
+
+* *compute the derivative of the logistic curve at the central value*: 
+    
+derivative of the inverse logit ($\alpha +\beta x_i$) =  $\frac{df}{dx}  e^{(\alpha +\beta x_i)} / 1 + e^{(\alpha +\beta x_i)} =  \beta e^{(\alpha +\beta x_i)}/(1 + e^{(\alpha +\beta x_i)})^2$
+    
+In this example: 
+
+The mean of x= $\bar{x}= 3.1$. 
+
+The value of the linear predictor at the central value: -1.40 + 0.33 · 3.1 = -0.39. 
+
+The slope of the curve—the “change” in Pr(y = 1) per small unit of “change” in x is the derivative of the inverse logit at the central value: $\frac{df}{dx}  e^{(-1.40 + 0.33 · 3.1)} / 1 + e^{(-1.40 + 0.33 · 3.1)}= 0.33  e^{(-0.39)} / (1 + e^{(-0.39)})^2= 0.13$
+
+* *divide by 4 rule*: 
+    
+The logistic curve is steepest at its center, at which point  $\alpha +\beta x_i = 0$ so that inverse logit ($\alpha +\beta x_i$) = 0.5
+
+The slope of the curve—the derivative of the logistic function—is maximized at this point and attains the value $\beta  e^{(0)} / (1 + e^{(0)})^2= \beta/4$. 
+
+$\beta/4$ is the maximum difference in Pr(y = 1) corresponding to a unit difference in x. As a rule of convenience, we can take logistic regression coefficients (other than the constant term) and divide them by 4 to get an upper bound of the predictive difference corresponding to a unit difference in x. This upper bound is a reasonable approximation near the midpoint of the logistic curve, where probabilities are close to 0.5.
+
+In this example:  0.33/4 = 0.08. A difference of 1 in income category corresponds to no more than an 8% positive difference in the probability of supporting Bush.
+
+
+The results from these 3 methods 0.08, 0.13 and 0.08 are close to each other. In some cases where a unit difference is large, the differencing and the derivative can give slightly different answers. They will always be the same sign, however.
+
+**interpretation of coefficients as odds ratios**
+
+The “odds” of an event are just the probability it happens divided by the probability it does not happen: $(p_i/(1-p_i))$
+
+The ratio of two odds is an **odds ratio**: $(p_1/(1-p_1))/(p_2/(1-p_2))$
+
+An advantage of working with odds ratios (instead of probabilities) is that it is possible to keep scaling up odds ratios indefinitely without running into the boundary points of 0 and 1. 
+
+$log(P(y=1|x)/P(y=0|x))= log ODDS= \alpha +\beta x_i$
+
+Adding 1 to x (that is, changing x to x+1) has the effect of adding $\beta$ to both sides of the equation.
+$log(P(y=1|x)/P(y=0|x)) + \beta = log ODDS + \beta= \alpha +\beta x + \beta = \alpha +\beta (x+1)$
+
+Exponentiating both sides, the odds are then multiplied by $e^{\beta}$.
+
+$e^{log ODDS + \beta}= e^{\alpha +\beta (x + 1)}$
+
+$ODDS e^{\beta}= e^{\alpha +\beta (x + 1)}$
+
+Exponentiated logistic regression coefficients can be interpreted as odds ratios.
+
+EXAMPLE: if $\beta= 0.2$, then a unit difference in x corresponds to a multiplicative change of $e^{0.2} = 1.22$ in the odds (for example, changing the odds from 1 to 1.22, or changing p from 0.5 to 0.55).
+
+$\beta_0$ = intercept:  baseline log odds. This is meaningful only for the specific population at hand (mainly in cohort studies). 
+EXAMPLE: If we have a case control study with 50% cases and 50% controls, and the population has 4% cases, then clearly the baseline risk for the case control study has no relevance to the population.
+
+$\beta_i$: holding all other factors constant:
+
+* continuous variable:  log of the odds ratio for a unit change in the variable (because a difference of logs is the log of the ratio)
+    
+* categorical variable: change in the log odds ratio from the baseline level 
+    
+$\beta_{A:B}$ = interaction: holding all other factors constant:
+
+the effect of A depends on the level of B
+
+$\eta_i$ = $logit(\hat{p_i}) = log(p_i/(1-p_i)) = log(ODDS) =\alpha +\beta_A x_A + \beta_B x_B + \beta_{A:B} x_{A:B}$
+
+when $x_B= 0$ the effect of A is $\beta_A$
+
+when $x_B= 1$ the effect of A is $\beta_A + \beta_{A:B}$
+ 
+EXAMPLE: in study about distribution of insulin-like growth factor (IGF-1). menarche ~ age + tanner
+
+```{r igf data}
+library("ISwR")
+
+data(juul)
+
+juul1 <- subset(juul,age > 8 & age < 20 & complete.cases(menarche))
+
+juul1$menarche <- factor(juul1$menarche,labels=c("No","Yes")) 
+juul1$tanner <- factor(juul1$tanner) 
+
+attach(juul1)
+
+juul1.glm <- glm(menarche~age+tanner,binomial,data=juul1) 
+summary(juul1.glm)
+
+```
+
+
+$\beta age$  
+
+Log odds ratio for one year increase in age is 0.8603, holding tanner constant $\to$ Odds ratio is exp(0.8603) = 2.364
+
+Log odds ratio for a two year increase in age is (2)(0.8603) = 1.7206 $\to$ Odds ratio is exp(1.7206) = 5.588
+
+
+$\beta tanner4$ 
+
+* Log odds ratio for tanner 4 vs. tanner 1 is 2.5645, holding age constant 
+
+Odds ratio is exp(2.5645) = 12.994
+
+This means the odds of having menarche are 13 times higher for girls with tanner4 than with tanner1.
+
+* Log odds ratio for tanner 4 vs. tanner 3 is 2.5645 – 0.8264 = 1.7381 
+
+Odds ratio is exp(1.7381) = 5.687
+
+### inference 
+
+**confidence intervals**: to calculate a confidence interval you need to know the standard deviation. To know the standard deviation you need to know the variance, which we can obtain from the variance-covariance matrix. 
+
+```{r vcov table, echo= FALSE, warning= FALSE, message=FALSE}
+A <- c("VAR(A)", "COV(B,A)", "COV(A,C)")
+B <- c("COV(A,B)", "VAR(B)", "COV(B,C)")
+C <- c("COV(C,A)", "COV(C,B)", "VAR(C)")
+tble <- bind_cols(A, B, C)
+colnames(tble) <- c("A", "B", "C")
+rownames(tble) <- c("A", "B", "C")
+kable(tble)
+```
+
+
+* *confidence interval for one variable* : 
+
+log odds confidence interval:$\beta_i \pm z_{0.025} \sqrt{Var(\beta_i)}$
+
+odds ratio confidence interval:$e^{\beta_i \pm z_{0.025} \sqrt{Var(\beta_i)}}$
+
+* *confidence interval between two levels of the same variable* : 
+
+log odds confidence interval: $(\beta_C - \beta_B) \pm 1.96 \sqrt{Var(B) + Var(C) - 2COV(B,C)}$
+
+odds ratio confidence interval: $e^{(\beta_C - \beta_B) \pm 1.96 \sqrt{Var(B) + Var(C) - 2COV(B,C)}}$
+
+Because: If X and Y are random variables then $V(X-Y) = V(X) + V(Y)- 2Cov(X,Y)$
+
+
+EXAMPLE: Confidence interval of the estimated log odds between tanner4 and tanner5
+
+
+*coefficient matrix*
+
+```{r coeff}
+c1 <- coef(juul1.glm)
+c1
+```
+
+*variance_covariance matrix*
+
+```{r vcov}
+v1 <- vcov(juul1.glm)
+v1
+```
+
+
+We want to compare tanner4 to tanner5, so we only care about the last 2 columns. 
+
+
+```{r isolate cols of interes}
+
+#We set the other 4 columns to 0. We want to substract tanner4 from tanner5, so we multiply tanner4 by -1 and tanner5 by 1.
+
+#in vector form this will multiply the rows of the vcv matrix 
+
+b1 <- c(0,0,0,0,-1,1)
+b1
+
+#in transposed vector form this will multiply the columns of the vcv matrix 
+t(b1) 
+```
+
+multiplying t(b1) * c1 is the same as doing 5.1897 − 2.5645 = 2.6252 
+
+this is the difference in the log odds between tanner4 and tanner5
+
+```{r t(b1) * c1}
+t(b1) %*% c1
+```
+
+to calculate the ci we need the variance, which we extract like so:
+
+we multiply the cols and rows by (0,0,0,-1,1) in order to end up with the bottom right corner of 4 numbers 
+
+  1.4816528  1.4075578
+  
+  1.4075578  1.9993267
+
+var of the difference= var(x) + var (y) - 2 cov(x,y) = 1.4816528 +1.9993267 -2 *( 1.4075578)
+ 
+```{r t(b1)%*% v1 %*% b1}
+ t(b1)%*% v1 %*% b1
+```
+
+
+0.6658638 is the variance. to calculate the ci we need the se, so sqrt(0.6658638)
+
+ci for the log odds ratio 2.625154 ± (1.960)√0.6658638 = (1.025, 4.224)
+
+ci for the odds ratio (2.787, 68.33) 
+
+* *confidence interval of an interaction*
+
+log odds confidence interval: $(\beta_A + \beta_{A:B}) \pm 1.96 \sqrt{Var(A) + Var(A:B) - 2COV(A,A:B)}$
+
+odds ratio confidence interval: $e^{(\beta_A + \beta_{A:B}) \pm 1.96 \sqrt{Var(A) + Var(A:B) - 2COV(A,A:B)}}$
+
+
+### model comparison 
+
+**deviance** : twice the difference between the best possible log likelihood and the log likelihood under the model.
+
+The differences in deviance are assessed using the chi‐squared distribution with degrees of freedom equal to the number of parameters omitted between the larger and smaller model. This test is asymptotic, that is, it gets more accurate as n increases.
+
+smaller values are better. 
+
+EXAMPLE: $y_{i} = y_{1}, y_{2}...y_{n}$ ~ bin(m, $p_{i}$)
+
+
+The best fit possible is to set $\hat{p_{i}} = y_{i}/m$
+
+*Best likelihood*: has the highest possible value for the likelihood and uses n parameters (all n of the $y_{i}$s): $\prod\begin{pmatrix} m \\y_{i} \end{pmatrix} (y_{i}/m)^{y_{i}} (1-y_{i}/m)^{m-y_{i}}$
+
+*Best log likelihood*: $y_{i} ln(y_{i}/m) +(m-y_{i})ln (1-y_{i}/m)$
+
+
+If instead we use a a statistical model using fewer parameters that predicts $\hat{p_{i}}$ , where $\hat{\mu_{i}}=m \hat{p_{i}}$ 
+
+
+*Model likelihood*: maximized by choosing the coefficients: $\prod\begin{pmatrix} m \\y_{i} \end{pmatrix} (\hat{\mu_{i}}/m)^{y_{i}} (1-\hat{\mu_{i}}/m)^{m-y_{i}}$
+
+*Model log likelihood*: $y_{i} ln(\hat{\mu_{i}}/m) +(m-y_{i})ln (1-\hat{\mu_{i}}/m)$
+
+
+*Deviance*= $2(y_{i} ln(y_{i}/m) +(m-y_{i})ln (1-y_{i}/m) - (y_{i} ln(\hat{\mu_{i}}/m) +(m-y_{i})ln (1-\hat{\mu_{i}}/m)) ) = 2\sum[(y_{i} ln(y_{i}/\hat{\mu_{i}}) +  (m-y_{i})ln((m- y_{i})/(m- \hat{\mu_{i}}))]$
+
+the farther $y_{i}$ is from $\hat{\mu_{i}}$, the deviance is farther from 0  $\rightarrow y_{i}/\hat{\mu_{i}}$  becomes farther from 1 and because ln(1)= 0
+
+Null Model: 
+
+all the $\hat{p_{i}}$ are the same and can the maximum likelihood estimator is 
+
+$\hat{p}= \sum y_{i}/mn$ and $\hat{\mu}= m\hat{p}$
+
+
+
+## POISSON REGRESSION
+
+### outcome
+
+count data (0,+∞). positive numbers. 
+
+Differences between the binomial and Poisson models:
+The Poisson model is similar to the binomial model for count data  but is applied in slightly different situations:
+• If each data point yi can be interpreted as the number of “successes” out of ni trials, then it is standard to use the binomial/logistic model or its overdispersed generalization.
+• If each data point yi does not have a natural limit—it is not based on a number of independent trials—then it is standard to use the Poisson/logarithmic regression model (as described here) or its overdispersed generalization.
+
+### distribution
+
+poisson  $y_i \to Poisson(\theta_i)$
+
+mean = variance = $\theta$
+
+### model
+
+$\theta_i=e^{\beta_0 +\beta_ix_i}$ 
+
+In the general Poisson regression model, we think of yi as the number of cases in a process with rate $\theta_i$ and exposure $u_i$.
+
+$y_i \to Poisson(\theta_i, u_i)$ 
+
+### link
+
+**LOG LINK**
+
+This link function maps a parameter that is defined over only positive real values onto a linear model. What the log link effectively assumes is that the parameter’s value is the exponentiation of the linear model. $log(\theta_i)= \beta_0 +\beta_ix_i$
+
+**inverse link**: exponentiate to solve for $\theta_i$: $\theta_i=e^{\beta_0 +\beta_ix_i}$
+
+```{r log link, echo=FALSE}
+# first, we'll make data that'll be make the horizontal lines
+alpha <- 0
+beta  <- 2
+
+lines <-
+  tibble(`log-measurement`      = -3:3,
+         `original measurement` = exp(-3:3))
+
+# now we're ready to make the primary data
+d <-
+  tibble(x = seq(from = -1.5, to = 1.5, length.out = 50)) %>% 
+  mutate(`log-measurement`      = alpha + x * beta,
+         `original measurement` = exp(alpha + x * beta))
+
+# now we make the individual plots
+p1 <-
+  d %>% 
+  ggplot(aes(x = x, y = `log-measurement`)) +
+  geom_hline(data = lines,
+             aes(yintercept = `log-measurement`)) +
+  geom_line(size = 1.5) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+p2 <-
+  d %>% 
+  ggplot(aes(x = x, y = `original measurement`)) +
+  geom_hline(data = lines,
+             aes(yintercept = `original measurement`)) +
+  geom_line(size = 1.5) +
+  scale_y_continuous(position = "right", limits = c(0, 10)) +
+  coord_cartesian(xlim = c(-1, 1)) +
+  theme(panel.grid = element_blank())
+
+# combine the ggplots
+p1 | p2
+```
+Using a log link for a linear model (left) implies an exponential scaling of the outcome with the predictor variable (right). Another way to think of this relationship is to remember that logarithms are magnitudes. An increase of one unit on the log scale means an increase of an order of magnitude on the untransformed scale. And this fact is reflected in the widening intervals between the horizontal lines in the right-hand plot.
+While using a log link does solve the problem of constraining the parameter to be positive, it may also create a problem when the model is asked to predict well outside the range of data used to fit it. Exponential relationships grow, well, exponentially. Just like a linear model cannot be linear forever, an exponential model cannot be exponential forever. Human height cannot be linearly related to weight forever, because very heavy people stop getting taller and start getting wider. Likewise, the property damage caused by a hurricane may be approximately exponentially related to wind speed for smaller storms. But for very big storms, damage may be capped by the fact that everything gets destroyed.
+
+### assumptions
+
+* linearity: $log(\theta)$ is a linear function of the predictors
+* independence: the different observations are statistically independent
+* variance function: mean = variance = $\theta$
+
+
+
+### parameter estimation
+
+MLE = $\hat{\theta}= y$
+
+
+### interpretation of coefficients
+
+The coefficients $\beta$ can be exponentiated and treated as multiplicative effects.
+
+The regression coefficients summarize the associations between the predictors and $\theta$
+
+EXAMPLE $y_i \to Poisson(e^{2.8+ 0.012X_{i1} - 0.20X_{i2}})$
+
+Traffic accident model of the  rate of traffic accidents per vehicle = $\theta$ :Xi1 is average speed (in miles per hour, or mph) on the nearby streets and Xi2 = 1 if the intersection has a traffic signal or 0 otherwise
+
+$\beta_0$ The constant term gives the intercept of the regression, that is, the prediction if Xi1 = 0 and Xi2 = 0. Since this is not possible (no street will have an average speed of 0), we will not try to interpret the constant term.
+
+$\beta_1$ The coefficient of Xi1 is the expected difference in y (on the logarithmic scale) for each additional mph of traffic speed. Thus, the expected multiplicative increase is $e^{0.012} = 1.012$, or a 1.2% positive difference in the rate of traffic accidents per mph. Since traffic speeds vary by tens of mph, it would actually make sense to define Xi1 as speed in tens of mph, in which case its coefficient would be 0.12, corresponding to a 12% increase (more precisely, e0.12 = 1.127: a 12.7% increase) in accident rate per ten mph.
+
+$\beta_2$ The coefficient of Xi2 tells us that the predictive difference of having a traffic signal can be found be multiplying the accident rate by $e^{0.20} = 0.82$ yielding a reduction of 18% (1-0.82= 18).
+
+As with regression models in general, each coefficient is interpreted as a comparison in which one predictor differs by one unit while all the other predictors remain at the same level,
+
+**offset** In most applications of Poisson regression, the counts can be interpreted relative to some baseline or “exposure,” for example, the number of vehicles that travel through the intersection. $y_i \to Poisson(\theta_i, u_i)$ .Putting the logarithm of the exposure into the model as an offset is equivalent to including it as a regression predictor, but with its coefficient fixed to the value 1. In this way the rate is proportional to the exposure. 
+
+$y_i \to Poisson(\theta_i, u_i)$
+
+$log(\theta_i)= \beta_0 +\beta_ix_i + log(u_i)$
+
+$\theta_i=e^{\beta_0 +\beta_ix_i + log(u_i)} = e^{\beta_0 +\beta_ix_i}e^{log(u_i)}= e^{\beta_0 +\beta_ix_i}u_i$
+
+### overdispersion
+
+Under the Poisson distribution the variance equals the mean—that is, the standard deviation equals the square root of the mean. 
+
+standardized residuals: $z_i= y_i-\hat{y_i}/sd(\hat{y_i})= y_i-u_i\hat{\theta_i} /sd(u_i\hat{\theta_i})$
+
+If the Poisson model is true, then the zi’s should be approximately independent, each with mean 0 and standard deviation 1. If there is overdispersion, however, we would expect the zi’s to be larger, in absolute value, reflecting the extra variation beyond what is predicted under the Poisson model.
+
+**overdispersion test**: compute the sums of squares of the standardized residuals $\sum_{i=1}^n z_i^2$ and compare to the Chi-square distribution with degrees of freedom n-k (using n-k rather than n degrees of freedom to account for the estimation of k regression coefficients) 
+
+estimated overdispersion: $1/(n-k) \sum_{i=1}^n z_i^2$
+
+EXAMPLE: the classical Poisson regression for the police stops has n = 225 data points and k = 77 linear predictors.
+$\sum_{i=1}^n z_i^2$ = 2700 
+$(n-k)$ = 148
+
+The estimated overdispersion factor is 2700/148 = 18.2, and the p-value is 1.  indicating that the probability is essentially zero that a random variable from a +2148 distribution would be as large as 2700. In summary, the police stops data are overdispersed by a factor of 18, which is huge—even an overdispersion factor of 2 would be considered large—and also statistically significant.
+
+**adjust for overdispersion**: 
+
+* multiply all regression standard errors by the sqrt(overdispersion factor)
+EXAMPLE: $\sqrt{18.2}= 4.3$
+
+* fit overdispersed model: quasipoisson or negative binomial 
+
+
+## NEGATIVE BINOMIAL
+
+### outcome
+
+overdispersed count data (0,+∞). positive numbers. 
+
+any count-data model for which the variance of the data is $\omega$ times the mean, reducing to the Poisson if $\omega$ = 1.
+
+### distribution
+
+negative binomial  $y_i \to negative binomial (\theta_i, \omega)$
+
+mean = $u_i\theta= u_ie^{\beta X_i}$ = a/b
+
+overdispersion= $\omega$ = 1 + 1/b
+
+the negative-binomial distribution is conventionally expressed not based on its mean and overdispersion but rather in terms of parameters a and b where the mean of the distribution is a/b and the overdispersion is 1 + 1/b. One must check the parameterization when fitting such models, and it can be helpful to double-check by simulating datasets from the fitted model and checking that they look like the actual data 
+
+### link
+
+**LOG LINK**
+
+## **MULTILEVEL MODELS**
+
+EXAMPLE: estimating the distribution of radon levels of the houses within each of the 85 counties in Minnesota
+
+## no predictors 
+
+### complete pooling
+$\bar{y}_{all}$: Average that completely pools data across all counties. This ignores variation between counties in radon levels.
+
+### no pooling
+$\bar{y}_{j}$: Average of the observations in each county. No-pooling analysis overfits the data within each county.
+
+### partial pooling
+Average log radon level $\alpha_j$ among all the houses in county j, for which all we have available are a random sample of size $n_j$. It's like a weighted average of $\bar{y}_{j}$ and $\bar{y}_{all}$ which reflects the relative amount of information available about the individual county, on one hand, and the average of all the counties, on the other.
+
+* if $n_j = 0$ then $\alpha_j = \bar{y}_{all}$
+
+* if $n_j \to \infty$ then $\alpha_j = \bar{y}_{j}$
+
+## with predictors 
+
+EXAMPLE: logarithm of the home radon measurement versus floor of measurement3 for houses sampled from eight of the 85 counties in Minnesota. 
+
+### complete pooling
+
+Classical regression completely ignoring the group information, a single model fit to all the data. 
+
+$y_i= \alpha +\beta x_i + \epsilon_i$ or y ~ x
+
+$\alpha_{j}$ is fixed at the average for the whole data set $\alpha$
+
+This analysis ignores any variation in average radon levels between counties.
+
+### no pooling
+
+Can refer to 
+
+* Separate models: a separate classical regression in each group: $y_j= \alpha_{j} +\beta x_i + \epsilon_i$
+
+* No-pooling model: a single classical regression that includes group indicators (but no group-level predictors) but with no model for the group coeðcients: $y_i= \alpha_{j[i]} +\beta x_i + \epsilon_i$ where j[i] is the county correspoinding to house i. 
+
+$y_i= \alpha_{j[i]} +\beta x_i + \epsilon_i$ is expressed in lmer as y ~ x + factor(county) - 1) 
+
+where we add -1 to the regression formula to remove the constant term, so that all 85 counties are included. 
+
+This version of “no pooling” does not pool the estimates for the intercepts $\alpha_{j}$ but it does completely pool estimates for any slope coefficients (they are forced to have the same value across all groups) and also assumes the residual variance is the same within each group.
+
+$\alpha_{j}$ is set to the classical least squares estimates, which correspond to the fitted intercepts in a model run separately in each county. The constraint is that the slope coeffcient equals $\beta$ in all models. 
+
+This analysis is very dependent on the number of observations per county. 
+
+### partial pooling
+$y_i \sim N(\alpha_{j[i]} +\beta x_i, \sigma_y^2)$
+
+$\alpha_{j} \sim N(\mu_{\alpha}, \sigma_{\alpha}^2)$
+
+$\alpha_{j}$ has a "soft-constraint" in the form of a probability distribution, that has the effect of pulling the estimates of $\alpha_{j}$ toward the mean level $\mu_{\alpha}$
+
+* if $\sigma_{\alpha} \to 0$ then the soft-constraints pull the estimate to 0 $\alpha_j = \alpha$ = complete-pooling estimate.
+
+* if $\sigma_{\alpha} \to \infty$ then soft constraints do nothing $\alpha_j = \alpha_j$ = no pooling estimate.
+
+
+There is strong pooling in counties with small sample sizes, and only weak pooling in counties containing many measurements.
+
+
+### WHEN TO USE MULTILEVEL MODELS
+
+Multilevel model is most important when it is close to complete pooling, when $\sigma_{\alpha}$ is small and the groups are similar to each other. When $\sigma_{\alpha}$ is large, so that groups vary greatly, multilevel modeling is not much better than simple no-pooling estimation.However the multilevel estimate can be close to complete pooling for groups with small sample size and close to no pooling for groups with large sample size, automatically performing well for both sorts of group.
+                                 
+*How many groups?*
+When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When $\sigma_{\alpha}$ cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression 
+
+
+

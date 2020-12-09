@@ -58,7 +58,12 @@ https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
 
 ## STUDY DESIGN
 
-Types of Studies
+### OBSERVATIONAL STUDIES
+
+### ecological
+
+### 
+
 Experimental
   Clinical Trials
   Intervention Trials
@@ -865,7 +870,7 @@ The following methods are extracted from @Hernan2002
 
 2. **change in effect estimate**: comparison of the effect estimates between adjusted and unadjusted effect estimates. It assumes that any variable substantially associated with an estimate change is worth adjusting for.
 
-We evaluate the crude effect measure and the effect measure stratified by the possible confounder. If the stratum-specific effect measures are similar to each other but different to the crude effect measure and the relative change greater than 10%,the variable is selected as a confounder.
+We evaluate the effect measure of the exposure of interest: crude and stratified by the possible confounder. If the stratum-specific effect measures are similar to each other but different to the crude effect measure and the relative change greater than 10%, the variable is selected as a confounder. This change can be evaluated on the probability scale or transformed scale (exampe $\beta$ coefficient or OR for the exposure in a logistic model)
 
 Example: Is the association causal or confounded by age?
 
@@ -2604,8 +2609,23 @@ Now look at the right-most scatterplot in the middle row. This plot is the scatt
 
 ### how to detect multicollinearity 
 
-In the scientific literature, you might encounter a variety of dodgy ways of coping with multicollinearity. Few of them take a causal perspective. Some fields actually teach students to inspect pairwise correlations before fitting a model, to identify and drop highly correlated predictors. This is a mistake. Pairwise correlations are not the problem. It is the conditional associations—not correlations—that matter. And even then, the right thing to do will de- pend upon what is causing the collinearity. The associations within the data alone are not enough to decide what to do.
+In the scientific literature, you might encounter a variety of dodgy ways of coping with multicollinearity. Few of them take a causal perspective. Some fields actually teach students to inspect pairwise correlations before fitting a model, to identify and drop highly correlated predictors. This is a mistake. Pairwise correlations are not the problem. It is the conditional associations—not correlations—that matter. And even then, the right thing to do will depend upon what is causing the collinearity. The associations within the data alone are not enough to decide what to do.
 
+* look at bivariate associations: 
+
+  + quantitative variables: 
+    - if the variable is normally distributed: pearson correlation coefficient 
+    - correlation matrix
+  
+  + ordinal variables: spearman rank correlation coefficient.
+  
+  + between nominal (binomial or multinomial) variables: chi-square test
+  
+  + between categorical and continuous variables: 
+    - 2 categories: t-test
+    - > 2 categories: ANOVA
+    
+* use VIF = variance inflation. If it's >10 it's a sign of collinearity. 
 
 What is likely going on in the milk example is that there is a core tradeoff in milk composition that mammal mothers must obey. If a species nurses often, then the milk tends to be watery and low in energy. Such milk is high in sugar (lactose). If instead a species nurses rarely, in short bouts, then the milk needs to be higher in energy. Such milk is very high in fat. This implies a causal model something like this:
 
