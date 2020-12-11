@@ -29,6 +29,8 @@ library("ghibli")
 ```
 
 
+MENSAJE PARA MAMA 
+
 # Resources
 
 * Intro to Epidemiology 
@@ -36,7 +38,7 @@ library("ghibli")
 Epidemiology,5th edition, Leon Gordis 
 
 
-* DAG and bias theory
+* Causal inference
 
 [Causal Inference: What If, by Miguel A. Hernán, James M. Robins](https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/)
 
@@ -48,6 +50,9 @@ Epidemiology,5th edition, Leon Gordis
 
 [An introduction to causal inference, Pearl 2010](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2836213/)
 
+* Models 
+
+Gelman and Hill 2005
 
 * ggdag
 
@@ -59,33 +64,146 @@ https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html
 
 https://cran.r-project.org/web/packages/ggdag/vignettes/bias-structures.html
 
-# **INTRO TO EPIDEMIOLOGY**
+# **EPIDEMIOLOGICAL CONCEPTS**
 
-## STUDY DESIGN
+## MEASURES OF DISEASE FREQUENCY 
 
-### OBSERVATIONAL STUDIES
+### MORBIDITY 
 
-### ecological
+### prevalence
 
-### 
+Proportion of the population affected at time t = snapshot of disease. 
 
-Experimental
-  Clinical Trials
-  Intervention Trials
-  Prevention Trials
-  Field Trials
-Observational
-  Cross-sectional studies
-  Cohort Studies (retrospective and prospective)
-  Case-control Studies (including “nested”)
-  Matched Case-control studies
-  Ecological studies
+Units: 0-1 or 0-100%
 
+$$\frac{cases\:at\:time\:t\:(new + existing)}{total\:population\:at\:time\:t}$$
+Risk of *being* a case.
+
+$$prevalence = incidence * duration$$
+It's a bad measure of risk because it depends on the duration of disease. Chronic diseases will have high prevalnce, and very fatal diseases will have low prevalence, regardless of the incidence.
+
+* **point prevalence**: prevalence at a given timepoint t
+
+$$\frac{cases\:at\:time\:t\:(new + existing)}{total\:population\:at\:time\:t}$$
+
+* **period prevalence**: prevalence at any given timepoint during a time period t
+
+$$\frac{cases\:observed\:over\:period\:t\:(new + existing)}{total\:population\:at\:midpoint\:of\:period\:t}$$
+
+
+### incidence 
+
+Proportion of the population at risk of being affected that does become affected during a time period t.  cases/population * time at risk 
+
+$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:during\:period\:t}$$
+
+Risk of *becoming* a case.
+
+$$\frac{cases}{population*time\:at\:risk}$$
+It measures risk because it measures events or transitions from affected to not affected state. 
+
+* **cumulative incidence**
+
+The population at risk is a crude measure of the population at risk at the beginning of the time period. It assumes a static population at risk.
+
+Units: 0-1 or 0-100% per time interval. 
+
+$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:at\:start\:of\:time\:period\:t}$$
+Measures average risk. Is apt for short time-periods or static populations. 
+
+* **incidence density rate**
+
+The population at risk is the sum of all the disease-free/ at risk time periods for each individual. It assumes the risk of each person in the population does not change over time. 
+
+
+Units: 0- $\infty$ cases/population-time
+
+$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population-time}$$
+Measures risk by taking into account the time elapsed before disease occured for each individual, thus it also measures the speed at which disease occurs at a certain timepoint. Is apt for prolonged time-periods or dynamic populations. 
+
+To calculate population-time: 
+
+* sum all the disease-free time for each individual. 
+* estimate: 
+  + count the population-time midway through the time period
+  + average the population-time at the beginning and the end of the period. 
+
+### attack rate
+
+Proportion of the exposed individuals that becomes affected during a time period t.
+
+$$\frac{cases}{exposed}$$
+
+![Relationship between incidence and prevalence. Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.35.40.png)
+
+### MORTALITY 
+
+### mortality rate 
+
+Speed of death in time t.
+
+Measures risk: good measure when disease is mild, bad measure when disease is very deadly and the case-fatality is high. 
+
+$$\frac{deaths\:over\:period\:t}{total\:population\:at\:risk\:during\:time\:period\:t}$$
+
+* **crude mortality rate**
+
+overall deaths
+
+$$\frac{deaths\:over\:period\:t}{total\:population\:at\:risk\:during\:time\:period\:t}$$
+
+* **specific mortality rate**
+
+deaths in a specific subgroup (age, sex, diseased with a certain disease)
+
+$$\frac{deaths\:in\:subgroup\:over\:period\:t}{population\:at\:risk\:in\:subgroup\:during\:time\:period\:t}$$
+
+### case fatality rate
+
+Proportion of the individuals that become affected by disease X who die during a time period t.
+
+Measures disease severity
+
+$$\frac{deaths}{cases}$$
+
+### proportionate mortality 
+
+Fraction of all the deaths caused by disease X 
+
+$$\frac{deaths\:from\:disease\:X}{all\:deaths}$$
+
+### RATES
+
+### crude 
+overall population
+
+### adjusted 
+adjusted rates controlling for confounding factors to remove the effect of that factor
+
+* **direct**
+
+Apply the specific subgroup rates of each population to a standard population and calculate the rate on the standard population. 
+
+![direct adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.04.03.png)
+
+* **indirect** 
+
+Compare populations: subgroup vs general
+
+SMR = Strandard Mortality Ratio
+$$SMR= \frac{Observed}{Expected}$$
+
+Expected: Apply the general population rates to each specific subgroup and add all the cases
+Observed: add all the observed cases in each specific subgroup
+
+![indirect adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.08.05.png)
 
 ## DIAGNOSTIC TEST EVALUATION AND SCREENING TESTS
 
 *test precision*: ability to produce consistent results when repeated under the same conditions: 
+
 * repeatability: consistency of test results under same condition except time
+
 * reproducibility: consistency of test results under different conditions
 
 ```{r 4X4 table se sp, echo= FALSE, message=FALSE, error= FALSE, warning= FALSE}
@@ -366,138 +484,6 @@ net ppv = $196/564=0.35$
 
 net npv = $432/436=0.99$
 
-
-## MEASURES OF DISEASE FREQUENCY 
-
-### MORBIDITY 
-
-### prevalence
-
-Proportion of the population affected at time t = snapshot of disease. 
-
-Units: 0-1 or 0-100%
-
-$$\frac{cases\:at\:time\:t\:(new + existing)}{total\:population\:at\:time\:t}$$
-Risk of *being* a case.
-
-$$prevalence = incidence * duration$$
-It's a bad measure of risk because it depends on the duration of disease. Chronic diseases will have high prevalnce, and very fatal diseases will have low prevalence, regardless of the incidence.
-
-* **point prevalence**: prevalence at a given timepoint t
-
-$$\frac{cases\:at\:time\:t\:(new + existing)}{total\:population\:at\:time\:t}$$
-
-* **period prevalence**: prevalence at any given timepoint during a time period t
-
-$$\frac{cases\:observed\:over\:period\:t\:(new + existing)}{total\:population\:at\:midpoint\:of\:period\:t}$$
-
-
-### incidence 
-
-Proportion of the population at risk of being affected that does become affected during a time period t.  cases/population * time at risk 
-
-$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:during\:period\:t}$$
-
-Risk of *becoming* a case.
-
-$$\frac{cases}{population*time\:at\:risk}$$
-It measures risk because it measures events or transitions from affected to not affected state. 
-
-* **cumulative incidence**
-
-The population at risk is a crude measure of the population at risk at the beginning of the time period. It assumes a static population at risk.
-
-Units: 0-1 or 0-100% per time interval. 
-
-$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population\:at\:risk\:at\:start\:of\:time\:period\:t}$$
-Measures average risk. Is apt for short time-periods or static populations. 
-
-* **incidence density rate**
-
-The population at risk is the sum of all the disease-free/ at risk time periods for each individual. It assumes the risk of each person in the population does not change over time. 
-
-
-Units: 0- $\infty$ cases/population-time
-
-$$\frac{new\:cases\:observed\:over\:period\:t}{total\:population-time}$$
-Measures risk by taking into account the time elapsed before disease occured for each individual, thus it also measures the speed at which disease occurs at a certain timepoint. Is apt for prolonged time-periods or dynamic populations. 
-
-To calculate population-time: 
-
-* sum all the disease-free time for each individual. 
-* estimate: 
-  + count the population-time midway through the time period
-  + average the population-time at the beginning and the end of the period. 
-
-### attack rate
-
-Proportion of the exposed individuals that becomes affected during a time period t.
-
-$$\frac{cases}{exposed}$$
-
-![Relationship between incidence and prevalence. Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.35.40.png)
-
-### MORTALITY 
-
-### mortality rate 
-
-Speed of death in time t.
-
-Measures risk: good measure when disease is mild, bad measure when disease is very deadly and the case-fatality is high. 
-
-$$\frac{deaths\:over\:period\:t}{total\:population\:at\:risk\:during\:time\:period\:t}$$
-
-* **crude mortality rate**
-
-overall deaths
-
-$$\frac{deaths\:over\:period\:t}{total\:population\:at\:risk\:during\:time\:period\:t}$$
-
-* **specific mortality rate**
-
-deaths in a specific subgroup (age, sex, diseased with a certain disease)
-
-$$\frac{deaths\:in\:subgroup\:over\:period\:t}{population\:at\:risk\:in\:subgroup\:during\:time\:period\:t}$$
-
-### case fatality rate
-
-Proportion of the individuals that become affected by disease X who die during a time period t.
-
-Measures disease severity
-
-$$\frac{deaths}{cases}$$
-
-### proportionate mortality 
-
-Fraction of all the deaths caused by disease X 
-
-$$\frac{deaths\:from\:disease\:X}{all\:deaths}$$
-
-### RATES
-
-### crude 
-overall population
-
-### adjusted 
-adjusted rates controlling for confounding factors to remove the effect of that factor
-
-* **direct**
-
-Apply the specific subgroup rates of each population to a standard population and calculate the rate on the standard population. 
-
-![direct adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.04.03.png)
-
-* **indirect** 
-
-Compare populations: subgroup vs general
-
-SMR = Strandard Mortality Ratio
-$$SMR= \frac{Observed}{Expected}$$
-
-Expected: Apply the general population rates to each specific subgroup and add all the cases
-Observed: add all the observed cases in each specific subgroup
-
-![indirect adjusted example from Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-02\ at\ 13.08.05.png)
 
 # **CAUSAL INFERENCE** 
 
@@ -847,6 +833,7 @@ Incidence in the total population: $P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)= \
 $$\frac{[P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)]-{P(D^+|E^-)}}{P(D^+|E^+) * P(E^+) + P(D^+|E^-) * P(E^-)}=\frac{[{\frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}}]-{\frac{c}{c+d}}}{\frac{a}{a+b} * \frac{a+b}{a+b+c+d} + \frac{a}{c+d} * \frac{c+d}{a+b+c+d}}=\frac{{incidence\:in\:total\:population} -{incidence\:in\:unexposed\:population}}{incidence\:in\:total\:population}$$
 
 ![Gordis formula 12-4](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 12.58.29.png)
+
 
 ## **ERROR IN INFERENCE**
 
@@ -2878,6 +2865,271 @@ The central tradeoff decides how dense, D, the milk needs to be. We haven’t ob
 In general, there’s no guarantee that the available data contain much information about a parameter of interest. When that’s true, your Bayesian machine will return a posterior distribution very similar to the prior. **Comparing the posterior to the prior can therefore be a good idea**, a way of seeing how much information the model extracted from the data. When the posterior and prior are similar, it doesn’t mean the calculations are wrong—you got the right answer to the question you asked. But it might lead you to ask a better question.
 
 
+# **STUDY DESIGN**
+
+## OBSERVATIONAL STUDIES
+
+### ecological
+
+* unit of study: group
+
+* measure: rate of disease, rate of exposure. 
+
+### cross -sectional
+
+SImultaneously collect data on disease and exposure status = snapshot of the population
+
+* unit of study: individual
+
+* measure: 
+
+  + prevalence ratio of disease: in exposed vs non-exposed 
+  
+  $$\frac{P(D^+|E^+)}{P(D^+|E^-)}$$
+  
+  + prevalence ratio of exposure: in diseased vs not diseased
+  
+    $$\frac{P(E^+|D^+)}{P(E^+|D^-)}$$
+  
+  + OR of disease in exposed vs non-exposed: odds D+ in E+ group/ odds D+ in E- group 
+
+$$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}=\frac{\frac{a}{b}}{\frac{c}{d}}=\frac{ad}{bc}=\frac{odds\:D^+\:in\:exposed\:population}{odds\:D^+\:in\:unexposed\:population}$$
+  + OR of exposure in diseased vs not diseased= odds E+ in D+ group/ odds E+ in D- group 
+
+$$\frac{\frac{P(E^+|D^+)}{P(E^-|D^+)}}{\frac{P(E^+|D^-)}{P(E^-|D^-)}}=\frac{\frac{a}{c}}{\frac{b}{d}}=\frac{ad}{bc}=\frac{odds\:E^+\:in\:diseased\:population}{odds\:E^+\:in\:not\:diseased\:population}$$
+
+![Grodis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.05.22.png)
+
+![Grodis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.07.34.png)
+
+ **cons**: not good for diseases or exposures that are rare, or diseases with long incubation periods (the duration of disease alters the perception of prevalence).
+
+The validity of these studies are greatly affected by the sensitivity and specificity of the tests used to determine the disease and exposure status. 
+
+### case-control
+
+define population by disease status and determine past exposure
+
+the compared populations must be defined with care to make sure they are comparable so the results are not confounded 
+
+* unit of study: individual
+
+* measure: 
+
+  + Odds ratio (OR) of disease: in exposed vs non-exposed 
+  
+  $$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}=\frac{\frac{a}{b}}{\frac{c}{d}}=\frac{ad}{bc}=\frac{odds\:D^+\:in\:exposed\:population}{odds\:D^+\:in\:unexposed\:population}$$
+  
+  + Odds ratio  (OR) of exposure: in diseased vs not diseased
+  
+  $$\frac{\frac{P(E^+|D^+)}{P(E^-|D^+)}}{\frac{P(E^+|D^-)}{P(E^-|D^-)}}=\frac{\frac{a}{c}}{\frac{b}{d}}=\frac{ad}{bc}=\frac{odds\:E^+\:in\:diseased\:population}{odds\:E^+\:in\:not\:diseased\:population}$$
+  
+
+![Grodis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.20.04.png)
+**SELECTION OF CONTROLS**
+
+Minimize bias by selecting using the study base principle: the distribution of the exposure in the control group should be representative of the exposure in the study base, that is the population that produced the cases. 
+
+**Matching**: selecting cases that are matched to controls by levels of a certain factor can improve efficiency of the analysis and reduce confounding. 
+
+**Overmatching**: matching that harms 
+1. statistical efficiency
+2. cost efficiency 
+3. validity
+
+* **matching on non-confounder associated with exposure but not with the outcome**: This causes selection bias. The factor must be included in the analysis. This is the worst candidate for matching. 
+
+* **matching on a factor on the causal pathway between exposure and outcome**:
+
+  + the factor is not associated with the outcome: This causes bias, and the factor must be included in the analysis (in the stratification, regression, etc...)
+  + the factor is associated with the outcome: This causes selection bias and cannot be fixed by including the factor in the analysis. 
+
+* **matching on a factor with some association to exposure**: example: neighborhood, friends, family....
+
+
+### cohort = longitudinal
+
+the compared populations must be defined with care to make sure they are comparable so the results are not confounded
+
+* unit of study: individual
+
+* measure: 
+
+  + relative risk (RR) of disease: in exposed vs non-exposed 
+
+    - cumulative incidence ratio: if the population is static
+  
+    - incidence density ratio: if the population is dynamic
+  
+  $$\frac{P(D^+|E^+)}{P(D^+|E^-)}$$
+
+  + time to event: survival analysis. 
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.27.56.png)
+  
+
+define population:
+
+* by not randomly assigned exposure status $\to$ determine the development of disease: allows the study of 1 exposure and multiple outcomes
+ 
+* randomly assigned individuals in the defined population $\to$ determine the development of disease and exposure status: : allows the study ofmultiple exposures and outcomes
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.36.18.png)
+  
+* **prospective**: enroll participants based on exposure status and follow up over time
+
+
+* **retrospective**: enroll participants based on disease status and look at historic records to obtain exposure status. 
+
+  + **cons**: recall bias. 
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.34.46.png)
+
+**assumptions**
+
+* Lost to follow up (LTF) are independent
+
+
+### **cohort-based case-control studies** 
+
+**pros**: 
+
+* exposure are have a temporal sequence and therefore are likely to be risk factors
+
+* cheaper as there are fewer lab costs ( you only test those who develop disease for exposure)
+
+* cases and controls are from the same population and therefore comparable
+
+**cons**: 
+
+### nested case-control
+
+Controls selected by time of case development, that is the controls are matched with the cases on calendar time and follow-up time (time is considered a confounder). 
+
+Disadvantage: the control could turn into a case. 
+
+* measure: 
+
+  + Odds ratio (OR)
+  
+By selecting the controls matching on time, we can interpret the odds ratio as a rate or risk measure, without making the rare disease assumption, by assuming only that the incidence is constant over time (see odds ratio section).
+
+
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.47.56.png)
+
+
+### case-cohort 
+
+Controls selected by random allocation at the end of the study from non-cases in the defined cohort, that is the controls are NOT matched with the cases on calendar time and follow-up time. 
+
+* measure: 
+
+  + Odds ratio (OR)
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.48.30.png)
+
+### **comparison case-control and cohort**
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Gordis\ Epidemiology\ 5th_comparison.jpg)
+
+![Gordis: comparison case-control and cohort](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 11.03.54.png)
+
+## **relationship between study design and effect measure**
+
+You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event. 
+
+You CAN'T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event. 
+
+1. COHORT study: define participants by exposure status and follow up to observe occurrence of cases.
+
+random event = disease
+
+fixed event = exposure.
+
+Risk Ratio = P(D+|E+) and P(D+|E-) $\to$ **CAN** compute
+
+$$RR= \frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{D^+\:in\:exposed\:population}{D^-\:in\:unexposed\:population}$$
+
+2. CASE-CONTROL study: define participants by disease status and investigate occurrence of past exposure.
+
+random event = exposure
+
+fixed event = disease  
+
+Risk Ratio = P(D+|E+) and P(D+|E-) $\to$ can't compute!!! 
+
+$$RR= \frac{P(D^+|E^+)}{P(D^+|E^-)}=\frac{\frac{a}{a+b}}{\frac{c}{c+d}}=\frac{D^+\:in\:exposed\:population}{D^-\:in\:unexposed\:population}$$
+
+OR= odds D+ in E+ group/ odds D+ in E- group $\to$  can't compute
+
+$$\frac{\frac{P(D^+|E^+)}{P(D^-|E^+)}}{\frac{P(D^+|E^-)}{P(D^-|E^-)}}=\frac{\frac{a}{b}}{\frac{c}{d}}=\frac{ad}{bc}=\frac{odds\:D^+\:in\:exposed\:population}{odds\:D^+\:in\:unexposed\:population}$$
+
+OR= odds E+ in D+ group/ odds E+ in D- group $\to$ **CAN** compute because exposure can be treated as a random event.
+
+$$\frac{\frac{P(E^+|D^+)}{P(E^-|D^+)}}{\frac{P(E^+|D^-)}{P(E^-|D^-)}}=\frac{\frac{a}{c}}{\frac{b}{d}}=\frac{ad}{bc}=\frac{odds\:E^+\:in\:diseased\:population}{odds\:E^+\:in\:not\:diseased\:population}$$
+
+**OR are symmetric from the perspective of exposure and outcome, so it doesn't matter! :) **
+
+3. CROSS-SECTIONAL STUDY:
+
+Risk Ratio: can be estimated only if the cross-sectional study is a probability sample (each person has the same probability of being included in the study)
+
+OR: can always be estimated
+
+
+Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.
+
+## EXPERIMENTAL STUDIES
+
+### randomized clinical trial = RCT
+
+Th goal is to test a hypothesis or answer a medical question
+
+The population is defined and the exposure/treatment is randomly allocated in the defined population. 
+
+![Gordis](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 12.21.14.png)
+
+**random allocation**
+
+Why is random allocation important? Because it decreases bias, and therefore it is easier to obtain an unbiased effect and to extrapolate the results to the general population: 
+
+* selection bias: participants are not included in either exposure group based on a given factor (investigator bias, etc)
+
+* confounding and internal validity: the 2 groups are more likely to be comparable to one another in terms of unmeasured factors that may influence the outcome (age, sex, etc)
+
+
+* **stratified randomization**
+
+
+Using data collected prior to the randomization, the participants are: 
+
+1. stratified into groups
+2. the exposure/treatment is randomly allocated in each group 
+
+Goal: decrease the variation in an outcome due to a given factor: members of each stratum will be ore comparable to each other. 
+
+![Gordis Figure 7-4]( /Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-10\ at\ 12.35.26.png)
+
+
+**limitations**: there is a limit to the amount of variables you can stratify by, as you want at least 20 individuals in each group. 
+
+**cons**: it coplicates and delays randomization. 
+
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 205\ notes\ Sep\ 28\,\ 2018\ factorial.jpg)
+
+* **intent to treat analysis** : even if the subject doesn't comply with treatment, it is included in the orginial treatment group 
+
+* **early stop point** :  and interim analysis can be performed midway throught the trial if there is sufficient sample size, and can lead to the discontinuation of the trial if there is sufficient evidence that the treat treatment works well or not. 
+
+Experimental
+  Clinical Trials
+  Intervention Trials
+  Prevention Trials
+  Field Trials
+
+
 # **MODELS**
 
 **FREQUENTIST APPROACH**
@@ -2913,41 +3165,6 @@ All of this also means that all we need to know is a model’s average log-proba
 *deviance*: 
 -2 * the total log-probability score for the model and data.$-2\sum_{i}log(q_i)$
 
-
-## Epidemiological reasoning behind OR vs RR 
-
-You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event. 
-
-You CAN'T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event. 
- 
-Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.
-
-
-1.COHORT study: follow up people with certain exposure and cases occur randomly.
-
-random event = disease; fixed event = exposure. 
-
-Risk = P(D+|E+) and P(D+|E-)
-
-2.CASE-CONTROL study: follow up people with disease and look at if they had exposure.
-
-random event = exposure, fixed event = disease . 
-
-Risk = P(D+|E+) and P(D+|E-) --> can't compute!!! 
-
-OR= odds D+ in E+ group/ odds D+ in E- group --> can't compute
-
-OR= odds E+ in D+ group/ odds E+ in D- group --> CAN compute because exposure can be treated as a random event.
-
-(P(E+|D+)/1- P(E+|D+))/(P(E+|D-)/1- P(E+|D-))
-
-OR are symmetric from the perspective of exposure and outcome, so it doesn't matter! :) 
-
-3.CROSS-SECTIONAL STUDY:
-
-Risk: can be estimated only if the x-sectional study is a probability sample (each person has the same probability of being included in the study) --> rare
-
-OR: can always be estimated
 
 ## LINEAR REGRESSION
 
@@ -3018,6 +3235,9 @@ Example of residuals with equal variance and linearity assumptions met:
 
 estimate the parameters \beta by minimizing the sum of the prediction errors = deviance = least square estimates $(\hat{y_i}- \hat{y_i})^{2}$ 
 
+
+![Stats book](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019\ linreg.jpg)
+![Satats book](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/EPI\ 203\ NOTES\ Jan\ 12\,\ 2019line.jpg)
 
 ### interpretation of coefficients
 
