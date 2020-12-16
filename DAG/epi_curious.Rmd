@@ -4043,9 +4043,32 @@ We usually don’t mind. First, it can be possible to check these assumptions. P
 When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When $\sigma_{\alpha}$ cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression 
 
 
+
 ## **MODEL COMPARISON**
 
 Mostly from @mcelreath2020
+
+Sometimes we don’t care about causal inference. Maybe we just want to make good predictions. That we don’t understand what is going on is irrelevant. So is just adding everything to the model okay?
+
+The answer is “no.” There are two related problems with just adding variables. 
+
+1) Adding parameters—making the model more complex—nearly always improves the fit of a model to the data. 
+
+2) While more complex models fit the data better, they often predict new data worse. 
+
+
+Models that have many parameters tend to **overfit** more than simpler models. This means that a complex model will be very sensitive to the exact sample used to fit it, leading to potentially large mistakes when future data is not exactly like the past data. 
+
+But simple models, with too few parameters, tend instead to **underfit**, systematically over-predicting or under-predicting the data, regardless of how well future data resemble past data. So we can’t always favor either simple models or complex models.
+
+### R2  
+
+Often described as “variance explained,” R2 is defined as:
+
+$$R^2 = \frac{var(outcome)-var(residuals)}{var(outcome)}= 1- \frac{var(residuals)}{var(outcome)}$$
+
+Like other measures of fit to sample, R2 increases as more predictor variables are added. This is true even when the variables you add to a model are just random numbers, with no relation to the outcome. So it’s no good to choose among models using only fit to the data.
+
 
 ### **model selection**
 
@@ -4584,9 +4607,9 @@ for ( i in 1:100 ) lines( 1:4 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )
 100 simulated actors with unique intercepts sampled from the posterior. Each simulation maintains the same parameter values across all four treatments.
 
 
-### R2  
-
 ### ROC curve
 
 ### sensitivity analysis
+
+### REML and forecsting accuracy
 
