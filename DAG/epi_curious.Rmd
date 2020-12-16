@@ -26,10 +26,9 @@ library(knitr)
 library(stringr)
 library("patchwork")
 library("ghibli")
+#library("arm")
 ```
 
-
-MENSAJE PARA MAMA 
 
 # Resources
 
@@ -53,6 +52,12 @@ Epidemiology,5th edition, Leon Gordis
 * Models 
 
 Gelman and Hill 2005
+
+* Forecasts
+
+https://otexts.com/fpp2/
+
+https://medium.com/analytics-vidhya/basics-of-forecast-accuracy-db704b0b001b#:~:text=A%20simple%20measure%20of%20forecast,known%20as%20Mean%20Forecast%20Error.&text=The%20MFE%20for%20this%20forecasting,more%20than%20the%20forecast%20values.
 
 * ggdag
 
@@ -2867,6 +2872,61 @@ In general, there’s no guarantee that the available data contain much informat
 
 # **STUDY DESIGN**
 
+## SAMPLE SIZE
+
+A **sample** is a subset of the subjects in the population that could have been included in the study = a subset of the experiences the study subjects could have had
+
+**ASSUMPTIONS OF SAMPLING**
+
+* **Randomness assumption**: the sample is a random selection of the subjects in the population that could have been included in the study
+
+* **Representativeness assumption**: the sample is representative of the subjects in the population that could have been included in the study
+
+**SAMPLING DISTRIBUTION**
+
+Different samples result in different measures of occurrence. 
+
+Sample size will determine: 
+
+ * the magnitude of the effect = the proximity of the measure of occurrence to the true value
+ 
+ * the precision of the estimation method = **statistical precision**: the inverse of the variance. 
+ 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-03\ at\ 15.55.00.png)
+ 
+ 
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-15\ at\ 10.10.18.png)
+
+
+**SAMPLE SIZE ESTIMATION**
+
+* PROPORTION
+
+$$n= \frac{z^2_{\alpha/2}\hat{p}(1-\hat{p})}{\epsilon^2}$$
+ 
+ 
+ to determine $\hat{p}(1-\hat{p})$ we can use: 
+ * prior knowledge
+ 
+ * set $\hat{p}=1/2= 0.5 \to \hat{p}(1-\hat{p}) = 1/4 = 0.25$ 
+ because that is the maximum for $maximum\:f(\hat{p})=\hat{p}(1-\hat{p}) \to \frac{d[\hat{p}(1-\hat{p})]}{d\hat{p}}= \frac{d[\hat{p}-\hat{p}^2]}{d\hat{p}} = 1-2\hat{p}= 0 \to \hat{p}= 1/2 \to f(\hat{p}= 1/2)=1/2(1-1/2)= 1/4$
+ 
+ 
+ 
+**POWER**
+
+is a probability that the null hypothesis (H0) will be rejected when it is false, that is, the probability that we will find a true association between exposure and outcome. 
+
+it depends on : 
+
+* the effective sample size
+* the true association in the population
+* biases and errors in the data
+
+
+
+
+
 ## OBSERVATIONAL STUDIES
 
 ### ecological
@@ -3147,23 +3207,6 @@ resampling of data—if we were to repeat the measurement many many times, we wo
 **BAYESIAN APPROACH**
 In modest terms, Bayesian data analysis is no more than counting the numbers of ways the data could happen, according to our assumptions. Things that can happen more ways are more plausible. 
 
-
-**model selection**
-
-*information*: "The reduction in uncertainty when we learn an outcome." @mcelreath2020
-
-*information entropy*: If there are n different possible events and each event i has probability pi, and we call the list of probabilities p, then the unique measure of uncertainty we seek is: $H(p) = -E log(p_i) = -\sum_{i=1}^n p_i log(p_i)$
-The uncertainty contained in a probability distribution is the average log-probability of an event. The lower this measure the less uncertainty. 
-
-*divergence*: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: $D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)$
-The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p (see the Overthinking box on the next page for some more detail). When p = q, we know the actual probabilities of the events and $D_{KL} = 0$. As q grows more different from p, the divergence also grows.
-
-
-To use DKL to compare models, it seems like we would have to know p, the target proba- bility distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much.
-All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r. 
-
-*deviance*: 
--2 * the total log-probability score for the model and data.$-2\sum_{i}log(q_i)$
 
 
 ## LINEAR REGRESSION
@@ -3679,8 +3722,7 @@ log odds confidence interval: $(\beta_A + \beta_{A:B}) \pm 1.96 \sqrt{Var(A) + V
 
 odds ratio confidence interval: $e^{(\beta_A + \beta_{A:B}) \pm 1.96 \sqrt{Var(A) + Var(A:B) - 2COV(A,A:B)}}$
 
-
-### model comparison 
+### model selection 
 
 **deviance** : twice the difference between the best possible log likelihood and the log likelihood under the model.
 
@@ -3717,6 +3759,28 @@ all the $\hat{p_{i}}$ are the same and can the maximum likelihood estimator is
 $\hat{p}= \sum y_{i}/mn$ and $\hat{\mu}= m\hat{p}$
 
 
+### predictive simulation
+
+Example: probability of switching wells given the distance from the nearest safe well.
+
+
+```{r predictive simulation logisti}
+
+## Read in the data
+# Data are at http://www.stat.columbia.edu/~gelman/arm/examples/arsenic
+
+library("arm")
+wells <- read.table("/Users/annakawiecki/Google\ Drive/epi/papers/Bayesian/gelman\ r\ code/ARM_Data/arsenic/wells.dat")
+
+## Logistic regression 
+
+fit.1 <- glm (switch ~ dist, family=binomial(link="logit"), data = wells)
+display (fit.1)
+```
+
+**simulating the uncertainty in the estimated coefficients**
+
+![Gelman and Hill Figure 7.6 and 7.7](/Users/annakawiecki/Google\ Drive/epi/papers/Bayesian/gelman_hill\ figures/Screen\ Shot\ 2020-12-14\ at\ 19.30.01.png)
 
 ## POISSON REGRESSION
 
@@ -3880,28 +3944,31 @@ the negative-binomial distribution is conventionally expressed not based on its 
 
 ## **MULTILEVEL MODELS**
 
+
+## pooling
+
 EXAMPLE: estimating the distribution of radon levels of the houses within each of the 85 counties in Minnesota
 
-## no predictors 
+### no predictors 
 
-### complete pooling
+* **complete pooling**
 $\bar{y}_{all}$: Average that completely pools data across all counties. This ignores variation between counties in radon levels.
 
-### no pooling
+* **no pooling**
 $\bar{y}_{j}$: Average of the observations in each county. No-pooling analysis overfits the data within each county.
 
-### partial pooling
+* **partial pooling**
 Average log radon level $\alpha_j$ among all the houses in county j, for which all we have available are a random sample of size $n_j$. It's like a weighted average of $\bar{y}_{j}$ and $\bar{y}_{all}$ which reflects the relative amount of information available about the individual county, on one hand, and the average of all the counties, on the other.
 
 * if $n_j = 0$ then $\alpha_j = \bar{y}_{all}$
 
 * if $n_j \to \infty$ then $\alpha_j = \bar{y}_{j}$
 
-## with predictors 
+### with predictors 
 
 EXAMPLE: logarithm of the home radon measurement versus floor of measurement3 for houses sampled from eight of the 85 counties in Minnesota. 
 
-### complete pooling
+* **complete pooling**
 
 Classical regression completely ignoring the group information, a single model fit to all the data. 
 
@@ -3911,7 +3978,7 @@ $\alpha_{j}$ is fixed at the average for the whole data set $\alpha$
 
 This analysis ignores any variation in average radon levels between counties.
 
-### no pooling
+* **no pooling**
 
 Can refer to 
 
@@ -3929,7 +3996,7 @@ $\alpha_{j}$ is set to the classical least squares estimates, which correspond t
 
 This analysis is very dependent on the number of observations per county. 
 
-### partial pooling
+* **partial pooling**
 $y_i \sim N(\alpha_{j[i]} +\beta x_i, \sigma_y^2)$
 
 $\alpha_{j} \sim N(\mu_{\alpha}, \sigma_{\alpha}^2)$
@@ -3944,12 +4011,582 @@ $\alpha_{j}$ has a "soft-constraint" in the form of a probability distribution, 
 There is strong pooling in counties with small sample sizes, and only weak pooling in counties containing many measurements.
 
 
-### WHEN TO USE MULTILEVEL MODELS
+## when to use multilevel models
 
 Multilevel model is most important when it is close to complete pooling, when $\sigma_{\alpha}$ is small and the groups are similar to each other. When $\sigma_{\alpha}$ is large, so that groups vary greatly, multilevel modeling is not much better than simple no-pooling estimation.However the multilevel estimate can be close to complete pooling for groups with small sample size and close to no pooling for groups with large sample size, automatically performing well for both sorts of group.
-                                 
-*How many groups?*
+
+### motivations for multilevel modeling
+
+From @GelmanHill2005
+
+There are various reasons why it might be worth moving to a multilevel model, whether for purposes of causal inference, the study of variation, or prediction of future outcomes:
+
+• Accounting for individual- and group-level variation in estimating group-level regression coefficients. For example, in the child support study in Section 11.2, interest lies in a city-level predictor (child support enforcement), and in classical regression it is not possible to include city indicators along with city-level predictors.
+
+• Modeling variation among individual-level regression coefficients. In classical regression, one can do this using indicator variables, but multilevel modeling is convenient when we want to model the variation of these coefficients across groups, make predictions for new groups, or account for group-level variation in the uncertainty for individual-level coefficients.
+
+• Estimating regression coefficients for particular groups. For example, in the next chapter, we discuss the problem of estimating radon levels from measurements in several counties in Minnesota. With a multilevel model, we can get reasonable estimates even for counties with small sample sizes, which would be difficult using classical regression.
+
+One or more of these reasons might apply in any particular study.
+
+### multilevel modelling assumptions
+
+From @GelmanHill2005
+
+A multilevel model requires additional assumptions beyond those of classical regression—basically, each level of the model corresponds to its own regression with its own set of assumptions such as additivity, linearity, independence, equal variance, and normality.
+
+We usually don’t mind. First, it can be possible to check these assumptions. Perhaps more important, classical regressions can typically be identified with particular special cases of multilevel models with hierarchical variance parameters set to zero or infinity—these are the complete pooling and no pooling models. Our ultimate justification, which can be seen through examples, is that the assumptions pay off in practice in allowing more realistic models and inferences.
+
+
+### how many groups?
+
 When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When $\sigma_{\alpha}$ cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression 
 
 
+## **MODEL COMPARISON**
+
+Mostly from @mcelreath2020
+
+### **model selection**
+
+From @mcelreath2020
+
+**information**: "The reduction in uncertainty when we learn an outcome." 
+
+**information entropy**: If there are n different possible events and each event i has probability pi, and we call the list of probabilities p, then the unique measure of uncertainty we seek is: 
+
+$$H(p) = -E log(p_i) = -\sum_{i=1}^n p_i log(p_i)$$
+
+The uncertainty contained in a probability distribution is the average log-probability of an event. The lower this measure the less uncertainty. 
+
+**divergence**: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: 
+
+$$D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)$$
+
+The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p. When p = q, we know the actual probabilities of the events and $D_{KL} = 0$. As q grows more different from p, the divergence also grows.
+
+
+What divergence can do for us now is help us contrast different approximations to p. As an approximating function q becomes more accurate, DKL(p, q) will shrink. So if we have a pair of candidate distributions, then the candidate that minimizes the divergence will be closest to the target. Since predictive models specify probabilities of events (observations), we can use divergence to compare the accuracy of models.
+
+To use DKL to compare models, it seems like we would have to know p, the target probability distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much.
+
+All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r.  This also means that the absolute magnitude of these values will not be interpretable—neither E log(qi) nor E log(ri) by itself suggests a good or bad model. Only the difference E log(qi)−E log(ri) informs us about the divergence of each model from the target p.
+
+A total score for a model q=  it is a log-probability score, and it is the gold standard way to compare the predictive accuracy of different models. It is an estimate of E log(qi), just without the final step of dividing by the number of observations:
+
+$$S(q) = \sum_{i} log(q_i))$$
+
+
+**log-pointwise-predictive-density**: "Bayesian deviance". To compute this score for a Bayesian model, we have to use the entire posterior distribution.  How can we use the entire distribution of predictions? We need to find the log of the average probability for each observation i, where the average is taken over the posterior distribution. Each of these values is the log-probability score for a specific observation. If you sum these values, you’ll have the total log-probability score for the model and data. What do these values mean? Larger values are better, because that indicates larger average accuracy. It also quite common to see something called the deviance, which is like a lppd score, but multiplied by −2 so that smaller values are better.
+
+
+**deviance**: 
+
+-2 * the total log-probability score for the model and data.
+
+$$-2\sum_{i}log(q_i)$$
+While deviance on training data always improves with additional predictor variables, deviance on future data may or may not, depending upon both the true data-generating process and how much data is available to precisely estimate the parameters. These facts form the basis for understanding both regularizing priors and information criteria.
+
+
+From @GelmanHill2005
+
+In classical generalized linear models, adding a parameter to a model is expected to increase the fit—even if the new parameter represents pure noise. Adding a noise predictor is expected to reduce the deviance by 1, and adding k predictors that are pure noise is expected to reduce the deviance by k. More precisely, adding k noise predictors will reduce the deviance by an amount corresponding to a $\chi^2_k$ distribution with k degrees of freedom.
+
+Thus, if k predictors are added and the deviance declines by significantly more than k, then we can conclude that the observed improvement in predictive power is statistically significant. Thus,
+
+adjusted deviance = deviance + number of predictors.  (Eq 24.7)
+
+can be used as an adjusted measure that approximately accounts for the increase in fit attained simply by adding predictors to a model. (The analogy in simple linear regression is the adjusted R2.)
+
+The next step, beyond checking whether an improvement in deviance is statistically significant, is to see if it is estimated to increase out-of-sample predictive power. 
+
+
+**TRAINING SAMPLE**
+
+The log-probability score is a principled way to measure distance from the target. But the score as computed in the previous section has the same flaw as R2: It always improves as the model gets more complex, at least for the types of models we have considered so far. Just like R2, log-probability on training data is a measure of retrodictive accuracy, not predictive accuracy. We simply cannot score models by their performance on training data. That way lies the monster Scylla, devourer of naive data scientists.
+
+
+It is really the score on new data that interests us. So before looking at tools for improving and measuring out-of-sample score, let’s bring the problem into sharper focus by simulating the score both in and out of sample. When we usually have data and use it to fit a statistical model, the data comprise a training sample. Parameters are estimated from it, and then we can imagine using those estimates to predict outcomes in a new sample, called the test sample. R is going to do all of this for you. But here’s the full procedure, in outline:
+
+(1) Suppose there’s a training sample of size N.
+(2) Compute the posterior distribution of a model for the training sample, and compute the score on the training sample. Call this score Dtrain.
+(3) Suppose another sample of size N from the same process. This is the test sample.
+(4) Compute the score on the test sample, using the posterior trained on the training sample. Call this new score Dtest.
+  
+### **predicting predictive accuracy**  
+
+### cross-validation
+
+test the model’s predictive accuracy on another sample.
+
+This is done leaving out a small chunk of observations from our sample and evaluating the model on the observations that were left out. Of course we don’t want to leave out data. So what is usually done is to divide the sample in a number of chunks, called “folds.” The model is asked to predict each fold, after training on all the others. We then average over the score for each fold to get an estimate of out-of-sample accuracy. The minimum number of folds is 2. At the other extreme, you could make each point observation a fold and fit as many models as you have individual observations.
+
+* **leave-one-out cross-validation = LOOCV** : use the maximum number of folds, resulting in leaving out one unique observation in each fold.
+
+The key trouble with leave-one-out cross-validation is that, if we have 1000 observations, that means computing 1000 posterior distributions. Luckily, there are clever ways to approximate the cross-validation score without actually running the model over and over again. One approach is to use the “importance” of each observation to the posterior distribution. What “importance” means here is that some observations have a larger impact on the posterior distribution—if we remove an important observation, the posterior changes more. Other observations have less impact. An observation that is relatively unlikely is more important than one that is relatively expected. When your expectations are violated, you should change your expectation more. Bayesian inference works the same way. This importance is often called a *weight*, and these weights can be used to estimate a model’s out-of-sample accuracy. 
+
+* **pareto-smoothed importance sampling cross-validation = PSIS**: approximation of the cross-validation score using importance sampling or the importance weights approach. 
+
+The best feature of PSIS is that it provides feedback about its own reliability. It does this by noting particular observations with very high weights that could make the PSIS score inaccurate.
+
+Another nice feature of cross-validation and PSIS as an approximation is that it is com- puted point by point. This pointwise nature provides an approximate—sometimes very approximate—estimate of the standard error of our estimate of out-of-sample deviance. To compute this standard error, we calculate the CV or PSIS score for each observation and then exploit the central limit theorem to provide a measure of the standard error: $\sqrt{Nvar(psis_i)}$ where N= number of observations, and $psis_i$= the PSIS estimate for observation i. 
+
+
+Cross-validation estimates the out-of-sample log-pointwise-predictive-density (lppd). If you have N observations and fit the model N times, dropping a single observation yi each time, then the out-of-sample lppd is the sum of the average accuracy for each omitted yi.
+
+mportance sampling replaces the computation of N posterior distributions by using an estimate
+of the importance of each i to the posterior distribution. We draw samples from the full posterior dis- tribution p(θ|y), but we want samples from the reduced leave-one-out posterior distribution p(θ|y−i). So we re-weight each sample s (samples from a Markov chain) by the inverse of the probability of the omitted observation. The weights r(θs) can be unreliable. In particular, if any r(θs) is too relatively large, it can ruin the estimate of lppd by dominating it. One strategy is to truncate the weights so that none are larger than a theoretically derived limit. This helps, but it also biases the estimate. What PSIS does is more clever. It exploits the fact that the distribution of weights should have a particular shape, under some regular conditions. The largest weights should follow a generalized Pareto distribution. 
+
+The estimates of k provide information about the reliability of the approximation. There will be one k value for each yi. Larger k values indicate more influential points, and if k > 0.5 then the Pareto distribution has infinite variance. Both theory and simulation suggest PSIS’s weights perform well as long as k < 0.7. Large k values are useful for identifying influential observations. 
+
+### information criteria
+
+Information criteria construct a theoretical estimate of the relative out-of-sample K-L Divergence
+  
+**Akaike Information Criterion = AIC**: 
+
+On average, a predictor needs to reduce the deviance by 2 in order to improve the fit to new data. The Akaike information criterion is defined as: 
+
+**AIC** = adjusted deviance + number of predictors = deviance + 2 · (number of predictors)  (Eq 24.8) (Gelman and Hill 2005)
+
+$$AIC= D_{train} + 2p = -2lppd + 2p$$
+where p is the number of free parameters in the posterior distribution.
+
+As the 2 is just there for scaling, what AIC tells us is that the dimensionality of the posterior distribution is a natural measure of the model’s overfitting tendency. More complex models tend to overfit more, directly in proportion to the number of parameters.
+
+In classical regression or generalized linear modeling, a new model is estimated to reduce out-of-sample prediction error if the AIC decreases. 
+
+AIC is an approximation that is reliable only when:
+(1) The priors are flat or overwhelmed by the likelihood.
+(2) The posterior distribution is approximately multivariate Gaussian.
+(3) The sample size N is much greater than the number of parameters k.
+
+
+**Deviance Information Criterion = DIC** in multilevel models. 
+
+The ideas of deviance and AIC apply to multilevel models also, but with the difficulty that the “number of parameters” is not so clearly defined. Roughly speaking, the number of parameters in a multilevel model depends on the amount of pooling— a batch of J parameters corresponds to one parameter if there is complete pooling, J independent parameters if there is no pooling, and something in between with partial pooling. For example, with the varying-intercept radon models, the coeð- cients for the 85 county indicators represent something fewer than 85 independent parameters. Especially for the counties with small sample sizes, the group-level re- gression explains much of the variation in the intercepts, so that in the multilevel model they are not estimated independently. When the model is improved and the group-level variance decreases, the effective number of independent parameters also decreases.
+
+In multilevel models:
+
+* the mean deviance (that is, the deviance averaged over all the nsims simulated parameter vectors) plays the role of the adjusted deviance (24.7)
+
+* The effective number of parameters is called $p_D$
+
+* the measure of out-of- sample predictive error is the deviance information criterion: 
+
+DIC = mean deviance + 2$p_D$, (Eq 24.9)
+
+which plays the role of the Akaike information criterion in (24.8). We shall not further discuss the computation of pD here, except to say that it is unstable to estimate and so we currently use it only in a provisional sense.
+We illustrate the use of deviance and DIC by comparing the fit of the models fit to the dog data in Section 24.2. Figure 24.6 shows the mean deviance, effective number of parameters, and DIC for each. As the models get more complicated, the mean deviance decreases, which makes sense—with more structure, we can fit the data better. However, the improvement in fit when moving to the multilevel models is counterbalanced by the increase in $p_D$, the effective number of parameters. As a result, the estimated out-of-sample prediction error, DIC, actually increases slightly for these models. So we treat these $p_D$ and DIC results as suggestive rather than definitive.
+
+  
+DIC is assumes:
+
+(1) The posterior distribution is approximately multivariate Gaussian.
+(2) The sample size N is much greater than the number of parameters k.  
+
+It does ok with informative priors. 
+
+**Widely Applicable Information Criterion = WAIC**
+
+It approximates the out-of-sample deviance (K-L Divergence). This converges to the cross-validation approximation in a large sample. But in a finite sample, it can disagree. 
+
+WAIC is just the log-posterior-predictive- density (lppd) plus a penalty proportional to the variance in the posterior predictions. The penalty term is sometimes called the effective number of parameters, or the overfitting penalty, labeled pwaic. 
+
+$$WAIC= -2(lppd + penalty\:term) = -2(lppd - \sum_i var_{\theta}\:log\:p(y_i|\theta))$$
+
+where y is the observations and Θ is the posterior distribution. The penalty term means, “compute the variance in log-probabilities for each observation i, and then sum up these variances to get the total penalty.” So you can think of each observation as having its own personal penalty score. And since these scores measure overfitting risk, you can also assess overfitting risk at the level of each observation.
+
+Like PSIS, WAIC is pointwise. Prediction is considered case-by-case, or point-by-point, in the data. Several things arise from this. 
+1) First, WAIC also has an approximate standard error. 
+
+2) Second, since some observations have stronger influence on the posterior distribution, WAIC notes this in its pointwise penalty terms. 
+
+3) Third, just like cross-validation and PSIS, because WAIC allows splitting up the data into independent observations, it is sometimes hard to define. Consider for example a model in which each prediction depends upon a previous observation. This happens, for example, in a time series. In a time series, a previous observation becomes a predictor variable for the next observation. So it’s not easy to think of each observation as independent or exchangeable. In such a case, you can of course compute WAIC as if each observation were independent of the others, but it’s not clear what the resulting value means.
+
+WAIC makes no assumption about the shape of the posterior. 
+
+**Information criteria and consistency.** As mentioned previously, information criteria like AIC and WAIC do not always assign the best expected Dtest to the “true” model. In statistical jargon, information criteria are not consistent for model identification. These criteria aim to nominate the model that will produce the best predictions, as judged by out-of-sample deviance, so it shouldn’t surprise us that they do not also do something that they aren’t designed to do. Other metrics for model comparison are however consistent. So are information criteria broken?
+They are not broken, if you care about prediction.
+Consistency is evaluated asymptotically. This means that we imagine the sample size N approaching infinity. Then we ask how a procedure behaves in this large-data limit. With practically infinite data, AIC and WAIC and cross-validation will often select a more complex model, so they are sometimes accused of “overfitting.” But at the large-data limit, the most complex model will make predictions identical to the true model (assuming it exists in the model set). The reason is that with so much data every parameter can be very precisely estimated. And so using an overly complex model will not hurt prediction. 
+
+
+### comparing cross-validation, PSIS, and WAIC
+
+While all three criteria get the expected out-of-sample deviance approximately correct, it is also true that in any particular sample they usually miss it by some amount. So we should look at the average error as well.
+
+PSIS and WAIC perform very similarly in the context of ordinary linear models.
+there are important differences, they lie in other model types, where the posterior distribu- tion is not approximately Gaussian or in the presence of observations that strongly influence the posterior. CV and PSIS have higher variance as estimators of the K-L Divergence, while
+WAIC has greater bias. So we should expect each to be slightly better in different contexts. However, in practice any advantage may be much smaller than the expected error. Watan- abe recommends computing both WAIC and PSIS and contrasting them. If there are large differences, this implies one or both criteria are unreliable.
+
+Estimation aside, PSIS has a distinct advantage in warning the user about when it is unreliable. The k values that PSIS computes for each observation indicate when the PSIS score may be unreliable, as well as identify which observations are at fault.
+
+the train-test prediction task is not representative of everything we might wish to do with models. For example, some statisticians prefer to evaluate predictions using a prequential framework, in which models are judged on their accumulated learning error over the training sample. And once you start using multilevel models, “prediction” is no longer uniquely defined, because the test sample can differ from the training sample in ways that forbid use of some the parameter esti- mates. We’ll worry about that issue in Chapter 13.
+
+Perhaps a larger concern is that our train-test thought experiment pulls the test sample from exactly the same process as the training sample. This is a kind of uniformitarian assumption, in which future data are expected to come from the same process as past data and have the same rough range of values. This can cause problems. For example, suppose we fit a regression that predicts height using body weight. The training sample comes from a poor town, in which most people are pretty thin. The relationship between height and weight turns out to be positive and strong. Now also suppose our prediction goal is to guess the heights in another, much wealthier, town. Plugging the weights from the wealthy individuals into the model fit to the poor individuals will predict outrageously tall people. The reason is that, once weight becomes large enough, it has essentially no relationship with height. WAIC will not automatically recognize nor solve this problem. Nor will any other isolated procedure. But over repeated rounds of model fitting, attempts at prediction, and model criticism, it is possible to overcome this kind of limitation. As always, statistics is no substitute for science.
+
+
+
+Yao, Y., Vehtari, A., Simpson, D., and Gelman, A. (2018). Using stacking to average bayesian predictive
+distributions (with discussion). Bayesian Analysis, 13(3):917–1007.
+
+### **model comparison**
+
+is a more general approach that uses multiple models to understand both how different variables influence pre- dictions and, in combination with a causal model, implied conditional indendencies among variables help us infer causal relationships.
+
+When there are several plausible (and hopefully un-confounded) models for the same set of observations, how should we compare the accuracy of these models? Following the fit to the sample is no good, because fit will always favor more complex models. Information divergence is the right measure of model accuracy, but even it will just lead us to choose more and more complex and wrong models.  We need to somehow evaluate models out-of-sample. How can we do that? A meta- model of forecasting tells us two important things. First, flat priors produce bad predictions. Regularizing priors—priors which are skeptical of extreme parameter values—reduce fit to sample but tend to improve predictive accuracy. Second, we can get a useful guess of predictive accuracy with the criteria CV, PSIS, and WAIC. Regularizing priors and CV/PSIS/WAIC are complementary. Regularization reduces overfitting, and predictive criteria measure it.
+
+
+How do we use regularizing priors and CV/PSIS/WAIC? A very common use of cross-validation and information criteria is to perform model selection, which means choosing the model with the lowest criterion value and then dis- carding the others. But you should never do this. 
+
+* This kind of selection procedure discards the information about relative model accuracy contained in the differences among the CV/PSIS/WAIC values. Why are the differences useful? Because sometimes the differences are large and sometimes they are small. Just as relative posterior probability provides ad- vice about how confident we might be about parameters (conditional on the model), relative model accuracy provides advice about how confident we might be about models (conditional on the set of models compared). 
+
+* Another reason to never select models based upon WAIC/CV/PSIS alone is that we might care about causal inference. Maximizing expected predictive accuracy is not the same as inferring causation. Highly confounded models can still make good predictions, at least in the short term. They won’t tell us the consequences of an intervention, but they might help us forecast. So we need to be clear about our goals and not just toss variables into the causal salad and let WAIC select our meal.
+
+
+So what good are these criteria then? 
+
+* They measure expected predictive value of a variable on the right scale, accounting for overfitting. This helps in testing model implications, given a set of causal models. 
+
+* They also provide a way to measure the overfitting tendency of a model, and that helps us both design models and understand how statistical inference works. 
+
+* Finally, minimizing a criterion like WAIC can help in designing models, especially in tuning parameters in multilevel models.
+
+
+### plant-treatment-fungus example @mcelreath2020 with model comparison
+
+Suppose for example that you are growing some plants in a greenhouse. You want to know the difference in growth under different anti- fungal soil treatments, because fungus on the plants tends to reduce their growth. Plants are initially seeded and sprout. Their heights are measured. Then different soil treatments are applied. Final measures are the height of the plant and the presence of fungus. There are four variables of interest here: initial height, final height, treatment, and presence of fungus.
+
+```{r plant models}
+
+# simulate data based on that experiment
+set.seed(71)
+# number of plants 
+N <- 100
+# simulate initial heights 
+h0 <- rnorm(N,10,2)
+# assign treatments and simulate fungus and growth 
+treatment <- rep( 0:1 , each=N/2 )
+fungus <- rbinom( N , size=1 , prob=0.5 - treatment*0.4 ) 
+h1 <- h0 + rnorm(N, 5 - 3*fungus)
+# compose a clean data frame
+d <- data.frame( h0=h0 , h1=h1 , treatment=treatment , fungus=fungus ) 
+precis(d)
+```
+
+
+We know that the plants at time t = 1 should be taller than at time t = 0, whatever scale they are measured on. So if we put the parameters on a scale of proportion of height at time t = 0, rather than on the absolute scale of the data, we can set the priors more easily. To make this simpler, let’s focus right now only on the height variables, ignoring the predictor variables. We might have a linear model like:
+
+$h_{1,i} \sim Normal(\mu_i, \sigma)$
+$\mu_i= h_{0,i}*p$
+
+where $h_{0,i}$ is plant i’s height at time t = 0, $h_{1,i}$ is plant i’s height at time t = 1, $p= h_{1,i}/h_{0,i}$ is a parameter measuring the proportion of h0,i that h1,i is. If p = 1,the plant has no change in height. We have to ensure that p > 0, because it is a proportion, so we use  a Log-Normal distribution as a prior, because it is always positive.
+
+
+**only intercept model **
+```{r m6.6 }
+m6.6 <- quap( alist(
+h1 ~ dnorm( mu , sigma ), 
+mu <- h0*p,
+p ~ dlnorm( 0 , 0.25 ), 
+sigma ~ dexp( 1 )
+), data=d ) 
+precis(m6.6)
+
+
+```
+
+About 40% growth, on average.
+
+Now to include the treatment and fungus variables. We’d like to measure the impact of both the treatment and the fungus itself. The parameters for these variables will also be on the proportion scale. They will be changes in proportion growth. So we’re going to make a linear model of p now.
+
+$h_{1,i} \sim Normal(\mu_i, \sigma)$
+$\mu_i= h_{0,i}*p$
+$p = \alpha + \beta_TT_i +\beta_FF_i$
+
+**Trt and fungus model**
+```{r m6.7}
+m6.7 <- quap( alist(
+h1 ~ dnorm( mu , sigma ),
+mu <- h0 * p,
+p <- a + bt*treatment + bf*fungus, 
+a ~ dlnorm( 0 , 0.2 ) ,
+bt ~ dnorm( 0 , 0.5 ),
+bf ~ dnorm( 0 , 0.5 ),
+sigma ~ dexp( 1 )
+), data=d ) 
+precis(m6.7)
+```
+
+That a parameter is the same as p before. And it has nearly the same posterior. The marginal posterior for bt, the effect of treatment, is solidly zero, with a tight interval. The treatment is not associated with growth. The fungus seems to have hurt growth, however. Given that we know the treatment matters, because we built the simulation that way, what happened here?
+
+The problem is that fungus is mostly a consequence of treatment. This is to say that fungus is a post-treatment variable. So when we control for fungus, the model is implicitly answering the question: Once we already know whether or not a plant developed fungus, does soil treatment matter? The answer is “no,” because soil treatment has its effects on growth through reducing fungus. But we actually want to know, based on the design of the experiment, is the impact of treatment on growth. To measure this properly, we should omit the post-treatment variable fungus. 
+
+**Trt no fungus model**
+```{r m6.8}
+
+m6.8 <- quap( alist(
+h1 ~ dnorm( mu , sigma ), 
+mu <- h0 * p,
+p <- a + bt*treatment,
+a ~ dlnorm( 0 , 0.2 ), 
+bt ~ dnorm( 0 , 0.5 ), 
+sigma ~ dexp( 1 )
+), data=d ) 
+precis(m6.8)
+```
+
+Now the impact of treatment is clearly positive, as it should be. It makes sense to control for pre-treatment differences, like the initial height h0, that might mask the causal influence of treatment. But including post-treatment variables can actually mask the treatment itself. This doesn’t mean you don’t want the model that includes both treatment and fungus. The fact that including fungus zeros the coefficient for treatment suggests that the treatment works for exactly the anticipated reasons. It tells us about mechanism. But a correct inference about the treatment still depends upon omitting the post-treatment variable.
+
+```{r fungus dag, echo=FALSE}
+
+library(dagitty)
+
+dagf <- dagify( 
+  H1 ~ H0,
+  H1 ~ F, 
+  F~T, 
+  exposure = "T",
+  outcome = "H1") %>% 
+  tidy_dagitty()
+
+ggdag(dagf) +
+  theme_dag()
+
+
+plant_dag <- dagitty( "dag {
+H_0 -> H_1 F -> H_1 T -> F
+}")
+
+impliedConditionalIndependencies(plant_dag)
+
+```
+
+When we include F, the post-treatment effect, in the model, we end up blocking the path from the treatment to the outcome. This is the DAG way of saying that learning the treatment tells us nothing about the outcome, once we know the fungus status. Conditioning on F effectively blocks the directed path T → F → H1, making T and H1 independent (d-separated). In the previous chapter, you saw the notation H1 ⊥ T|F for this kind of statement. 
+
+**MODEL COMPARISON**
+
+Cross-validation and WAIC aim to find models that make good predictions. They don’t solve any causal inference problem.
+
+m6.6 is the model with just an intercept, m6.7 is the model that include both treatment and fungus (the post-treatment variable), and m6.8 is the model that includes treatment but omits fungus. It’s m6.8 that allows us to correctly infer the causal influence of treatment. However the model that conditions on fungus will make better predictions than the model that omits it.
+
+```{r WAIC compare}
+
+set.seed(77)
+compare( m6.6 , m6.7 , m6.8 , func=WAIC )
+
+compare( m6.6 , m6.7 , m6.8 , func=PSIS )
+```
+The first column contains the WAIC values. Smaller values are better, and the models are ordered by WAIC, from best to worst. The model that includes the fungus variable has the smallest WAIC, as promised. The pWAIC column is the penalty term of WAIC. These values are close to, but slightly below, the number of dimensions in the posterior of each model, which is to be expected in linear regressions with regularizing priors.
+
+The dWAIC column is the difference between each model’s WAIC and the best WAIC in the set. So it’s zero for the best model and then the differences with the other models tell you how far apart each is from the top model. So m6.7 is about 40 units of deviance smaller than both other models. The intercept model, m6.6, is 3 units worse than m6.8. Are these big differences or small differences? One way to answer that is to ask a clearer question: Are the models easily distinguished by their expected out-of-sample accuracy? To answer that question, we need to consider the error in the WAIC estimates. Since we don’t have the target sample, these are just guesses, and we know from the simulations that there is a lot of variation in WAIC’s error. 
+
+That is what the two standard error columns, SE and dSE, are there to help us with. SE is the approximate standard error of each WAIC. In a very approximate sense, we expect the uncertainty in out-of-sample accuracy to be normally distributed with mean equal to the reported WAIC value and a standard deviation equal to the standard error. When the sample is small, this approximation tends to dramatically underestimate the uncertainty. But it is still better than older criteria like AIC, which provide no way to gauge their uncertainty.
+
+Now to judge whether two models are easy to distinguish, we don’t use their standard errors but rather the standard error of their difference. What does that mean? Just like each WAIC value, each difference in WAIC values also has a standard error. To compute the standard error of the difference between models m6.7 and m6.8, we just need the pointwise breakdown of the WAIC values. 
+
+The difference between the models is 40.9 and the standard error about 10.4. If we imagine the 99% (corresponding to a z-score of about 2.6) interval of the difference, it’ll be about:
+
+```{r 7.28}
+  40.0 + c(-1,1)*10.4*2.6
+```
+
+Model m6.7 is a lot better. You might be able to see all of this better, if we plot the compare table:
+
+```{r compare fungus plots}
+ plot( compare( m6.6 , m6.7 , m6.8 ) )
+```
+  The filled points are the in-sample deviance values. The open points are the WAIC values. Notice that naturally each model does better in-sample than it is expected to do out-of- sample. The line segments show the standard error of each WAIC. These are the values in the column labeled SE in the table above. So you can probably see how much better m6.7 is than m6.8. What we really want however is the standard error of the difference in WAIC between the two models. That is shown by the lighter line segment with the triangle on it, between m6.7 and m6.8.
+  
+What does this all of this mean? It means that WAIC cannot be used to infer causation.
+
+Similarly, we can ask about the difference between models m6.8, the model with treat- ment only, and model m6.6, the intercept model. Model m6.8 provides pretty good evidence that the treatment works. You can inspect the posterior again, if you have forgotten. But WAIC thinks these two models are quite similar. There difference is only 3 units of deviance.
+
+```{r compare dSE}
+set.seed(93)
+compare( m6.6 , m6.7 , m6.8 )@dSE
+```
+
+
+We can use WAIC/CV/PSIS to measure how big a difference some variable makes in prediction. But we cannot use these criteria to decide whether or not some effect exists. We need the posterior distributions of multiple models, maybe examining the implied conditional independencies of a relevant causal graph, to do that.
+
+### **multilevel posterior predictions**
+
+1)  we should no longer expect the model to exactly retrodict the sample, because adaptive regularization has as its goal to trade off poorer fit in sample for better inference and hopefully better fit out of sample. That is what shrinkage does for us. Of course, we should never be trying to really retrodict the sample. But now you have to expect that even a perfectly good model fit will differ from the raw data in a systematic way.
+
+2) “prediction” in the context of a multilevel model requires additional choices. If we wish to validate a model against the specific clusters used to fit the model, that is one thing. But if we instead wish to compute predictions for new clusters, other than the ones observed in the sample, that is quite another. We’ll consider each of these in turn, continuing to use the chimpanzees model from the previous section.
+
+### posterior prediction for the same clusters
+
+When working with the same clusters as you used to fit a model, varying intercepts are just parameters. The only trick is to ensure that you use the right intercept for each case in the data.  
+
+Before computing predictions, note again that we should no longer expect the posterior predictive distribution to match the raw data, even when the model worked correctly. Why? The whole point of partial pooling is to shrink estimates towards the grand mean. So the estimates should not necessarily match up with the raw data, once you use pooling.
+
+For example, in data(chimpanzees), there are 7 unique actors. These are the clusters. The varying intercepts model, m13.4, estimated an intercept for each, in addition to two parameters to describe the mean and standard deviation of the population of actors.
+
+$L_i \sim binomial(1,p_i)$
+
+$logit(p_i)= \alpha_{actor[i]} + \gamma_{block[i]} + \beta_{treatment[i]}$
+
+βj ∼ Normal(0, 0.5) , , for j = 1..4
+αj ∼ Normal($\bar{\alpha}$, $\sigma_{\alpha}$) , for j = 1..7 
+γj ∼Normal(0,$\sigma_{\gamma}$) , for j=1..6
+$\bar{\alpha}$ ∼ Normal(0, 1.5) 
+$\sigma_{\alpha}$ ∼ Exponential(1)
+$\sigma_{\gamma}$ ∼ Exponential(1)
+
+For actors, the vector is α, and it has length 7, because there are 7 chimpanzees in the sample. For blocks, the vector is γ, and it has length 6, because there are 6 blocks. Each cluster variable needs its own standard deviation parameter that adapts the amount of pooling across units, be they actors or blocks. These are σα and σγ , respectively. Finally, note that there is only one global mean parameter α ̄. We can’t identify a separate mean for each varying intercept type, because both intercepts are added to the same linear prediction. If you do include a mean for each cluster type, it won’t be the end of the world, however. It’ll be like the right leg and left leg example 
+
+```{r m13.4, warning=FALSE, message=FALSE}
+library(rethinking)
+data(chimpanzees)
+d <- chimpanzees
+
+d$treatment <- 1 + d$prosoc_left + 2*d$condition
+
+dat_list <- list(
+pulled_left = d$pulled_left,
+actor = d$actor,
+block_id = d$block,
+treatment = as.integer(d$treatment) )
+
+set.seed(13) 
+m13.4 <- ulam(
+alist(
+pulled_left ~ dbinom( 1 , p ) ,
+logit(p) <- a[actor] + g[block_id] + b[treatment] ,
+b[treatment] ~ dnorm( 0 , 0.5 ),
+## adaptive priors
+a[actor] ~ dnorm( a_bar , sigma_a ),
+g[block_id] ~ dnorm( 0 , sigma_g ),
+## hyper-priors
+a_bar ~ dnorm( 0 , 1.5 ), 
+sigma_a ~ dexp(1),
+sigma_g ~ dexp(1)
+) , data=dat_list , chains=4 , cores=4 , log_lik=TRUE )
+
+precis( m13.4 , depth=2 )
+
+```
+
+```{r m13.4 plot, echo=FALSE}
+
+
+
+plot( precis(m13.4,depth=2) ) # also plot
+```
+
+
+computing and plotting posterior predictions for actor number 2:
+
+* using the rethinking::link function 
+
+```{r link chimp}
+chimp <- 2 
+d_pred <- list(
+actor = rep(chimp,4), treatment = 1:4, block_id = rep(1,4)
+)
+p <- link( m13.4 , data=d_pred ) 
+p_mu <- apply( p , 2 , mean ) 
+p_ci <- apply( p , 2 , PI )
+```
+
+![mcelreath figure 11.4](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-16\ at\ 18.14.45.png)
+
+
+* not using the rethinking::link function 
+
+The only difficulty is that when we work with the samples from the posterior, the varying intercepts will be a matrix of samples. Let’s take a look:
+
+```{r no link chimp}
+post <- extract.samples(m13.4) 
+str(post)
+#The a matrix has samples on the rows and actors on the columns. So to plot, for example, the density for actor 5:
+ dens( post$a[,5] )
+ 
+ p_link <- function( treatment , actor=1 , block_id=1 ) { 
+   logodds <- with( post ,
+a[,actor] + g[,block_id] + b[,treatment] ) 
+   return( inv_logit(logodds) )
+ }
+ 
+p_raw <- sapply( 1:4 , function(i) p_link( i , actor=2 , block_id=1 ) ) 
+p_mu <- apply( p_raw , 2 , mean )
+p_ci <- apply( p_raw , 2 , PI )
+ 
+```
+
+### posterior prediction for new clusters
+
+Theproblemofmakingpredictionsfornew clusters is really a problem of generalizing from the sample. In general, there is no unique procedure for generalizing predictions outside of a sample. The right thing to do depends upon the causal model, the statistical model, and your goals. But if you have a generative model, then you can often think your way through it. The key idea is to use the posterior to parameterize a simulation that embodies the target generalization
+
+EXAMPLE 
+
+Suppose you want to predict how chimpanzees in another population would respond to our lever pulling experiment. The particular 7 chimpanzees in the sample allowed us to estimate 7 unique intercepts. But these individual actor intercepts aren’t of interest, because none of these 7 individuals is in the new population.
+One way to grasp the task of constructing posterior predictions for new clusters is to imagine leaving out one of the clusters when you fit the model to the data. For example, suppose we leave out actor number 7 when we fit the chimpanzees model. Now how can we assess the model’s accuracy for predicting actor number 7’s behavior? We can’t use any of the a parameter estimates, because those apply to other individuals. But we can make good use of the a_bar and sigma_a parameters. These parameters describe a statistical population of actors, and we can simulate new actors from it.
+First, let’s see how to construct posterior predictions for a new, previously unobserved average actor. By “average,” I mean an individual chimpanzee with an intercept exactly at a_bar (α ̄), the population mean. Since there is uncertainty about the population mean, there is still uncertainty about this average individual’s intercept. But as you’ll see, the uncertainty is much smaller than it really should be, if we wish to honestly represent the problem of what to expect from a new individual.
+
+
+Notice that the function ignores block. This is because we are extrapolating to new blocks, so we assume the average block effect is about zero 
+```{r predict new chimp}
+p_link_abar <- function( treatment ) {
+logodds <- with( post , a_bar + b[,treatment] ) 
+return( inv_logit(logodds) )
+}
+
+post <- extract.samples(m13.4)
+p_raw <- sapply( 1:4 , function(i) p_link_abar( i ) ) 
+p_mu <- apply( p_raw , 2 , mean )
+p_ci <- apply( p_raw , 2 , PI )
+plot( NULL , xlab="treatment" , ylab="proportion pulled left" ,
+    ylim=c(0,1) , xaxt="n" , xlim=c(1,4) )
+axis( 1 , at=1:4 , labels=c("R/N","L/N","R/P","L/P") )
+lines( 1:4 , p_mu )
+shade( p_ci , 1:4 )
+```
+Setting the varying inter- cept a to the mean a_bar produces predictions for an average actor. These predictions ignore uncertainty arising from variation among actors.
+
+The gray region shows the 89% compatibility interval for an actor with an average intercept. The predictions just set the actor to the average, ignoring variation among actors. This kind of calculation makes it easy to see the impact of prosoc_left, as well as uncertainty about where the average is, but it doesn’t show the variation among actors.
+
+To show the variation among actors, we’ll need to use sigma_a in the calculation. First we simply use rnorm to sample some random chimpanzees, using mean a_bar and standard deviation sigma_a. Then we write a link function that references those simulated chimpanzees, not the ones in the posterior. It’s important to do the chimpanzee sampling outside the link function, because we want to reference the same simulate chimpanzee, whichever treatment we consider. This is the code:
+
+```{r sim new chimp}
+a_sim <- with( post , rnorm( length(post$a_bar) , a_bar , sigma_a ) ) 
+
+p_link_asim <- function( treatment ) {
+logodds <- with( post , a_sim + b[,treatment] )
+return( inv_logit(logodds) ) }
+
+p_raw_asim <- sapply( 1:4 , function(i) p_link_asim( i ) )
+p_mu <- apply( p_raw_asim , 2 , mean )
+p_ci <- apply( p_raw_asim, 2 , PI )
+plot( NULL , xlab="treatment" , ylab="proportion pulled left" ,
+    ylim=c(0,1) , xaxt="n" , xlim=c(1,4) )
+axis( 1 , at=1:4 , labels=c("R/N","L/N","R/P","L/P") )
+lines( 1:4 , p_mu )
+shade( p_ci , 1:4 )
+```
+Simulating varying intercepts using the posterior standard deviation among actors, sigma_a, produces predictions that account for variation among actors. These posterior predictions are marginal of actor, which means that they average over the uncertainty among actors. 
+
+At this point, students usually ask, “So which one should I use?” The answer is, “It depends.” Both are useful, depending upon the question. The predictions for an average actor help to visualize the impact of treatment. The predictions that are marginal of actor illustrate how variable different chimpanzees are, according to the model. You probably want to compute both for yourself, when trying to understand a model. But which you include in a report will depend upon context.
+
+In this case, we can do better by making a plot that displays both the treatment effect and the variation among actors. We can do this by forgetting about intervals and instead simulating a series of new actors in each of the four treatments. By drawing a line for each actor across all four treatments, we’ll be able to visualize both the zig-zag impact of prosoc_left as well as the variation among individuals.
+
+We just need to use the rows in p_raw_asim from above. Each row contains a single trend, a single simulated chimpanzee. So instead of sum- marizing with mean and PI, we can just loop over rows and plot:
+
+```{r plot each sim chimp}
+plot( NULL , xlab="treatment" , ylab="proportion pulled left" ,
+    ylim=c(0,1) , xaxt="n" , xlim=c(1,4) )
+axis( 1 , at=1:4 , labels=c("R/N","L/N","R/P","L/P") )
+for ( i in 1:100 ) lines( 1:4 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )
+```
+
+100 simulated actors with unique intercepts sampled from the posterior. Each simulation maintains the same parameter values across all four treatments.
+
+
+### R2  
+
+### ROC curve
+
+### sensitivity analysis
 
