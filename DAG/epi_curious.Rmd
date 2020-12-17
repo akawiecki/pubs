@@ -4043,6 +4043,29 @@ We usually don’t mind. First, it can be possible to check these assumptions. P
 When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When $\sigma_{\alpha}$ cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression 
 
 
+## **TIME SERIES**
+
+From https://otexts.com/fpp2/
+
+### patterns 
+
+**Trend**
+A trend exists when there is a long-term increase or decrease in the data. It does not have to be linear. Sometimes we will refer to a trend as “changing direction,” when it might go from an increasing trend to a decreasing trend.
+
+**Seasonal**
+A seasonal pattern occurs when a time series is affected by seasonal factors such as the time of the year or the day of the week. Seasonality is always of a *fixed and known frequency*. The monthly sales of antidiabetic drugs above shows seasonality which is induced partly by the change in the cost of the drugs at the end of the calendar year.
+
+```{r seasonal plot, echo=FALSE}
+ggseasonplot(a10, year.labels=TRUE, year.labels.left=TRUE) +
+  ylab("$ million") +
+  ggtitle("Seasonal plot: antidiabetic drug sales")
+```
+
+
+**Cyclic***
+A cycle occurs when the data exhibit rises and falls that are *not of a fixed frequency*. These fluctuations are usually due to economic conditions, and are often related to the “business cycle.” The duration of these fluctuations is usually at least 2 years.
+
+
 
 ## **MODEL COMPARISON**
 
@@ -4180,7 +4203,7 @@ The estimates of k provide information about the reliability of the approximatio
 
 Information criteria construct a theoretical estimate of the relative out-of-sample K-L Divergence
   
-**Akaike Information Criterion = AIC**: 
+* **Akaike Information Criterion = AIC**: 
 
 On average, a predictor needs to reduce the deviance by 2 in order to improve the fit to new data. The Akaike information criterion is defined as: 
 
@@ -4199,7 +4222,7 @@ AIC is an approximation that is reliable only when:
 (3) The sample size N is much greater than the number of parameters k.
 
 
-**Deviance Information Criterion = DIC** in multilevel models. 
+* **Deviance Information Criterion = DIC** in multilevel models. 
 
 The ideas of deviance and AIC apply to multilevel models also, but with the difficulty that the “number of parameters” is not so clearly defined. Roughly speaking, the number of parameters in a multilevel model depends on the amount of pooling— a batch of J parameters corresponds to one parameter if there is complete pooling, J independent parameters if there is no pooling, and something in between with partial pooling. For example, with the varying-intercept radon models, the coeð- cients for the 85 county indicators represent something fewer than 85 independent parameters. Especially for the counties with small sample sizes, the group-level re- gression explains much of the variation in the intercepts, so that in the multilevel model they are not estimated independently. When the model is improved and the group-level variance decreases, the effective number of independent parameters also decreases.
 
@@ -4224,7 +4247,7 @@ DIC is assumes:
 
 It does ok with informative priors. 
 
-**Widely Applicable Information Criterion = WAIC**
+* **Widely Applicable Information Criterion = WAIC**
 
 It approximates the out-of-sample deviance (K-L Divergence). This converges to the cross-validation approximation in a large sample. But in a finite sample, it can disagree. 
 
@@ -4263,13 +4286,9 @@ the train-test prediction task is not representative of everything we might wish
 Perhaps a larger concern is that our train-test thought experiment pulls the test sample from exactly the same process as the training sample. This is a kind of uniformitarian assumption, in which future data are expected to come from the same process as past data and have the same rough range of values. This can cause problems. For example, suppose we fit a regression that predicts height using body weight. The training sample comes from a poor town, in which most people are pretty thin. The relationship between height and weight turns out to be positive and strong. Now also suppose our prediction goal is to guess the heights in another, much wealthier, town. Plugging the weights from the wealthy individuals into the model fit to the poor individuals will predict outrageously tall people. The reason is that, once weight becomes large enough, it has essentially no relationship with height. WAIC will not automatically recognize nor solve this problem. Nor will any other isolated procedure. But over repeated rounds of model fitting, attempts at prediction, and model criticism, it is possible to overcome this kind of limitation. As always, statistics is no substitute for science.
 
 
+**cross-validation, PSIS, and WAIC for MODEL COMPARISON**
 
-Yao, Y., Vehtari, A., Simpson, D., and Gelman, A. (2018). Using stacking to average bayesian predictive
-distributions (with discussion). Bayesian Analysis, 13(3):917–1007.
-
-### **cross-validation, PSIS, and WAIC for model comparison**
-
-is a more general approach that uses multiple models to understand both how different variables influence pre- dictions and, in combination with a causal model, implied conditional indendencies among variables help us infer causal relationships.
+Model comparison is a more general approach than model selection that uses multiple models to understand both how different variables influence predictions and, in combination with a causal model, implied conditional independencies among variables help us infer causal relationships.
 
 When there are several plausible (and hopefully un-confounded) models for the same set of observations, how should we compare the accuracy of these models? Following the fit to the sample is no good, because fit will always favor more complex models. Information divergence is the right measure of model accuracy, but even it will just lead us to choose more and more complex and wrong models.  We need to somehow evaluate models out-of-sample. How can we do that? A meta- model of forecasting tells us two important things. First, flat priors produce bad predictions. Regularizing priors—priors which are skeptical of extreme parameter values—reduce fit to sample but tend to improve predictive accuracy. Second, we can get a useful guess of predictive accuracy with the criteria CV, PSIS, and WAIC. Regularizing priors and CV/PSIS/WAIC are complementary. Regularization reduces overfitting, and predictive criteria measure it.
 
@@ -4649,7 +4668,8 @@ training dta: $y_1,...,y_T$
 
 testing data: $y_{T+1},y_{T+2}...$
 
-* SCALE-DEPENDENT ERRORS
+### scale-dependent errors
+
 The forecast errors are on the same scale as the data. Accuracy measures that are based only on $e_{t}$ are therefore scale-dependent and cannot be used to make comparisons between series that involve different units.
 
 * **mean absolute error = MAE**
@@ -4667,7 +4687,7 @@ $$RMSE= \sqrt{mean(e_{t}^2)}$$
 
 Minimising the RMSE will lead to forecasts of the mean. 
 
-* SCALED ERRORS
+### scaled errors
 
 Scaled errors were proposed by Hyndman & Koehler (2006) as an alternative to using percentage errors when comparing forecast accuracy across series with different units. They proposed scaling the errors based on the training MAE from a simple forecast method.
 
