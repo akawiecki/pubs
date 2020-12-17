@@ -26,7 +26,7 @@ library(knitr)
 library(stringr)
 library("patchwork")
 library("ghibli")
-#library("arm")
+library("fpp2")
 ```
 
 
@@ -4046,7 +4046,7 @@ When the number of groups is small, it is difficult to estimate the between-grou
 
 ## **MODEL COMPARISON**
 
-Mostly from @mcelreath2020
+From @mcelreath2020 and https://online.stat.psu.edu/stat462/node/95/
 
 Sometimes we don’t care about causal inference. Maybe we just want to make good predictions. That we don’t understand what is going on is irrelevant. So is just adding everything to the model okay?
 
@@ -4061,16 +4061,30 @@ Models that have many parameters tend to **overfit** more than simpler models. T
 
 But simple models, with too few parameters, tend instead to **underfit**, systematically over-predicting or under-predicting the data, regardless of how well future data resemble past data. So we can’t always favor either simple models or complex models.
 
-### R2  
+### coefficient of determination = r-squared = R2
 
-Often described as “variance explained,” R2 is defined as:
+Often described as “variance explained,” it's the proportion of the variance in the dependent variable that is predictable from the independent variable(s). R2 is defined as:
 
 $$R^2 = \frac{var(outcome)-var(residuals)}{var(outcome)}= 1- \frac{var(residuals)}{var(outcome)}$$
+
+or 
+
+$$R^2 = \frac{SSR}{SSTO}= 1- \frac{SSE}{SSTO}= \frac{\sum(\hat{y_i}- \bar{y})^2}{\sum(y_i- \bar{y})^2}= 1- \frac{\sum(y_i- \hat{y_i})^2}{\sum(y_i- \bar{y})^2}$$
+where 
+
+regression sum of squares: $SSR = \sum(\hat{y_i}- \bar{y})^2$ = how far the estimated sloped regression line, is from the horizontal "no relationship line," or sample mean 
+
+error sum of squares: $SSE = \sum(y_i- \hat{y_i})^2$ = how much the observations vary around estimated the estimated regression line
+
+total sum of squares: $SSTO = SSR + SSE  =\sum(y_i- \bar{y})^2$ = how much the observations vary around the horizontal "no relationship line," the sample mean 
+
+Interpretation: "r2 ×100 percent of the variation in y is reduced by taking into account predictor x"
+
 
 Like other measures of fit to sample, R2 increases as more predictor variables are added. This is true even when the variables you add to a model are just random numbers, with no relation to the outcome. So it’s no good to choose among models using only fit to the data.
 
 
-### **model selection**
+### INFORMATION THEORY 
 
 From @mcelreath2020
 
@@ -4136,7 +4150,7 @@ It is really the score on new data that interests us. So before looking at tools
 (3) Suppose another sample of size N from the same process. This is the test sample.
 (4) Compute the score on the test sample, using the posterior trained on the training sample. Call this new score Dtest.
   
-### **predicting predictive accuracy**  
+### PREDICTING PREDICTIVE ACCURACY   
 
 ### cross-validation
 
@@ -4253,7 +4267,7 @@ Perhaps a larger concern is that our train-test thought experiment pulls the tes
 Yao, Y., Vehtari, A., Simpson, D., and Gelman, A. (2018). Using stacking to average bayesian predictive
 distributions (with discussion). Bayesian Analysis, 13(3):917–1007.
 
-### **model comparison**
+### **cross-validation, PSIS, and WAIC for model comparison**
 
 is a more general approach that uses multiple models to understand both how different variables influence pre- dictions and, in combination with a causal model, implied conditional indendencies among variables help us infer causal relationships.
 
@@ -4433,7 +4447,7 @@ compare( m6.6 , m6.7 , m6.8 )@dSE
 
 We can use WAIC/CV/PSIS to measure how big a difference some variable makes in prediction. But we cannot use these criteria to decide whether or not some effect exists. We need the posterior distributions of multiple models, maybe examining the implied conditional independencies of a relevant causal graph, to do that.
 
-### **multilevel posterior predictions**
+### POSTERIOR PREDICTIVE ACCURACY IN MULTILEVEL MODELS
 
 1)  we should no longer expect the model to exactly retrodict the sample, because adaptive regularization has as its goal to trade off poorer fit in sample for better inference and hopefully better fit out of sample. That is what shrinkage does for us. Of course, we should never be trying to really retrodict the sample. But now you have to expect that even a perfectly good model fit will differ from the raw data in a systematic way.
 
@@ -4605,6 +4619,113 @@ for ( i in 1:100 ) lines( 1:4 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )
 ```
 
 100 simulated actors with unique intercepts sampled from the posterior. Each simulation maintains the same parameter values across all four treatments.
+
+### FORECASTING ACCURACY
+
+From https://otexts.com/fpp2/accuracy.html
+
+It is important to evaluate forecast accuracy using genuine forecasts. Consequently, the size of the residuals is not a reliable indication of how large true forecast errors are likely to be. The accuracy of forecasts can only be determined by considering how well a model performs on new data that were not used when fitting the model.
+
+When choosing models, it is common practice to separate the available data into two portions, training and test data, where the training data is used to estimate any parameters of a forecasting method and the test data is used to evaluate its accuracy. Because the test data is not used in determining the forecasts, it should provide a reliable indication of how well the model is likely to forecast on new data.
+
+The following points should be noted:
+
+* A model which fits the training data well will not necessarily forecast well.
+
+* A perfect fit can always be obtained by using a model with enough parameters.
+
+* Over-fitting a model to data is just as bad as failing to identify a systematic pattern in the data.
+
+**forecast error** 
+
+forecast errors are different from residuals in two ways. First, residuals are calculated on the training set while forecast errors are calculated on the test set. Second, residuals are based on one-step forecasts while forecast errors can involve multi-step forecasts.
+
+We can measure forecast accuracy by summarising the forecast errors in different ways.
+
+$$e_{T+h}= y_{T+h} - \hat{y}_{T+h|T}$$
+where
+
+training dta: $y_1,...,y_T$
+
+testing data: $y_{T+1},y_{T+2}...$
+
+* SCALE-DEPENDENT ERRORS
+The forecast errors are on the same scale as the data. Accuracy measures that are based only on $e_{t}$ are therefore scale-dependent and cannot be used to make comparisons between series that involve different units.
+
+* **mean absolute error = MAE**
+
+$$MAE= mean(|e_{t}|)$$
+
+A forecast method that minimises the MAE will lead to forecasts of the median
+
+![](/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/Screen\ Shot\ 2020-12-17\ at\ 11.57.51.png)
+
+
+* **root mean squared error = RMSE**
+
+$$RMSE= \sqrt{mean(e_{t}^2)}$$
+
+Minimising the RMSE will lead to forecasts of the mean. 
+
+* SCALED ERRORS
+
+Scaled errors were proposed by Hyndman & Koehler (2006) as an alternative to using percentage errors when comparing forecast accuracy across series with different units. They proposed scaling the errors based on the training MAE from a simple forecast method.
+
+Because the numerator and denominator both involve values on the scale of the original data,$q_{j}$ is independent of the scale of the data. 
+
+* **naïve forecasts**
+
+For a non-seasonal time series, a useful way to define a scaled error uses naïve forecasts:
+
+$$q_{j}= \frac{e_j}{\frac{1}{T-1}\sum^T_{t=2}|y_t-y_{t-1}|}$$
+
+* **seasonal naïve forecasts**
+
+For a seasonal time series, a useful way to define a scaled error uses naïve forecasts:
+
+$$q_{j}= \frac{e_j}{\frac{1}{T-m}\sum^T_{t=m+1}|y_t-y_{t-m}|}$$
+
+
+
+$q_{j}< 1$ if it arises from a better forecast than the average naïve forecast computed on the training data.
+
+$q_{j}>1$  the forecast is worse than the average naïve forecast computed on the training data.
+
+* **mean absolute scaled error= MASE**
+
+$$MASE= mean(|q_{j}|)$$
+
+EXAMPLE
+
+```{r aus beer forecasting}
+beer2 <- window(ausbeer,start=1992,end=c(2007,4))
+beerfit1 <- meanf(beer2,h=10)
+beerfit2 <- rwf(beer2,h=10)
+beerfit3 <- snaive(beer2,h=10)
+autoplot(window(ausbeer, start=1992)) +
+  autolayer(beerfit1, series="Mean", PI=FALSE) +
+  autolayer(beerfit2, series="Naïve", PI=FALSE) +
+  autolayer(beerfit3, series="Seasonal naïve", PI=FALSE) +
+  xlab("Year") + ylab("Megalitres") +
+  ggtitle("Forecasts for quarterly beer production") +
+  guides(colour=guide_legend(title="Forecast"))
+
+```
+
+The figure shows three forecast methods applied to the quarterly Australian beer production using data only to the end of 2007. The actual values for the period 2008–2010 are also shown.
+
+We compute the forecast accuracy measures for this period.
+
+```{r aus beer accuracy}
+
+
+beer3 <- window(ausbeer, start=2008)
+accuracy(beerfit1, beer3)
+accuracy(beerfit2, beer3)
+accuracy(beerfit3, beer3)
+```
+
+It is obvious from the graph that the seasonal naïve method is best for these data, although it can still be improved, as we will discover later. Sometimes, different accuracy measures will lead to different results as to which forecast method is best. However, in this case, all of the results point to the seasonal naïve method as the best of these three methods for this data set.
 
 
 ### ROC curve
