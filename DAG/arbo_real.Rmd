@@ -1,0 +1,46 @@
+---
+title: "epi curious"
+author: "Ania Kawiecki"
+date: "9/29/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(message=FALSE)
+```
+
+```{r libraries, message= FALSE}
+
+library(tidyverse)
+library(rethinking)
+library(dagitty)
+library(knitr)
+library("ggdag")
+library("ggrepel")
+
+library(INLA)
+library(knitr)
+library(stringr)
+library("patchwork")
+library("ghibli")
+library("fpp2")
+```
+
+VECTOR BORNE DISEASE
+
+Table of 20 most important VB diseases in the world: where when and what (pathogen, vector, geo dist) 
+Vectorial capacity, vector competence, host competence.
+How do you assess a reservoir? 
+1. Pathogen is present in the host in nature.
+ If you experimentally infect that animal it gets infected. ?
+Main strategies of vector intervention: treatments, water removal, larvicidal 
+Ross-McDonalds model: boils parameters down to the components of transmission. They also set out an intervention strategy by intervention on the parameter. Ex development time in the host and vector. 
+Compare contrast vectors mosquito vs ticks. Ex: ticks attach and inject salivary proteins. Mosquitoes feed repeatedly and quickly 
+Read some medical entomology
+Brush up on vector indexes, especially for adult mosquitoes. Ex aedes adult house index. 
+
+Vectorial capacity, vector competence, host competence.
+

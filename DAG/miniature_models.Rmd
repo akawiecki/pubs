@@ -35,58 +35,6 @@ resampling of data—if we were to repeat the measurement many many times, we wo
 In modest terms, Bayesian data analysis is no more than counting the numbers of ways the data could happen, according to our assumptions. Things that can happen more ways are more plausible. 
 
 
-**model selection**
-
-*information*: "The reduction in uncertainty when we learn an outcome." @mcelreath2020
-
-*information entropy*: If there are n different possible events and each event i has probability pi, and we call the list of probabilities p, then the unique measure of uncertainty we seek is: $H(p) = -E log(p_i) = -\sum_{i=1}^n p_i log(p_i)$
-The uncertainty contained in a probability distribution is the average log-probability of an event. The lower this measure the less uncertainty. 
-
-*divergence*: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: $D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)$
-The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p (see the Overthinking box on the next page for some more detail). When p = q, we know the actual probabilities of the events and $D_{KL} = 0$. As q grows more different from p, the divergence also grows.
-
-
-To use DKL to compare models, it seems like we would have to know p, the target proba- bility distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much.
-All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r. 
-
-*deviance*: 
--2 * the total log-probability score for the model and data.$-2\sum_{i}log(q_i)$
-
-
-## Epidemiological reasoning behind OR vs RR 
-
-You CAN compute P(random event|fixed event)= probability of a random event conditioned on a fixed event. 
-
-You CAN'T compute P(fixed event|random event)= probability of a fixed event conditioned on a random event. 
- 
-Logistic regression validly estimates odds ratios but does not necessarily validly estimate risk ratios.
-
-
-1.COHORT study: follow up people with certain exposure and cases occur randomly.
-
-random event = disease; fixed event = exposure. 
-
-Risk = P(D+|E+) and P(D+|E-)
-
-2.CASE-CONTROL study: follow up people with disease and look at if they had exposure.
-
-random event = exposure, fixed event = disease . 
-
-Risk = P(D+|E+) and P(D+|E-) --> can't compute!!! 
-
-OR= odds D+ in E+ group/ odds D+ in E- group --> can't compute
-
-OR= odds E+ in D+ group/ odds E+ in D- group --> CAN compute because exposure can be treated as a random event.
-
-(P(E+|D+)/1- P(E+|D+))/(P(E+|D-)/1- P(E+|D-))
-
-OR are symmetric from the perspective of exposure and outcome, so it doesn't matter! :) 
-
-3.CROSS-SECTIONAL STUDY:
-
-Risk: can be estimated only if the x-sectional study is a probability sample (each person has the same probability of being included in the study) --> rare
-
-OR: can always be estimated
 
 # **LINEAR REGRESSION**
 
@@ -841,4 +789,24 @@ Multilevel model is most important when it is close to complete pooling, when $\
                                  
 *How many groups?*
 When the number of groups is small, it is difficult to estimate the between-group variation and, as a result, multilevel modeling often adds little in such situations, beyond classical no-pooling models. When $\sigma_{\alpha}$ cannot be estimated well, it tends to be overestimated, and so the partially pooled estimates are close to no pooling. For 1-2 groups multilevel modeling reduces to classical regression 
+
+
+# model checking 
+
+## model selection
+
+*information*: "The reduction in uncertainty when we learn an outcome." @mcelreath2020
+
+*information entropy*: If there are n different possible events and each event i has probability pi, and we call the list of probabilities p, then the unique measure of uncertainty we seek is: $H(p) = -E log(p_i) = -\sum_{i=1}^n p_i log(p_i)$
+The uncertainty contained in a probability distribution is the average log-probability of an event. The lower this measure the less uncertainty. 
+
+*divergence*: : The additional uncertainty induced by using probabilities from one distribution to describe another distribution: $D_{KL} (p,q) = \sum_{i} p_i (log(p_i)-log(q_i)) = \sum_{i} p_i log(p_i/q_i)$
+The divergence is the average difference in log probability between the target (p) and model (q). This divergence is just the difference between two entropies: The entropy of the target distribution p and the cross entropy arising from using q to predict p (see the Overthinking box on the next page for some more detail). When p = q, we know the actual probabilities of the events and $D_{KL} = 0$. As q grows more different from p, the divergence also grows.
+
+
+To use DKL to compare models, it seems like we would have to know p, the target probability distribution. In all of the examples so far, I’ve just assumed that p is known. But when we want to find a model q that is the best approximation to p, the “truth,” there is usually no way to access p directly. We wouldn’t be doing statistical inference, if we already knew p. Good thing is, we are only interested in comparing the divergences of different candidates, say q and r. In that case, most of p just subtracts out, because there is a E log(pi) term in the divergence of both q and r. This term has no effect on the distance of q and r from one another. So while we don’t know where p is, we can estimate how far apart q and r are, and which is closer to the truth. It’s as if we can’t tell how far any particular archer is from hitting the target, but we can tell which archer gets closer and by how much.
+All of this also means that all we need to know is a model’s average log-probability: E log(qi) for q and E log(ri) for r. 
+
+*deviance*: 
+-2 * the total log-probability score for the model and data.$-2\sum_{i}log(q_i)$
 
