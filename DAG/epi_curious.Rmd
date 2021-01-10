@@ -5117,7 +5117,106 @@ where C is the total number of cases, c is the observed number of cases within t
 
 For each grid point, the radius of the window varies continuously in size from zero to some upper limit specified by the user. In this way, the circular window is flexible both in location and size. In total, the method creates an infinite number of distinct geographical circles with different sets of neighboring data locations within them. Each circle is a possible candidate cluster.
 
+## SPATIAL REGRESSION 
+
+Examine how phenomena vary over space (where things actually occur)
+
+• Predict where phenomena may occur
+
+• Help explain the factors behind observed spatial patterns
+
+### Ordinary Least Squares = OLS 
+
+Global regression model
+
+- One equation, calibrated using data from all features 
+
+– Relationships are fixed
+
+
+Spatial dependence suggests many statistical tools and inferences are inappropriate
+
+– OLS regressions assume that the observations are independent realizations of the process being studied
+
+– If the observations are spatially clustered, the estimates obtained from the OLS estimator will be:
+
+• Biased: because the areas with higher concentration of events will have a greater impact on the model estimate
+
+• Overly precise: since events tend to be concentrated, there are actually fewer number of independent observations than are being assumed
+
+**CHECK IF YOUR MODEL IS VALID**
+
+1. Model performance
+
+* R-squared
+
+* relatively low AIC
+
+2. Spatial autocorrelation of residuals:
+
+– When you are missing variables, you see a pattern in the residuals (clustering)
+
+– When you have a properly specified model, the residuals reflect random noise
+
+* **Moran's I** 
+to look for clustering of resuduals. 
+
+* **Jarque-Bera test**
+
+The residuals of a good model should be normally distributed with a mean of zero
+
+When the Jarque-Bera test is statistically significant:
+
+– The model is biased
+
+– Results are not reliable
+
+– Often indicates that a key variable is missing from the model
+
+
+3. Coefficients have expecteds sign.
+
+4. Coefficients ares tatistically significant.
+
+5. Variables aren't reduntant or collinear.
+
+* scatterplot matrix
+
+* **Variance Inflation Factor = VIF**
+
+Explanatory variables with a VIF > 7.5 should be removed one by one, until the redundancy is gone
+
+6. Relationships don't vary significantly accross the study area. 
+
+* **Koenker statistic**
+
+when significant it shows that we have regional variation (non-stationarity) for the relationships we are modeling
+
+– The robust probabilities are still significant (so it is reasonable to trust our model)
+
+– But we can do better! We can move from a global regression model (OLS) to a method that allows regional variation – Geographically Weighted Regression
+
+### Geographically Weighted Regression = GWR
+
+For each explanatory variable, GWR creates a coefficient surface showing where the relationships are the strongest. 
+
+– Local regression model
+
+– One equation for every feature, calibrated using data from nearby features
+
+– Relationships are allowed to vary across the study area
 
 
 
+**differences between OLS and GWR**
+
+* Do not include spatial regime (dummy) variables. Eg. Census tracts within the urban core are 1 and those outside are 0. GWR will capture the spatial effects without those variables (using them creates local collinearity)
+
+* Avoid explanatory variables with little value variation: They tend to have problems with local redundancy
+
+* Avoid multicollinearity
+
+• Two variables telling the same story
+
+• Review GWR output for ‘condition’ numbers. Those > 30 indicate local variable redundancy problems
 
