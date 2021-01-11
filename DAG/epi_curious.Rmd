@@ -3371,6 +3371,10 @@ binary (0,1)
 
 binomial: $y_i \to Binomial(n, p_i)$
 
+we want to know the number of successes (x) out of (n) Bernoulli trials.
+
+**pmf** $$f(x)= \begin{pmatrix} n\\x \end{pmatrix} p^x (1-p)^{n-x}$$
+
 ### model
 
 $f(\hat{p_i})=\alpha +\beta(x_i-\bar{x})$
@@ -3444,9 +3448,20 @@ No longer does a unit change in a predictor variable produce a constant change i
 
 ### assumptions
 
-* linearity: $logit(\hat{p_i})$ is a linear function of the predictors = it is linear in the coefficients
+* binary outcome: the outcome is a binary or dichotomous variable like yes vs no, positive vs negative, 1 vs 0.
+
+* linearity: $logit(\hat{p_i})$ is a linear function of the predictors = it is linear in the coefficients. There is a linear relationship between the logit of the outcome and each predictor variables.
+
 * independence: the different observations are statistically independent
-* variance function: $\sigma^2 = p(1-p)$
+
+* absence of multicollinearity: there is no high intercorrelations (i.e. multicollinearity) among the predictors.
+
+* lack of strongly influential outliers: there is no influential values (extreme values or outliers) in the continuous predictors
+
+* variance function: $\sigma^2 = np(1-p)$
+
+* expectation: $E(X)= \mu= np$
+
 * binomial: the error distribution is binomial
 
 ### parameter estimation
@@ -3787,6 +3802,197 @@ display (fit.1)
 **simulating the uncertainty in the estimated coefficients**
 
 ![Gelman and Hill Figure 7.6 and 7.7](/Users/annakawiecki/Google\ Drive/epi/papers/Bayesian/gelman_hill\ figures/Screen\ Shot\ 2020-12-14\ at\ 19.30.01.png)
+
+### model diagnostics
+
+example: diabetes data + model
+
+```{r logistic linearity}
+
+library(tidyverse)
+library(broom)
+library("mlbench")
+theme_set(theme_classic())
+
+# Load the data
+data("PimaIndiansDiabetes2", package = "mlbench")
+PimaIndiansDiabetes2 <- na.omit(PimaIndiansDiabetes2)
+# Fit the logistic regression model
+model <- glm(diabetes ~., data = PimaIndiansDiabetes2, 
+               family = binomial)
+# Predict the probability (p) of diabete positivity
+probabilities <- predict(model, type = "response")
+predicted.classes <- ifelse(probabilities > 0.5, "pos", "neg")
+head(predicted.classes)
+
+```
+
+example evans data  +  models 
+```{r evans data} 
+
+vars <- c("ID","CHD","CAT","AGE","CHL","SMK", "ECG","DBP","SBP","HPT","CH","CC")
+
+evans <- read.table("/Users/annakawiecki/Documents/epi/workshops/akawiecki_pubs/pubs/DAG/notes\ screenshots/evans.dat.txt",header=F, col.names=vars)
+
+#summary(evans)
+
+main.model <- glm(CHD ~ CAT+SMK+HPT,family=binomial,evans) 
+
+full.model <- glm(CHD ~ CAT*SMK*HPT,family=binomial,evans)
+
+anova(main.model,full.model,test="Chisq")
+ 
+```
+
+* **LINEARITY**
+
+http://www.sthda.com/english/articles/36-classification-methods-essentials/148-logistic-regression-assumptions-and-diagnostics-in-r/
+
+Check the linear relationship between continuous predictor variables and the logit of the outcome. This can be done by visually inspecting the scatter plot between each predictor and the logit values.
+
+example diabetes data: 
+
+```{r diabetes linearity}
+
+# Select only numeric predictors
+mydata <- PimaIndiansDiabetes2 %>%
+  dplyr::select_if(is.numeric) 
+predictors <- colnames(mydata)
+# Bind the logit and tidying the data for plot
+mydata <- mydata %>%
+  mutate(logit = log(probabilities/(1-probabilities))) %>%
+  gather(key = "predictors", value = "predictor.value", -logit)
+
+ggplot(mydata, aes(logit, predictor.value))+
+  geom_point(size = 0.5, alpha = 0.5) +
+  geom_smooth(method = "loess") + 
+  theme_bw() + 
+  facet_wrap(~predictors, scales = "free_y")
+
+```
+The smoothed scatter plots show that variables glucose, mass, pregnant, pressure and triceps are all quite linearly associated with the diabetes outcome in logit scale.
+
+The variable age and pedigree is not linear and might need some transformations. If the scatter plot shows non-linearity, you need other methods to build the model such as including 2 or 3-power terms, fractional polynomials and spline function (Chapter @ref(polynomial-and-spline-regression)).
+
+* **INFLUENTIAL VALUES**
+
+**RESIDUALS**
+
+if $y > \hat{y}$ observed value > expected value $\to$ positive deviance residual
+
+if $y < \hat{y}$ observed value < expected value $\to$ negative deviance residual
+
+When y = 1, all the residuals are positive and when y = 0 they are all negative.
+
+**r**
+
+$$r=\frac{p-\hat{p}}{\sqrt{\hat{p}(1-p)/n}} \sim N(0,1) \: when\: n\to \infty$$ 
+
+**response residual**
+
+$$r_{re}= y- \hat{y}$$
+
+**pearson's residual**
+
+$$r_{pe}=\frac{y-\hat{y}}{\sqrt{\hat{y}(1-y)/n}}$$ 
+
+**partial residual** 
+
+
+
+**DFITTS**: change in $\hat{y_i}$ when a point is removed. as many as observations
+
+**DBETA**: change in the coefficient of variable j ($x_j$) when point i is removed. as many as coefficients. 
+
+
+
+* **Hosmer-Lemeshow test = HL test**
+
+Order the data by the predicted values and cut into classes of equal size, say 10.
+
+Calculate observed and expected cases in each group. Use chisq test as usual from (O - E )^2/E This can be done using hoslem.test() from the ResourceSelection package in R.
+
+This is very commonly used, but has low power, and interpretation in case of rejection can be diffcult.
+
+example data: HL evans data
+```{r HL test ungrouped}
+
+library("ResourceSelection")
+## ResourceSelection 0.3-4 2019-01-08
+mod2.glm <- glm(CHD~CAT+CHL+SMK+HPT,family=binomial,evans)
+
+
+#mod2.glm$y = observed 
+
+#fitted(mod2.glm) = expected 
+
+#X-squared = 1.4748
+
+hoslem.test(mod2.glm$y,fitted(mod2.glm))
+
+ 
+pchisq(1.4748, df=8, lower.tail = FALSE)
+```
+
+
+p-value = 0.9931. This p-value is very big.
+
+Small p-values (usually under 5%) mean that your model is not a good fit. But large p-values mean that there isn’t enough evidence to say it’s a good fit.
+
+
+* **plot dfitts vs. fitted values**
+
+$y_i- \hat{y_i}$ > 0 when y= 1 (cases)
+
+$y_i- \hat{y_i}$ < 0 when y= 0 (controls)
+
+outliers are values that make the estimate change most when they are removed.  Example dfitts > 0.3 causes a >0.3 change in the etimated probablity. 
+
+```{r dfitts vs fit}
+plot(dffits(mod2.glm))
+
+which(dffits(mod2.glm)>0.3)
+
+plot(predict(mod2.glm), dffits(mod2.glm))
+```
+
+* **plot dfbetas vs. fitted values** for each quantitative variable
+
+*intercept*
+
+there are 6 points of high influence for the intercept. Omission will increase the intercept.
+
+```{r dfbeta  intercept}
+
+plot(dfbeta(mod2.glm)[,1])
+
+evans[order(dfbeta(mod2.glm)[,1])[1:6],]
+```
+
+
+*CAT*
+
+```{r dfbeta  cat}
+
+plot(dfbeta(mod2.glm)[,2])
+
+evans[order(dfbeta(mod2.glm)[,2])[1:6],]
+```
+
+
+* **MULTICOLLINEARITY**
+
+Multicollinearity corresponds to a situation where the data contain highly correlated predictor variables.
+
+**vif**
+
+example diabetes
+
+```{r vif }
+car::vif(model)
+```
+
+
 
 ## POISSON REGRESSION
 
@@ -5100,7 +5306,7 @@ Example: The data may consist of the location of bird nests in a square kilomete
 Instead of using the homogeneous Poisson model, the data can be approximated by the discrete Poisson model by dividing the study area into many small pieces. For each piece, a single coordinates point is specified, the size of the piece is used to define the population at that location and the number of observations within that small piece of area is the number of cases in that location. As the number of pieces increases towards infinity, and hence, as their size decreases towards zero, the discrete Poisson model will be asymptotically equivalent to the homogeneous Poisson model.
 
 
-** likelihood ratio test**
+**likelihood ratio test**
 
 The likelihood function is maximized over all window locations and sizes, and the one with the maximum likelihood constitutes the most likely cluster. This is the cluster that is least likely to have occurred by chance. The likelihood ratio for this window constitutes the maximum likelihood ratio test statistic. Its distribution under the null-hypothesis is obtained by repeating the same analytic exercise on a large number of random replications of the data set generated under the null hypothesis. The p-value is
 14
@@ -5127,11 +5333,11 @@ Examine how phenomena vary over space (where things actually occur)
 
 ### Ordinary Least Squares = OLS 
 
-Global regression model
+- Global regression model
 
 - One equation, calibrated using data from all features 
 
-– Relationships are fixed
+- Relationships are fixed
 
 
 Spatial dependence suggests many statistical tools and inferences are inappropriate
