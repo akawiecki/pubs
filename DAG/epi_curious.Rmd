@@ -3942,11 +3942,7 @@ Small p-values (usually under 5%) mean that your model is not a good fit. But la
 
 * **plot dfitts vs. fitted values**
 
-$y_i- \hat{y_i}$ > 0 when y= 1 (cases)
 
-$y_i- \hat{y_i}$ < 0 when y= 0 (controls)
-
-outliers are values that make the estimate change most when they are removed.  Example dfitts > 0.3 causes a >0.3 change in the etimated probablity. 
 
 ```{r dfitts vs fit}
 plot(dffits(mod2.glm))
@@ -4000,16 +3996,40 @@ car::vif(model)
 
 count data (0,+∞). positive numbers. 
 
-Differences between the binomial and Poisson models:
-The Poisson model is similar to the binomial model for count data  but is applied in slightly different situations:
-• If each data point yi can be interpreted as the number of “successes” out of ni trials, then it is standard to use the binomial/logistic model or its overdispersed generalization.
-• If each data point yi does not have a natural limit—it is not based on a number of independent trials—then it is standard to use the Poisson/logarithmic regression model (as described here) or its overdispersed generalization.
 
 ### distribution
 
 poisson  $y_i \to Poisson(\theta_i)$
 
 mean = variance = $\theta$
+
+$\theta$ is a rate 
+
+X: random variable: the number of occurrences of an event in an interval t
+
+the interval t is subdivided into n subintervals of equal length 1/n. Each of these intervals is a Bernoulli trial where the event can occur or not (success or failure). Only one event can occur in a subinterval at a time, so the subiterval has to be sufficiently short. the subintervals are independent. 
+
+
+**pmf** sequence of Bernoulli trials with $p=\theta/n$
+
+
+$$P(X=x|\theta)= \frac{e^{-\theta}\theta^x}{x!}, x (0 \to \infty)$$
+
+**Differences between the binomial and Poisson models**:
+
+The Poisson model is similar to the binomial model for count data  but is applied in slightly different situations:
+
+• If each data point yi can be interpreted as the number of “successes” out of ni trials, then it is standard to use the binomial/logistic model or its overdispersed generalization.
+
+• If each data point yi does not have a natural limit—it is not based on a number of independent trials—then it is standard to use the Poisson/logarithmic regression model (as described here) or its overdispersed generalization.
+
+Poisson approximates the binomial when n is large or p is small. 
+
+$$p=\theta/n \to \theta = pn$$
+
+
+
+$$f(x)= \begin{pmatrix} n\\x \end{pmatrix} p^x (1-p)^{n-x} = \begin{pmatrix} n\\x \end{pmatrix} (\frac{\theta}{n})^x (1-\frac{\theta}{n})^{n-x} \to \theta = pn \to \frac{e^{-pn}pn^x}{x!} \approx \begin{pmatrix} n\\x \end{pmatrix} p^x (1-p)^{n-x}$$
 
 ### model
 
@@ -4064,6 +4084,7 @@ p2 <-
 # combine the ggplots
 p1 | p2
 ```
+
 Using a log link for a linear model (left) implies an exponential scaling of the outcome with the predictor variable (right). Another way to think of this relationship is to remember that logarithms are magnitudes. An increase of one unit on the log scale means an increase of an order of magnitude on the untransformed scale. And this fact is reflected in the widening intervals between the horizontal lines in the right-hand plot.
 While using a log link does solve the problem of constraining the parameter to be positive, it may also create a problem when the model is asked to predict well outside the range of data used to fit it. Exponential relationships grow, well, exponentially. Just like a linear model cannot be linear forever, an exponential model cannot be exponential forever. Human height cannot be linearly related to weight forever, because very heavy people stop getting taller and start getting wider. Likewise, the property damage caused by a hurricane may be approximately exponentially related to wind speed for smaller storms. But for very big storms, damage may be capped by the fact that everything gets destroyed.
 
@@ -4106,7 +4127,111 @@ $log(\theta_i)= \beta_0 +\beta_ix_i + log(u_i)$
 
 $\theta_i=e^{\beta_0 +\beta_ix_i + log(u_i)} = e^{\beta_0 +\beta_ix_i}e^{log(u_i)}= e^{\beta_0 +\beta_ix_i}u_i$
 
-### overdispersion
+### model diagnostics
+
+
+ example warpbreaks
+```{r poisson example data }
+library("datasets")
+
+data <- warpbreaks
+
+hist(data$breaks)
+
+poisson.model <- glm(breaks ~ wool + tension, data, family = poisson(link = "log"))
+
+summary(poisson.model)
+
+```
+
+example eba (lung cancer incidence in Danish cities)
+
+```{r eba data }
+
+
+library(ISwR) 
+data(eba1977)
+eba.glm <- glm(cases ~ city+age+offset(log(pop)),family=poisson,data=eba1977)
+summary(eba.glm)
+```
+
+
+* **LINEARITY**
+
+http://www.sthda.com/english/articles/36-classification-methods-essentials/148-logistic-regression-assumptions-and-diagnostics-in-r/
+
+Check the linear relationship between continuous predictor variables and the logit of the outcome. This can be done by visually inspecting the scatter plot between each predictor and the logit values.
+
+* **plot residuals**
+
+```{r poisson res plot}
+plot(fitted(eba.glm),residuals(eba.glm,type="response"),ylim=c(-7,7)) 
+lines(fitted(eba.glm),2*sqrt(fitted(eba.glm))) 
+lines(fitted(eba.glm),-2*sqrt(fitted(eba.glm)))
+```
+
+
+* **INFLUENTIAL VALUES**
+
+https://online.stat.psu.edu/stat462/node/209/
+
+**RESIDUALS**
+
+
+**raw residual**
+
+$$r_{re}= y- \hat{y}$$
+
+**pearson's residual**
+
+$$r_{pe}=\frac{y-\hat{y}}{\sqrt{\hat{y}\hat{\phi}}}$$ 
+
+where $\hat{\phi}$
+
+$$\hat{\phi}=\frac{1}{n-p}\sum_{i=1}^n\frac{(y-\hat{y})^2}{\hat{y}}$$
+
+
+**deviance residuals**
+
+**DFITTS**: change in $\hat{y_i}$ when a point is removed. as many as observations
+
+**DBETA**: change in the coefficient of variable j ($x_j$) when point i is removed. as many as coefficients. 
+
+
+* **plot dfitts vs. fitted values**
+
+$y_i- \hat{y_i}$ > 0 when y= 1 (cases)
+
+$y_i- \hat{y_i}$ < 0 when y= 0 (controls)
+
+outliers are values that make the estimate change most when they are removed.  Example dfitts > 0.3 causes a >0.3 change in the etimated probablity. 
+
+```{r dfitts vs fit eba poisson}
+plot(dffits(eba.glm))
+
+which(dffits(eba.glm)< -0.2)
+
+eba1977[22,]
+
+plot(predict(eba.glm), dffits(eba.glm))
+```
+
+* **TEST GOODNESS OF FIT**
+
+the residual deviance should be in the neighborhood of the df of the residual deviance. ︎ 23.447 on 15 df ︎ Under the null hypothesis that the model fits, and if the smallest fitted value is > 5, then the null distribution is approximately chi‐squared
+
+```{r poisson good fit}
+
+min(fitted(eba.glm))
+
+pchisq(deviance(eba.glm),
+df.residual(eba.glm),lower=F) 
+drop1(eba.glm,test="Chisq")
+
+```
+
+
+* **TEST OVERDISPERSION**
 
 Under the Poisson distribution the variance equals the mean—that is, the standard deviation equals the square root of the mean. 
 
@@ -4130,6 +4255,24 @@ The estimated overdispersion factor is 2700/148 = 18.2, and the p-value is 1.  i
 EXAMPLE: $\sqrt{18.2}= 4.3$
 
 * fit overdispersed model: quasipoisson or negative binomial 
+
+
+
+example warpbreaks
+
+```{r overdispersion}
+
+mean(data$breaks)
+var(data$breaks)
+```
+
+The variance is much greater than the mean, which suggests that we will have over-dispersion in the model.
+
+
+If the Residual Deviance is greater than the degrees of freedom, then over-dispersion exists. This means that the estimates are correct, but the standard errors (standard deviation) are wrong and unaccounted for by the model.
+
+
+
 
 
 ## NEGATIVE BINOMIAL
