@@ -348,30 +348,7 @@ div.tocify {
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li>
-  <a href="rethinkingINLA_HW2.html">Homework 2</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW3.html">Homework 3</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW4.html">Homework 4</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW5.html">Homework 5</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW6.html">Homework 6</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW8.html">Homework 8</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW9.html">Homework 9</a>
-</li>
-<li>
-  <a href="rethinkingINLA_HW10.html">Homework 10</a>
-</li>
+        
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -859,15 +836,15 @@ library(&quot;fpp2&quot;)</code></pre>
 <ul>
 <li><strong>causal effect</strong>: the exposure causes the outcome. This is the effect we want to isolate using causal inference.</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag%20causal%201-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20causal%201-1.png" width="672" /></p>
 <ul>
 <li><strong>spurious effect</strong>: the exposed and the unexposed groups in the study are not comparable, or exchangeable, which is the ultimate source of the bias (the unexposed group is not the counterfactual of the exposed group) (<span class="citation">@Hernan2002</span>).</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag%20spurious%201-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20spurious%201-1.png" width="672" /></p>
 <ul>
 <li>a <strong>common effect</strong> = <strong>collider</strong></li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag3%201-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag3%201-1.png" width="672" /></p>
 </div>
 <div id="types-of-causal-relationships" class="section level2">
 <h2>types of causal relationships</h2>
@@ -889,12 +866,12 @@ library(&quot;fpp2&quot;)</code></pre>
 <div id="direct-effect" class="section level3">
 <h3>direct effect</h3>
 <p>Example: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.</p>
-<p><img src="epi_curious_files/figure-html/direct-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/direct-1.png" width="672" /></p>
 </div>
 <div id="indirect-effect" class="section level3">
 <h3>indirect effect</h3>
 <p>Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.</p>
-<p><img src="epi_curious_files/figure-html/indirect-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/indirect-1.png" width="672" /></p>
 </div>
 </div>
 <div id="guidelines-for-establishing-a-causal-relationship" class="section level2">
@@ -1201,7 +1178,7 @@ library(&quot;fpp2&quot;)</code></pre>
 </ul>
 <p><img src="notes%20screenshots/EPI%20207%20notes%20irva_sel.jpg" /></p>
 <p>Selection bias does not depend only on exposure, it depends on the sampling fraction of all the cells, that means it can also depend on disease.</p>
-<p><img src="epi_curious_files/figure-html/dag%20selection%20bias-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20selection%20bias-1.png" width="672" /></p>
 </div>
 <div id="information-bias" class="section level3">
 <h3>INFORMATION BIAS</h3>
@@ -1284,7 +1261,7 @@ library(&quot;fpp2&quot;)</code></pre>
 <p>Path: any series of variables you could walk through to get from one variable to another, ignoring the directions of the arrows.</p>
 <p>Blocking all confounding paths between some predictor X and some outcome Y is known as shutting the backdoor, thus eliminating spurious associations that are non-causal.</p>
 <p>Example:</p>
-<p><img src="epi_curious_files/figure-html/confounder%201-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/confounder%201-1.png" width="672" /></p>
 <p>There are two paths connecting E and O:</p>
 <ol style="list-style-type: decimal">
 <li><p>E → O</p></li>
@@ -1299,11 +1276,11 @@ library(&quot;fpp2&quot;)</code></pre>
 <li><p>indirect effect. A <span class="math inline">\(\to\)</span> M <span class="math inline">\(\to\)</span> D Example: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.</p></li>
 </ul></li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag1.3%20ex1-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.3%20ex1-1.png" width="672" /></p>
 <ul>
 <li>spurious effect</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag2%20ex1-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag2%20ex1-1.png" width="672" /></p>
 <p><strong>Do-operator</strong></p>
 <p>do(E) closes the backdoor paths into E, as in a manipulative experiment.</p>
 <p>P(O|do(E)) defines a causal relationship because it tells us the expected result of manipulating E on O</p>
@@ -1336,49 +1313,49 @@ library(&quot;fpp2&quot;)</code></pre>
 <ol style="list-style-type: decimal">
 <li>Example 1</li>
 </ol>
-<p><img src="epi_curious_files/figure-html/dag1.4%20ex1-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.4%20ex1-1.png" width="672" /></p>
 <ul>
 <li><p>To obtain the <strong>total causal effect</strong> we don’t condition on C or J:</p>
 <ul>
 <li>C is a confounder of the J <span class="math inline">\(\to\)</span> O association but not the E <span class="math inline">\(\to\)</span> O association, thanks to J which is a collider and blocks the path between C <span class="math inline">\(\to\)</span> E, so it is unnecessary to control for C</li>
 </ul></li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20C%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20C%20ex-1.png" width="672" /></p>
 <ul>
 <li>J is a <strong>collider</strong> of the E <span class="math inline">\(\to\)</span> C association so if we condition on J we create a backdoor path between O <span class="math inline">\(\to\)</span> E through C.</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20J%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20J%20ex-1.png" width="672" /></p>
 <ul>
 <li>To obtain the <strong>direct causal effect</strong> we condition on both J and C, because we want only the</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20JC%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20JC%20ex-1.png" width="672" /></p>
 <ol start="2" style="list-style-type: decimal">
 <li>Example 2</li>
 </ol>
-<p><img src="epi_curious_files/figure-html/dag1.4%20ex2-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.4%20ex2-1.png" width="672" /></p>
 <ul>
 <li><p>To obtain the <strong>total causal effect</strong> we condition on C but not J:</p>
 <ul>
 <li>C is a confounder of the E <span class="math inline">\(\to\)</span> O association so we must condition on it to obtain the unbiased total causal effect</li>
 </ul></li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20C%20ex2-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20C%20ex2-1.png" width="672" /></p>
 <ul>
 <li>To obtain the <strong>direct causal effect</strong> we condition on J. C is no longer a confounder because we block the path through J so it’s no longer associated with O.</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20J%20ex2-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20J%20ex2-1.png" width="672" /></p>
 <ol start="3" style="list-style-type: decimal">
 <li>Example 3.</li>
 </ol>
-<p><img src="epi_curious_files/figure-html/dag1.5%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.5%20ex-1.png" width="672" /></p>
 <ul>
 <li>To obtain the total causal effect we condition on D</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20D%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20D%20ex-1.png" width="672" /></p>
 <ul>
 <li>To obtain the total causal effect we condition on C, D, J</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/adjust%20JCD%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/adjust%20JCD%20ex-1.png" width="672" /></p>
 <p><strong>TESTABLE IMPLICATIONS</strong></p>
 <p>Testable implications can be read off the diagrams using a graphical criterion known as <strong>d- separation</strong> (Pearl, 1988). Each diagram encodes causal assumptions, each corresponding to a missing arrow or a missing double-arrow between a pair of variables.</p>
 <p>DAGs imply that some variables are independent of others under certain conditions, therefore the testable implications of a DAG are it’s <strong>CONDITIONAL INDEPENDENCIES</strong>.</p>
@@ -1412,7 +1389,7 @@ library(&quot;fpp2&quot;)</code></pre>
 <p><strong>DURING DATA ANALYSIS</strong></p>
 <p>Conditioning on the confounding factor in the study analysis: adding C to the model blocks the non-causal path E ← C → O.</p>
 <p>Why? Think of this path in isolation, as a complete model.</p>
-<p><img src="epi_curious_files/figure-html/dag%20confounder%20condition%20ex1-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20confounder%20condition%20ex1-1.png" width="672" /></p>
 <p>Once you learn C, also learning E will give you no additional information about O.</p>
 <p>Example: Suppose for example that C is the average wealth in a region. Regions with high wealth have better schools, resulting in more education (exposure E), as well as better paying jobs, resulting in higher wages (outcome O). If you don’t know the region a person lives in, learning the person’s education E will provide information about their wages O, because E and O are correlated across regions. But after you learn which region a person lives in, assuming there is no other path between E and O, then learning E tells you nothing more about O. This is the sense in which conditioning on C blocks the path — it makes E and O independent, conditional on C.</p>
 <ul>
@@ -1451,19 +1428,19 @@ d$A &lt;- standardize( d$MedianAgeMarriage )</code></pre>
 <p>The rate at which adults marry (M) is a great predictor of divorce rate. But does marriage cause divorce? In a trivial sense it obviously does: One cannot get a divorce without first getting married. But there’s no reason high marriage rate must cause more divorce. It’s easy to imagine high marriage rate indicating high cultural valuation of marriage and therefore being associated with low divorce rate.</p>
 <p>Age at marriage (A) is also a good predictor of divorce rate— higher age at marriage predicts less divorce. But there is no reason this has to be causal, either, unless age at marriage is very late and the spouses do not live long enough to get a divorce.</p>
 <p>Age of marriage influences divorce in two ways:</p>
-<p><img src="epi_curious_files/figure-html/dag1.3%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.3%20ex-1.png" width="672" /></p>
 <ul>
 <li>direct effect: a direct effect would arise because younger people change faster than older people and are therefore more likely to grow incompatible with a partner.</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag1.1%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.1%20ex-1.png" width="672" /></p>
 <ul>
 <li>indirect effect: age of marriage has an indirect effect by influencing the marriage rate, which then influences divorce. If people get married earlier, then the marriage rate may rise, because there are more young people. Consider for example if an evil dictator forced everyone to marry at age 65. Since a smaller fraction of the population lives to 65 than to 25, forcing delayed marriage will also reduce the marriage rate. If marriage rate itself has any direct effect on divorce, maybe by making marriage more or less normative, then some of that direct effect could be the indirect effect of age at marriage.</li>
 </ul>
-<p><img src="epi_curious_files/figure-html/dag1.2%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1.2%20ex-1.png" width="672" /></p>
 <p>To infer the strength of these different arrows, we need more than one statistical model.</p>
 <p>To obtain the <strong>total effect</strong> of of age at marriage on divorce rate we condition on age at marriage.</p>
 <p>The total causal effect is the sum of the direct and indirect effects</p>
-<p><img src="epi_curious_files/figure-html/dag%20ex1-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20ex1-1.png" width="672" /></p>
 <p>We assume that these variables are associated. If we look in the data and find that any pair of variables are not associated, then something is wrong with the DAG (assuming the data are correct). In these data, all three pairs are in fact strongly associated. We can use cor to measure simple correlations. Correlations are sometimes terrible measures of association—many different patterns of association with different implications can produce the same correlation. But they do honest work in this case.</p>
 <pre class="r"><code>cor(d$D, d$M)</code></pre>
 <pre><code>## [1] 0.3737314</code></pre>
@@ -1489,9 +1466,9 @@ d$A &lt;- standardize( d$MedianAgeMarriage )</code></pre>
 
 precis(m5.1)</code></pre>
 <pre><code>##                mean         sd       5.5%      94.5%
-## a      1.797071e-08 0.09737878 -0.1556301  0.1556301
-## bA    -5.684034e-01 0.10999982 -0.7442044 -0.3926024
-## sigma  7.883258e-01 0.07801137  0.6636486  0.9130031</code></pre>
+## a     -2.631398e-07 0.09737876 -0.1556303  0.1556298
+## bA    -5.684035e-01 0.10999980 -0.7442044 -0.3926025
+## sigma  7.883257e-01 0.07801133  0.6636485  0.9130028</code></pre>
 <p>The outcome and the predictor are both standardized, the intercept α should end up very close to zero.</p>
 <p>What does the prior slope <span class="math inline">\(\beta_{A}\)</span> imply? If <span class="math inline">\(\beta_{A}\)</span> = 1, that would imply that a change of one standard deviation in age at marriage is associated likewise with a change of one standard deviation in divorce. To know whether or not that is a strong relationship, you need to know how big a standard deviation of age at marriage is:</p>
 <pre class="r"><code> sd( d$MedianAgeMarriage )</code></pre>
@@ -1507,9 +1484,9 @@ mu.PI &lt;- apply( mu , 2 , PI )
 plot( D ~ A , data=d , col=rangi2 )
 lines( A_seq , mu.mean , lwd=2 )
 shade( mu.PI , A_seq )</code></pre>
-<p><img src="epi_curious_files/figure-html/5.5%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/5.5%20ex-1.png" width="672" /></p>
 <p>Model m5.1, the regression of D on A, tells us only that the total influence of age at marriage is strongly negative with divorce rate. The “total” here means we have to account for every path from A to D. There are two such paths in this graph: A → D, a direct path,and A → M → D, an indirect path.</p>
-<p><img src="epi_curious_files/figure-html/total%20effect%20dag%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/total%20effect%20dag%20ex-1.png" width="672" /></p>
 <p>In general, it is possible that a variable like A has no direct effect at all on an outcome like D. It could still be associated with D entirely through the indirect path. That type of relationship is known as <strong>mediation</strong>.</p>
 <p>As you’ll see however, the indirect path does almost no work in this case. How can we show that?</p>
 <ul>
@@ -1527,10 +1504,10 @@ shade( mu.PI , A_seq )</code></pre>
 ) , data = d )
 
 precis(m5.2)</code></pre>
-<pre><code>##                mean         sd       5.5%     94.5%
-## a     -1.579871e-07 0.10824640 -0.1729988 0.1729985
-## bM     3.500546e-01 0.12592740  0.1487983 0.5513109
-## sigma  9.102651e-01 0.08986234  0.7666477 1.0538825</code></pre>
+<pre><code>##               mean         sd       5.5%     94.5%
+## a     3.302324e-05 0.10824680 -0.1729663 0.1730323
+## bM    3.500236e-01 0.12592822  0.1487660 0.5512812
+## sigma 9.102698e-01 0.08986353  0.7666506 1.0538891</code></pre>
 <pre class="r"><code># compute percentile interval of mean
 M_seq &lt;- seq( from=-3 , to=3.2 , length.out=30 )
 mu &lt;- link( m5.2 , data=list(M=M_seq) )
@@ -1540,17 +1517,17 @@ mu.PI &lt;- apply( mu , 2 , PI )
 plot( D ~ M , data=d , col=rangi2 )
 lines( M_seq , mu.mean , lwd=2 )
 shade( mu.PI , M_seq )</code></pre>
-<p><img src="epi_curious_files/figure-html/5.6%20ex-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/5.6%20ex-1.png" width="672" /></p>
 <p>This relationship isn’t as strong as the one between A and D.</p>
 <p>The pattern we see in the previous two models is symptomatic of a situation in which only one of the predictor variables, A in this case, has a causal impact on the outcome, D, even though both predictor variables are strongly associated with the outcome.</p>
 <p>We know from the model conditioning on M (m5.2) that marriage rate is positively associated with divorce rate. But that isn’t enough to tell us that the path M → D is positive. It could be that the association between M and D arises entirely from A’s influence on both M and D. Like this:</p>
-<p><img src="epi_curious_files/figure-html/dag%20mediation-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20mediation-1.png" width="672" /></p>
 <p>This DAG is also consistent with the posterior distributions of models m5.1 and m5.2. Why? Because both M and D “listen” to A. They have information from A. So when you inspect the association between D and M, you pick up that common information that they both got from listening to A.</p>
 <p>So which is it? Is there a direct effect of marriage rate, or rather is age at marriage just driving both, creating a spurious correlation between marriage rate and divorce rate? To find out, we need to consider carefully what each DAG implies.</p>
 <ol style="list-style-type: decimal">
 <li><strong>M has influence on D</strong></li>
 </ol>
-<p><img src="epi_curious_files/figure-html/dag1-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag1-1.png" width="672" /></p>
 <p>This DAG says:</p>
 <ol style="list-style-type: decimal">
 <li>A directly influences D</li>
@@ -1572,7 +1549,7 @@ impliedConditionalIndependencies( DMA_dag1  )</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li><strong>M has no influence on D</strong></li>
 </ol>
-<p><img src="epi_curious_files/figure-html/dag%20no%20DM-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20no%20DM-1.png" width="672" /></p>
 <p>In this DAG, it is still true that all three variable are associated with one another. A is associated with D and M because it influences them both. And D and M are associated with one another, because A influences them both. They share a cause, and this leads them to be correlated with one another through that cause.</p>
 <p>There are 2 causal assumptions that can be tested (one for every arrow).</p>
 <ol style="list-style-type: decimal">
@@ -1617,23 +1594,23 @@ impliedConditionalIndependencies( DMA_dag2  )</code></pre>
     ) , data = d )
 precis( m5.3 )</code></pre>
 <pre><code>##                mean         sd       5.5%      94.5%
-## a      2.042250e-07 0.09707590 -0.1551458  0.1551462
-## bM    -6.538131e-02 0.15077283 -0.3063454  0.1755828
-## bA    -6.135135e-01 0.15098337 -0.8548141 -0.3722129
-## sigma  7.851166e-01 0.07784306  0.6607084  0.9095249</code></pre>
+## a     -2.645879e-07 0.09707598 -0.1551464  0.1551459
+## bM    -6.538020e-02 0.15077298 -0.3063445  0.1755841
+## bA    -6.135132e-01 0.15098352 -0.8548140 -0.3722124
+## sigma  7.851175e-01 0.07784327  0.6607089  0.9095261</code></pre>
 <p>The posterior mean for marriage rate, bM, is now close to zero, with plenty of probability of both sides of zero. The posterior mean for age at marriage, bA, is essentially unchanged. It will help to visualize the posterior distributions for all three models, focusing just on the slope parameters βA and βM:</p>
 <pre class="r"><code>plot(coeftab(m5.1,m5.2,m5.3), par=c(&quot;bA&quot;,&quot;bM&quot;))</code></pre>
-<p><img src="epi_curious_files/figure-html/compare%20coefficients-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/compare%20coefficients-1.png" width="672" /></p>
 <p>bA doesn’t move, only grows a bit more uncertain, while bM is only associated with divorce when age at marriage is missing from the model. You can interpret these distributions as saying: <em>Once we know median age at marriage for a State, there is little or no additional predictive power in also knowing the rate of marriage in that State</em>, which means <span class="math inline">\(D \!\perp\!\!\!\perp M|A\)</span>. D and M are independent after conditioning on A, which corresponds to the second DAG.</p>
-<p><img src="epi_curious_files/figure-html/dag%205.3-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%205.3-1.png" width="672" /></p>
 <p>Note that this does not mean that there is no value in knowing marriage rate. Consistent with the earlier DAG, if you didn’t have access to age-at-marriage data, then you’d definitely find value in knowing the marriage rate. M is predictive but not causal. Assuming there are no other causal variables missing from the model, this implies there is no important direct causal path from marriage rate to divorce rate. The association between marriage rate and divorce rate is spurious, caused by the influence of age of marriage on both marriage rate and divorce rate.</p>
 <p><strong>EXAMPLE 2</strong></p>
 <p>We’re interested in the total causal effect of the number of Waffle Houses on divorce rate in each State. Presumably, the naive correlation between these two variables is spurious. What is the minimal adjustment set that will block backdoor paths from Waffle House to divorce?</p>
 <p>Let’s make a graph:</p>
-<p><img src="epi_curious_files/figure-html/waffle%20dag-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/waffle%20dag-1.png" width="672" /></p>
 <pre><code>## { A, M }
 ## { S }</code></pre>
-<p><img src="epi_curious_files/figure-html/waffle%20dag-2.png" width="672" /></p>
+<p><img src="index_files/figure-html/waffle%20dag-2.png" width="672" /></p>
 <p>We could control for either A and M or for S alone. This DAG is obviously not satisfactory—it assumes there are no unobserved confounds, which is very unlikely for this sort of data. But we can still learn something by analyzing it. While the data cannot tell us whether a graph is correct, it can sometimes suggest how a graph is wrong.</p>
 <p>Inspecting implied conditional independencies, we can at least test some of the features of a graph.</p>
 <pre class="r"><code> impliedConditionalIndependencies( dag6 )</code></pre>
@@ -2087,9 +2064,9 @@ dd &lt;-
   # re-scale variables
   mutate(log_gdp_std = log_gdp / mean(log_gdp), 
          rugged_std  = rugged / max(rugged))</code></pre>
-<p><img src="epi_curious_files/figure-html/africa%20plot-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/africa%20plot-1.png" width="672" /></p>
 <p>If this relationship is at all causal, it may be because rugged regions of Africa were pro- tected against the Atlantic and Indian Ocean slave trades. Slavers preferred to raid easily accessed settlements, with easy routes to the sea. Those regions that suffered under the slave trade understandably continue to suffer economically, long after the decline of slave-trading markets. However, an outcome like GDP has many influences, and is furthermore a strange measure of economic activity. And ruggedness is correlated with other geographic features, like coastlines, that also influence the economy. So it is hard to be sure what’s going on here.</p>
-<p>The causal hypothesis, in DAG form, might be (where R is terrain ruggedness, G is GDP, C is continent): <img src="epi_curious_files/figure-html/dag2%20africa-1.png" width="672" /> R and C both influence G. This could mean that they are independent influences or rather that they interact (one moderates the influence of the other). The DAG does not display an interaction. That’s because DAGs do not specify how variables combine to influence other variables. The DAG above implies only that there is some function that uses R and C to generate G. In typical notation, G = f(R, C).</p>
+<p>The causal hypothesis, in DAG form, might be (where R is terrain ruggedness, G is GDP, C is continent): <img src="index_files/figure-html/dag2%20africa-1.png" width="672" /> R and C both influence G. This could mean that they are independent influences or rather that they interact (one moderates the influence of the other). The DAG does not display an interaction. That’s because DAGs do not specify how variables combine to influence other variables. The DAG above implies only that there is some function that uses R and C to generate G. In typical notation, G = f(R, C).</p>
 <p>So we need a statistical approach to judge different propositions for f(R, C).</p>
 <p>So we need a statistical approach to judge different propositions for f(R, C). How do we make a model that produces the conditionality in Figure 8.2? We could cheat by splitting the data into two data frames, one for Africa and one for all the other continents. But it’s not a good idea to split the data in this way. Here are four reasons:</p>
 <ol style="list-style-type: decimal">
@@ -2119,7 +2096,7 @@ dd &lt;-
 ## a     1.000000079 0.010412512  0.98335887 1.01664128
 ## b     0.002001904 0.054796238 -0.08557307 0.08957688
 ## sigma 0.136504552 0.007397121  0.12468252 0.14832658</code></pre>
-<p><img src="epi_curious_files/figure-html/m8.1%20plot-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/m8.1%20plot-1.png" width="672" /></p>
 <p>Really no overall association between terrain ruggedness and log GDP.</p>
 <p>Next we’ll see how to split apart the continents.</p>
 <ol start="2" style="list-style-type: decimal">
@@ -2204,7 +2181,7 @@ shade( mu_ci , rugged_seq , col=col.alpha(rangi2,0.3) )
 
 
 mtext(&quot;African nations&quot;)</code></pre>
-<p><img src="epi_curious_files/figure-html/plot%208.14-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/plot%208.14-1.png" width="672" /></p>
 <pre class="r"><code># plot non-Africa - cid=2
 d.A0 &lt;- dd[ dd$cid==2 , ]
 plot( d.A0$rugged_std , d.A0$log_gdp_std , pch=1 , col=&quot;black&quot; ,
@@ -2216,22 +2193,22 @@ mu_ci &lt;- apply( mu , 2 , PI , prob=0.97 )
 lines( rugged_seq , mu_mean , lwd=2 )
 shade( mu_ci , rugged_seq )
 mtext(&quot;Non-African nations&quot;)</code></pre>
-<p><img src="epi_curious_files/figure-html/plot%208.14-2.png" width="672" /></p>
+<p><img src="index_files/figure-html/plot%208.14-2.png" width="672" /></p>
 </div>
 </div>
 <div id="collider" class="section level2">
 <h2>COLLIDER</h2>
-<p><img src="epi_curious_files/figure-html/collider-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/collider-1.png" width="672" /></p>
 <p>The core concept is easy to understand: When you condition on a collider, it creates statistical—but not necessarily causal— associations among its causes.</p>
 <p>Collider bias arises from conditioning on a common consequence. If we can just get our graph sorted, we can avoid it. But it isn’t always so easy to see a potential collider, because there may be unmeasured causes. Unmeasured causes can still induce collider bias. So I’m sorry to say that we also have to consider the possibility that our DAG may be haunted.</p>
 <div id="children-and-education-example-from-mcelreath2020" class="section level3">
 <h3>children and education example from <span class="citation">@mcelreath2020</span></h3>
 <p>We want to infer the direct influence of both parents (P) and grandparents (G) on the educational achievement of children (C). Since grandparents also presumably influence their own children’s education, there is an arrow G → P. This sounds pretty easy, so far. It’s similar in structure to our divorce rate example from last chapter:</p>
-<p><img src="epi_curious_files/figure-html/collider%202-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/collider%202-1.png" width="672" /></p>
 <p>But suppose there are unmeasured, common influences on parents and their children, such as neighborhoods, that are not shared by grandparents (who live on the south coast of Spain now). Then our DAG becomes haunted by the unobserved U:</p>
-<p><img src="epi_curious_files/figure-html/collider%203-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/collider%203-1.png" width="672" /></p>
 <p>Now P is a common consequence of G and U, so if we condition on P, it will bias inference about G → C, even if we never get to measure U. I don’t expect that fact to be immediately obvious. So let’s crawl through a quantitative example.</p>
-<p><img src="epi_curious_files/figure-html/dag%20collider%20control-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dag%20collider%20control-1.png" width="672" /></p>
 <p>First, let’s simulate 200 triads of grandparents, parents, and children. This simulation will be simple. We’ll just project our DAG as a series of implied functional relationships. The DAG above implies that:</p>
 <ol style="list-style-type: decimal">
 <li><p>P is some function of G and U</p></li>
@@ -2334,13 +2311,13 @@ precis(m6.1)</code></pre>
 ## br    1.7836774 2.53125061 -2.2617500 5.8291047
 ## sigma 0.6171026 0.04343427  0.5476862 0.6865189</code></pre>
 <pre class="r"><code>plot(precis(m6.1))</code></pre>
-<p><img src="epi_curious_files/figure-html/6.2-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/6.2-1.png" width="672" /></p>
 <p>Those posterior means and standard deviations look crazy. Both legs have almost identical lengths, and height is so strongly associated with leg length, then why is this posterior distribution so weird? Did the posterior approximation work correctly?</p>
 <p>The posterior distribution here is the right answer to the question we asked. The problem is the question. Recall that a multiple linear regression answers the question: What is the value of knowing each predictor, after already knowing all of the other predictors? So in this case, the question becomes: What is the value of knowing each leg’s length, after already knowing the other leg’s length?</p>
 <p>The answer to this weird question is equally weird, but perfectly logical. The posterior distribution is the answer to this question, considering every possible combination of the parameters and assigning relative plausibilities to every combination, conditional on this model and these data. It might help to look at the joint posterior distribution for bl and br. The posterior distribution for these two parameters is very highly correlated, with all of the plausible values of bl and br lying along a narrow ridge. When bl is large, then br must be small. What has happened here is that since both leg variables contain almost exactly the same information, if you insist on including both in a model, then there will be a practically infinite number of combinations of bl and br that produce the same predictions.</p>
 <pre class="r"><code>post &lt;- extract.samples(m6.1)
 plot( bl ~ br , post , col=col.alpha(rangi2,0.1) , pch=16 )</code></pre>
-<p><img src="epi_curious_files/figure-html/leg%20post-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/leg%20post-1.png" width="672" /></p>
 <p>One way to think of this phenomenon is that you have approximated this model:</p>
 <p><span class="math inline">\(height \sim N(\mu_i, \sigma)\)</span></p>
 <p><span class="math inline">\(\mu_i = \alpha_{0} + \beta_{1} x_{i}+ \beta_{2} x_{i}\)</span></p>
@@ -2350,7 +2327,7 @@ plot( bl ~ br , post , col=col.alpha(rangi2,0.1) , pch=16 )</code></pre>
 <p>And the posterior distribution in this simulated example has done exactly that: It has produced a good estimate of the sum of bl and br. Here’s how you can compute the posterior distribution of their sum, and then plot it:</p>
 <pre class="r"><code>sum_blbr &lt;- post$bl + post$br
 dens( sum_blbr , col=rangi2 , lwd=2 , xlab=&quot;sum of bl and br&quot; )</code></pre>
-<p><img src="epi_curious_files/figure-html/leg%20sum-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/leg%20sum-1.png" width="672" /></p>
 <p>The posterior mean is in the right neighborhood, a little over 2, and the standard deviation is much smaller than it is for either component of the sum, bl or br. If you fit a regression with only one of the leg length variables, you’ll get approximately the same posterior mean:</p>
 <pre class="r"><code>m6.2 &lt;- quap( alist(
 height ~ dnorm( mu , sigma ) , mu &lt;- a + bl*leg_left,
@@ -2428,7 +2405,7 @@ precis( m6.5 )</code></pre>
 <p>Now the posterior means of both bF and bL are closer to zero. And the standard deviations for both parameters are twice as large as in the bivariate models (m6.3 and m6.4).</p>
 <p>This is the same statistical phenomenon as in the leg length example. What has happened is that the variables perc.fat and perc.lactose contain much of the same information. They are almost substitutes for one another. As a result, when you include both in a regression, the posterior distribution ends up describing a long ridge of combinations of bF and bL that are equally plausible. In the case of the fat and lactose, these two variables form essentially a single axis of variation. The easiest way to see this is to use a pairs plot:</p>
 <pre class="r"><code> pairs( ~ kcal.per.g + perc.fat + perc.lactose , data=d , col=rangi2 )</code></pre>
-<p><img src="epi_curious_files/figure-html/milk%20pairs-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/milk%20pairs-1.png" width="672" /></p>
 <p>Percent fat is positively correlated with the outcome, while percent lactose is negatively correlated with it.</p>
 <p>Now look at the right-most scatterplot in the middle row. This plot is the scatter of percent fat (vertical) against percent lactose (horizontal). Notice that the points line up almost entirely along a straight line. These two variables are negatively correlated, and so strongly so that they are nearly redundant. Either helps in predicting kcal.per.g, but neither helps as much <em>once you already know the other</em>.</p>
 </div>
@@ -2454,7 +2431,7 @@ precis( m6.5 )</code></pre>
 <li><p>use VIF = variance inflation. If it’s &gt;10 it’s a sign of collinearity.</p></li>
 </ul>
 <p>What is likely going on in the milk example is that there is a core tradeoff in milk composition that mammal mothers must obey. If a species nurses often, then the milk tends to be watery and low in energy. Such milk is high in sugar (lactose). If instead a species nurses rarely, in short bouts, then the milk needs to be higher in energy. Such milk is very high in fat. This implies a causal model something like this:</p>
-<p><img src="epi_curious_files/figure-html/milk%20dag-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/milk%20dag-1.png" width="672" /></p>
 <p>The central tradeoff decides how dense, D, the milk needs to be. We haven’t observed this variable, so it’s shown circled. Then fat, F, and lactose, L, are determined. Finally, the com- position of F and L determines the kilocalories, K. If we could <strong>measure D</strong>, or had an evolutionary and economic model to predict it based upon other aspects of a species, that would be better than stumbling through regressions.</p>
 <p>In general, there’s no guarantee that the available data contain much information about a parameter of interest. When that’s true, your Bayesian machine will return a posterior distribution very similar to the prior. <strong>Comparing the posterior to the prior can therefore be a good idea</strong>, a way of seeing how much information the model extracted from the data. When the posterior and prior are similar, it doesn’t mean the calculations are wrong—you got the right answer to the question you asked. But it might lead you to ask a better question.</p>
 </div>
@@ -2869,7 +2846,7 @@ precis( m6.5 )</code></pre>
 <p><strong>inverse-logit</strong>: it inverts the logit transform to figure out the definition of pi implied here: <span class="math inline">\(p_i = e^{(\alpha +\beta x_i)} / 1 + e^{(\alpha +\beta x_i)}\)</span></p>
 <p>x → −∞ then inverse logit (x) → 0</p>
 <p>x → + ∞ then inverse logit (x) → 1</p>
-<p><img src="epi_curious_files/figure-html/logit%20lik-1.png" width="672" /> "What all of this means is that when you use a logit link for a parameter, you are defining the parameter’s value to be the logistic transform of the linear model. On the left, the geometry of the linear model is shown, with horizontal lines indicating unit changes in the value of the linear model as the value of a predictor x changes. This is the log-odds space, which extends continuously in both positive and negative directions. On the right, the linear space is trans- formed and is now constrained entirely between zero and one. The horizontal lines have been compressed near the boundaries, in order to make the linear space fit within the probability space. This compression produces the characteristic logistic shape of the transformed linear model shown in the right-hand plot.</p>
+<p><img src="index_files/figure-html/logit%20lik-1.png" width="672" /> "What all of this means is that when you use a logit link for a parameter, you are defining the parameter’s value to be the logistic transform of the linear model. On the left, the geometry of the linear model is shown, with horizontal lines indicating unit changes in the value of the linear model as the value of a predictor x changes. This is the log-odds space, which extends continuously in both positive and negative directions. On the right, the linear space is trans- formed and is now constrained entirely between zero and one. The horizontal lines have been compressed near the boundaries, in order to make the linear space fit within the probability space. This compression produces the characteristic logistic shape of the transformed linear model shown in the right-hand plot.</p>
 <p>No longer does a unit change in a predictor variable produce a constant change in the mean of the outcome variable. Instead, a unit change in xi may produce a larger or smaller change in the probability pi, depending upon how far from zero the log-odds are. For example, in the figure, when x = 0 the linear model has a value of zero on the log-odds scale. A half- unit increase in x results in about a 0.25 increase in probability. But each addition half-unit will produce less and less of an increase in probability, until any increase is vanishingly small. The key lesson for now is just that no regression coefficient, such as β, from a GLM ever produces a constant change on the outcome scale." <span class="citation">@mcelreath2020</span></p>
 </div>
 <div id="assumptions-1" class="section level3">
@@ -3224,7 +3201,7 @@ ggplot(mydata, aes(logit, predictor.value))+
   geom_smooth(method = &quot;loess&quot;) + 
   theme_bw() + 
   facet_wrap(~predictors, scales = &quot;free_y&quot;)</code></pre>
-<p><img src="epi_curious_files/figure-html/diabetes%20linearity-1.png" width="672" /> The smoothed scatter plots show that variables glucose, mass, pregnant, pressure and triceps are all quite linearly associated with the diabetes outcome in logit scale.</p>
+<p><img src="index_files/figure-html/diabetes%20linearity-1.png" width="672" /> The smoothed scatter plots show that variables glucose, mass, pregnant, pressure and triceps are all quite linearly associated with the diabetes outcome in logit scale.</p>
 <p>The variable age and pedigree is not linear and might need some transformations. If the scatter plot shows non-linearity, you need other methods to build the model such as including 2 or 3-power terms, fractional polynomials and spline function (Chapter <span class="citation">@ref</span>(polynomial-and-spline-regression)).</p>
 <ul>
 <li><strong>INFLUENTIAL VALUES</strong></li>
@@ -3274,19 +3251,19 @@ hoslem.test(mod2.glm$y,fitted(mod2.glm))</code></pre>
 <li><strong>plot dfitts vs. fitted values</strong></li>
 </ul>
 <pre class="r"><code>plot(dffits(mod2.glm))</code></pre>
-<p><img src="epi_curious_files/figure-html/dfitts%20vs%20fit-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dfitts%20vs%20fit-1.png" width="672" /></p>
 <pre class="r"><code>which(dffits(mod2.glm)&gt;0.3)</code></pre>
 <pre><code>##  16  22  65 117 200 266 276 293 349 378 544 548 587 
 ##  16  22  65 117 200 266 276 293 349 378 544 548 587</code></pre>
 <pre class="r"><code>plot(predict(mod2.glm), dffits(mod2.glm))</code></pre>
-<p><img src="epi_curious_files/figure-html/dfitts%20vs%20fit-2.png" width="672" /></p>
+<p><img src="index_files/figure-html/dfitts%20vs%20fit-2.png" width="672" /></p>
 <ul>
 <li><strong>plot dfbetas vs. fitted values</strong> for each quantitative variable</li>
 </ul>
 <p><em>intercept</em></p>
 <p>there are 6 points of high influence for the intercept. Omission will increase the intercept.</p>
 <pre class="r"><code>plot(dfbeta(mod2.glm)[,1])</code></pre>
-<p><img src="epi_curious_files/figure-html/dfbeta%20%20intercept-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dfbeta%20%20intercept-1.png" width="672" /></p>
 <pre class="r"><code>evans[order(dfbeta(mod2.glm)[,1])[1:6],]</code></pre>
 <pre><code>##        ID CHD CAT AGE CHL SMK ECG DBP SBP HPT CH  CC
 ## 117  2891   1   1  56 331   1   0 110 190   1  1 331
@@ -3297,7 +3274,7 @@ hoslem.test(mod2.glm$y,fitted(mod2.glm))</code></pre>
 ## 351 11361   1   1  76 279   1   0  96 136   1  1 279</code></pre>
 <p><em>CAT</em></p>
 <pre class="r"><code>plot(dfbeta(mod2.glm)[,2])</code></pre>
-<p><img src="epi_curious_files/figure-html/dfbeta%20%20cat-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dfbeta%20%20cat-1.png" width="672" /></p>
 <pre class="r"><code>evans[order(dfbeta(mod2.glm)[,2])[1:6],]</code></pre>
 <pre><code>##        ID CHD CAT AGE CHL SMK ECG DBP SBP HPT CH CC
 ## 196  5071   1   0  63 145   1   0  96 162   1  0  0
@@ -3353,7 +3330,7 @@ hoslem.test(mod2.glm$y,fitted(mod2.glm))</code></pre>
 <p><strong>inverse link</strong>: exponentiate to solve for <span class="math inline">\(\theta_i\)</span>: <span class="math inline">\(\theta_i=e^{\beta_0 +\beta_ix_i}\)</span></p>
 <pre><code>## Warning: Removed 1 rows containing missing values (geom_hline).</code></pre>
 <pre><code>## Warning: Removed 6 row(s) containing missing values (geom_path).</code></pre>
-<p><img src="epi_curious_files/figure-html/log%20link-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/log%20link-1.png" width="672" /></p>
 <p>Using a log link for a linear model (left) implies an exponential scaling of the outcome with the predictor variable (right). Another way to think of this relationship is to remember that logarithms are magnitudes. An increase of one unit on the log scale means an increase of an order of magnitude on the untransformed scale. And this fact is reflected in the widening intervals between the horizontal lines in the right-hand plot. While using a log link does solve the problem of constraining the parameter to be positive, it may also create a problem when the model is asked to predict well outside the range of data used to fit it. Exponential relationships grow, well, exponentially. Just like a linear model cannot be linear forever, an exponential model cannot be exponential forever. Human height cannot be linearly related to weight forever, because very heavy people stop getting taller and start getting wider. Likewise, the property damage caused by a hurricane may be approximately exponentially related to wind speed for smaller storms. But for very big storms, damage may be capped by the fact that everything gets destroyed.</p>
 </div>
 <div id="assumptions-2" class="section level3">
@@ -3391,7 +3368,7 @@ hoslem.test(mod2.glm$y,fitted(mod2.glm))</code></pre>
 data &lt;- warpbreaks
 
 hist(data$breaks)</code></pre>
-<p><img src="epi_curious_files/figure-html/poisson%20example%20data-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/poisson%20example%20data-1.png" width="672" /></p>
 <pre class="r"><code>poisson.model &lt;- glm(breaks ~ wool + tension, data, family = poisson(link = &quot;log&quot;))
 
 summary(poisson.model)</code></pre>
@@ -3466,7 +3443,7 @@ summary(eba.glm)</code></pre>
 <pre class="r"><code>plot(fitted(eba.glm),residuals(eba.glm,type=&quot;response&quot;),ylim=c(-7,7)) 
 lines(fitted(eba.glm),2*sqrt(fitted(eba.glm))) 
 lines(fitted(eba.glm),-2*sqrt(fitted(eba.glm)))</code></pre>
-<p><img src="epi_curious_files/figure-html/poisson%20res%20plot-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/poisson%20res%20plot-1.png" width="672" /></p>
 <ul>
 <li><strong>INFLUENTIAL VALUES</strong></li>
 </ul>
@@ -3488,7 +3465,7 @@ lines(fitted(eba.glm),-2*sqrt(fitted(eba.glm)))</code></pre>
 <p><span class="math inline">\(y_i- \hat{y_i}\)</span> &lt; 0 when y= 0 (controls)</p>
 <p>outliers are values that make the estimate change most when they are removed. Example dfitts &gt; 0.3 causes a &gt;0.3 change in the etimated probablity.</p>
 <pre class="r"><code>plot(dffits(eba.glm))</code></pre>
-<p><img src="epi_curious_files/figure-html/dfitts%20vs%20fit%20eba%20poisson-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/dfitts%20vs%20fit%20eba%20poisson-1.png" width="672" /></p>
 <pre class="r"><code>which(dffits(eba.glm)&lt; -0.2)</code></pre>
 <pre><code>##  3  4  6 11 13 14 20 22 
 ##  3  4  6 11 13 14 20 22</code></pre>
@@ -3496,7 +3473,7 @@ lines(fitted(eba.glm),-2*sqrt(fitted(eba.glm)))</code></pre>
 <pre><code>##       city age pop cases
 ## 22 Horsens 75+ 782     2</code></pre>
 <pre class="r"><code>plot(predict(eba.glm), dffits(eba.glm))</code></pre>
-<p><img src="epi_curious_files/figure-html/dfitts%20vs%20fit%20eba%20poisson-2.png" width="672" /></p>
+<p><img src="index_files/figure-html/dfitts%20vs%20fit%20eba%20poisson-2.png" width="672" /></p>
 <ul>
 <li><strong>TEST GOODNESS OF FIT</strong></li>
 </ul>
@@ -3641,7 +3618,7 @@ df.residual(eba.glm),lower=F) </code></pre>
 <h3>patterns</h3>
 <p><strong>Trend</strong> A trend exists when there is a long-term increase or decrease in the data. It does not have to be linear. Sometimes we will refer to a trend as “changing direction,” when it might go from an increasing trend to a decreasing trend.</p>
 <p><strong>Seasonal</strong> A seasonal pattern occurs when a time series is affected by seasonal factors such as the time of the year or the day of the week. Seasonality is always of a <em>fixed and known frequency</em>. The monthly sales of antidiabetic drugs above shows seasonality which is induced partly by the change in the cost of the drugs at the end of the calendar year.</p>
-<p><img src="epi_curious_files/figure-html/seasonal%20plot-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/seasonal%20plot-1.png" width="672" /></p>
 <p><strong>Cyclic</strong><em> A cycle occurs when the data exhibit rises and falls that are </em>not of a fixed frequency*. These fluctuations are usually due to economic conditions, and are often related to the “business cycle.” The duration of these fluctuations is usually at least 2 years.</p>
 </div>
 </div>
@@ -3861,7 +3838,7 @@ precis(m6.8)</code></pre>
 ## bt    0.08499494 0.03429912 0.03017831 0.1398116
 ## sigma 1.74641704 0.12193300 1.55154456 1.9412895</code></pre>
 <p>Now the impact of treatment is clearly positive, as it should be. It makes sense to control for pre-treatment differences, like the initial height h0, that might mask the causal influence of treatment. But including post-treatment variables can actually mask the treatment itself. This doesn’t mean you don’t want the model that includes both treatment and fungus. The fact that including fungus zeros the coefficient for treatment suggests that the treatment works for exactly the anticipated reasons. It tells us about mechanism. But a correct inference about the treatment still depends upon omitting the post-treatment variable.</p>
-<p><img src="epi_curious_files/figure-html/fungus%20dag-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/fungus%20dag-1.png" width="672" /></p>
 <pre><code>## F _||_ H_0
 ## H_0 _||_ T
 ## H_1 _||_ T | F</code></pre>
@@ -3889,7 +3866,7 @@ compare( m6.6 , m6.7 , m6.8 , func=WAIC )</code></pre>
 <pre><code>## [1] 12.96 67.04</code></pre>
 <p>Model m6.7 is a lot better. You might be able to see all of this better, if we plot the compare table:</p>
 <pre class="r"><code> plot( compare( m6.6 , m6.7 , m6.8 ) )</code></pre>
-<p><img src="epi_curious_files/figure-html/compare%20fungus%20plots-1.png" width="672" /> The filled points are the in-sample deviance values. The open points are the WAIC values. Notice that naturally each model does better in-sample than it is expected to do out-of- sample. The line segments show the standard error of each WAIC. These are the values in the column labeled SE in the table above. So you can probably see how much better m6.7 is than m6.8. What we really want however is the standard error of the difference in WAIC between the two models. That is shown by the lighter line segment with the triangle on it, between m6.7 and m6.8.</p>
+<p><img src="index_files/figure-html/compare%20fungus%20plots-1.png" width="672" /> The filled points are the in-sample deviance values. The open points are the WAIC values. Notice that naturally each model does better in-sample than it is expected to do out-of- sample. The line segments show the standard error of each WAIC. These are the values in the column labeled SE in the table above. So you can probably see how much better m6.7 is than m6.8. What we really want however is the standard error of the difference in WAIC between the two models. That is shown by the lighter line segment with the triangle on it, between m6.7 and m6.8.</p>
 <p>What does this all of this mean? It means that WAIC cannot be used to infer causation.</p>
 <p>Similarly, we can ask about the difference between models m6.8, the model with treat- ment only, and model m6.6, the intercept model. Model m6.8 provides pretty good evidence that the treatment works. You can inspect the posterior again, if you have forgotten. But WAIC thinks these two models are quite similar. There difference is only 3 units of deviance.</p>
 <pre class="r"><code>set.seed(93)
@@ -3965,7 +3942,7 @@ precis( m13.4 , depth=2 )</code></pre>
 ## a_bar    0.56719916 0.7240903 -0.58704056  1.72022372  856.1618 1.000126
 ## sigma_a  1.98309010 0.6035389  1.18874331  3.10480024 1078.6780 1.001276
 ## sigma_g  0.20979765 0.1708190  0.03778379  0.50538341  359.1150 1.009165</code></pre>
-<p><img src="epi_curious_files/figure-html/m13.4%20plot-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/m13.4%20plot-1.png" width="672" /></p>
 <p>computing and plotting posterior predictions for actor number 2:</p>
 <ul>
 <li>using the rethinking::link function</li>
@@ -3988,16 +3965,16 @@ p_ci &lt;- apply( p , 2 , PI )</code></pre>
 <pre class="r"><code>post &lt;- extract.samples(m13.4) 
 str(post)</code></pre>
 <pre><code>## List of 6
-##  $ b      : num [1:2000, 1:4] -0.23 -0.352 -0.479 0.234 0.246 ...
-##  $ a      : num [1:2000, 1:7] -0.122 -0.541 0.18 -0.652 -1.096 ...
-##  $ g      : num [1:2000, 1:6] -0.2126 -0.2967 0.0141 -0.3858 -0.2111 ...
-##  $ a_bar  : num [1:2000(1d)] 0.29 1.327 1.167 -0.409 0.557 ...
-##  $ sigma_a: num [1:2000(1d)] 1.54 1.87 1.51 1.85 2.36 ...
-##  $ sigma_g: num [1:2000(1d)] 0.2265 0.3238 0.0472 0.3214 0.3356 ...
+##  $ b      : num [1:2000, 1:4] -0.7261 -0.4423 0.4382 0.0606 -0.1603 ...
+##  $ a      : num [1:2000, 1:7] -0.03064 0.43584 -0.36912 -0.44558 0.00558 ...
+##  $ g      : num [1:2000, 1:6] 0.0314 -0.7262 -0.2167 -0.7357 -0.4458 ...
+##  $ a_bar  : num [1:2000(1d)] 0.594 0.908 0.779 1.817 -0.249 ...
+##  $ sigma_a: num [1:2000(1d)] 1.51 1.57 1.32 1.64 2.85 ...
+##  $ sigma_g: num [1:2000(1d)] 0.0955 0.4996 0.1515 0.404 0.2786 ...
 ##  - attr(*, &quot;source&quot;)= chr &quot;ulam posterior: 2000 samples from m13.4&quot;</code></pre>
 <pre class="r"><code>#The a matrix has samples on the rows and actors on the columns. So to plot, for example, the density for actor 5:
  dens( post$a[,5] )</code></pre>
-<p><img src="epi_curious_files/figure-html/no%20link%20chimp-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/no%20link%20chimp-1.png" width="672" /></p>
 <pre class="r"><code> p_link &lt;- function( treatment , actor=1 , block_id=1 ) { 
    logodds &lt;- with( post ,
 a[,actor] + g[,block_id] + b[,treatment] ) 
@@ -4028,7 +4005,7 @@ plot( NULL , xlab=&quot;treatment&quot; , ylab=&quot;proportion pulled left&quot
 axis( 1 , at=1:4 , labels=c(&quot;R/N&quot;,&quot;L/N&quot;,&quot;R/P&quot;,&quot;L/P&quot;) )
 lines( 1:4 , p_mu )
 shade( p_ci , 1:4 )</code></pre>
-<p><img src="epi_curious_files/figure-html/predict%20new%20chimp-1.png" width="672" /> Setting the varying inter- cept a to the mean a_bar produces predictions for an average actor. These predictions ignore uncertainty arising from variation among actors.</p>
+<p><img src="index_files/figure-html/predict%20new%20chimp-1.png" width="672" /> Setting the varying inter- cept a to the mean a_bar produces predictions for an average actor. These predictions ignore uncertainty arising from variation among actors.</p>
 <p>The gray region shows the 89% compatibility interval for an actor with an average intercept. The predictions just set the actor to the average, ignoring variation among actors. This kind of calculation makes it easy to see the impact of prosoc_left, as well as uncertainty about where the average is, but it doesn’t show the variation among actors.</p>
 <p>To show the variation among actors, we’ll need to use sigma_a in the calculation. First we simply use rnorm to sample some random chimpanzees, using mean a_bar and standard deviation sigma_a. Then we write a link function that references those simulated chimpanzees, not the ones in the posterior. It’s important to do the chimpanzee sampling outside the link function, because we want to reference the same simulate chimpanzee, whichever treatment we consider. This is the code:</p>
 <pre class="r"><code>a_sim &lt;- with( post , rnorm( length(post$a_bar) , a_bar , sigma_a ) ) 
@@ -4045,7 +4022,7 @@ plot( NULL , xlab=&quot;treatment&quot; , ylab=&quot;proportion pulled left&quot
 axis( 1 , at=1:4 , labels=c(&quot;R/N&quot;,&quot;L/N&quot;,&quot;R/P&quot;,&quot;L/P&quot;) )
 lines( 1:4 , p_mu )
 shade( p_ci , 1:4 )</code></pre>
-<p><img src="epi_curious_files/figure-html/sim%20new%20chimp-1.png" width="672" /> Simulating varying intercepts using the posterior standard deviation among actors, sigma_a, produces predictions that account for variation among actors. These posterior predictions are marginal of actor, which means that they average over the uncertainty among actors.</p>
+<p><img src="index_files/figure-html/sim%20new%20chimp-1.png" width="672" /> Simulating varying intercepts using the posterior standard deviation among actors, sigma_a, produces predictions that account for variation among actors. These posterior predictions are marginal of actor, which means that they average over the uncertainty among actors.</p>
 <p>At this point, students usually ask, “So which one should I use?” The answer is, “It depends.” Both are useful, depending upon the question. The predictions for an average actor help to visualize the impact of treatment. The predictions that are marginal of actor illustrate how variable different chimpanzees are, according to the model. You probably want to compute both for yourself, when trying to understand a model. But which you include in a report will depend upon context.</p>
 <p>In this case, we can do better by making a plot that displays both the treatment effect and the variation among actors. We can do this by forgetting about intervals and instead simulating a series of new actors in each of the four treatments. By drawing a line for each actor across all four treatments, we’ll be able to visualize both the zig-zag impact of prosoc_left as well as the variation among individuals.</p>
 <p>We just need to use the rows in p_raw_asim from above. Each row contains a single trend, a single simulated chimpanzee. So instead of sum- marizing with mean and PI, we can just loop over rows and plot:</p>
@@ -4053,7 +4030,7 @@ shade( p_ci , 1:4 )</code></pre>
     ylim=c(0,1) , xaxt=&quot;n&quot; , xlim=c(1,4) )
 axis( 1 , at=1:4 , labels=c(&quot;R/N&quot;,&quot;L/N&quot;,&quot;R/P&quot;,&quot;L/P&quot;) )
 for ( i in 1:100 ) lines( 1:4 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )</code></pre>
-<p><img src="epi_curious_files/figure-html/plot%20each%20sim%20chimp-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/plot%20each%20sim%20chimp-1.png" width="672" /></p>
 <p>100 simulated actors with unique intercepts sampled from the posterior. Each simulation maintains the same parameter values across all four treatments.</p>
 </div>
 <div id="forecasting-accuracy" class="section level3">
@@ -4121,7 +4098,7 @@ autoplot(window(ausbeer, start=1992)) +
   xlab(&quot;Year&quot;) + ylab(&quot;Megalitres&quot;) +
   ggtitle(&quot;Forecasts for quarterly beer production&quot;) +
   guides(colour=guide_legend(title=&quot;Forecast&quot;))</code></pre>
-<p><img src="epi_curious_files/figure-html/aus%20beer%20forecasting-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/aus%20beer%20forecasting-1.png" width="672" /></p>
 <p>The figure shows three forecast methods applied to the quarterly Australian beer production using data only to the end of 2007. The actual values for the period 2008–2010 are also shown.</p>
 <p>We compute the forecast accuracy measures for this period.</p>
 <pre class="r"><code>beer3 &lt;- window(ausbeer, start=2008)
